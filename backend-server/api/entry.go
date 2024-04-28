@@ -1,0 +1,83 @@
+package api
+
+import (
+	"net/http"
+
+	"bytetrade.io/web3os/backend-server/common"
+	"bytetrade.io/web3os/backend-server/crawler"
+	"bytetrade.io/web3os/backend-server/http/request"
+	"bytetrade.io/web3os/backend-server/http/response/json"
+	"bytetrade.io/web3os/backend-server/model"
+	"bytetrade.io/web3os/backend-server/service/search"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.uber.org/zap"
+)
+
+func (h *handler) fetchContent(w http.ResponseWriter, r *http.Request) {
+	entryID := request.RouteStringParam(r, "entryID")
+
+	entry, err := h.store.GetEntryById(entryID)
+	if err != nil {
+		common.Logger.Error("load entry error", zap.String("entryID", entryID), zap.Error(err))
+	}
+	if entry == nil {
+		common.Logger.Error("load entry error entry is nil", zap.String("feedId", entryID))
+		json.OK(w, r, "")
+		return
+	}
+	if entry.FullContent == "" {
+		entry.FullContent = h.newFetchContent(entry)
+	}
+	json.OK(w, r, entry.FullContent)
+
+}
+
+func (h *handler) newFetchContent(entry *model.Entry) string {
+	feed, _ := h.store.GetFeedById(entry.FeedID)
+	crawler.EntryCrawler(entry, feed) //entry.ID.Hex(), entry.URL, entry.Title, entry.ImageUrl, entry.Author, entry.PublishedAt, feed)
+
+	var feedSearchRSSList []model.FeedNotification
+	if feed.ID != primitive.NilObjectID {
+		feedNotification := model.FeedNotification{
+			FeedId:   feed.ID.Hex(),
+			FeedName: feed.Title,
+			FeedIcon: "",
+		}
+		feedSearchRSSList = append(feedSearchRSSList, feedNotification)
+	}
+	notificationData := model.NotificationData{
+		Name:      entry.Title,
+		EntryId:   entry.ID.Hex(),
+		Created:   entry.PublishedAt,
+		FeedInfos: feedSearchRSSList,
+		Content:   entry.FullContent,
+	}
+	docId := search.InputRSS(&notificationData)
+	updateDocIDEntry := &model.Entry{ID: entry.ID, DocId: docId, Language: entry.Language, Author: entry.Author, RawContent: entry.RawContent, FullContent: entry.FullContent}
+	h.store.UpdateEntryDocID(updateDocIDEntry)
+
+	return entry.FullContent
+}
+
+func (h *handler) knowledgeFetchContent(w http.ResponseWriter, r *http.Request) {
+	entryID := request.RouteStringParam(r, "entryID")
+
+	common.Logger.Error("knowledge fetch  entry content", zap.String("entryID", entryID))
+	entry, err := h.store.GetEntryById(entryID)
+	if err != nil {
+		common.Logger.Error("load entry error", zap.String("entryID", entryID), zap.Error(err))
+	}
+	if entry == nil {
+		common.Logger.Error("load entry error entry is nil", zap.String("feedId", entryID))
+		json.OK(w, r, "")
+		return
+	}
+	common.Logger.Error("knowledge fetch  entry content", zap.Int("full content:", len(entry.FullContent)))
+	if entry.FullContent == "" {
+		go func() {
+			h.newFetchContent(entry)
+		}()
+	}
+	json.NoContent(w, r)
+
+}
