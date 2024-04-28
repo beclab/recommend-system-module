@@ -1,0 +1,15 @@
+FROM golang:alpine AS build
+
+RUN mkdir /syncBuild
+COPY system-workflow  /syncBuild/system-workflow
+
+WORKDIR /syncBuild/system-workflow
+RUN go mod download
+
+
+RUN cd /syncBuild/system-workflow/sync/ && \
+    go build -o sync_cmd  -ldflags="-s -w " main.go 
+
+FROM alpine:latest
+COPY --from=build /syncBuild/system-workflow/sync/sync_cmd /usr/bin/sync_cmd
+ENTRYPOINT ["/usr/bin/sync_cmd"]

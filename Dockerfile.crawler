@@ -1,0 +1,16 @@
+FROM golang:alpine AS build
+
+RUN mkdir /crawlerBuild
+COPY system-workflow  /crawlerBuild/system-workflow
+
+WORKDIR /crawlerBuild/system-workflow
+RUN go mod download
+
+
+RUN cd /crawlerBuild/system-workflow/crawler/ && \
+    go build -o crawler_cmd  -ldflags="-s -w " main.go 
+
+FROM alpine:latest
+COPY --from=build /crawlerBuild/system-workflow/crawler/crawler_cmd /usr/bin/crawler_cmd
+
+ENTRYPOINT ["/usr/bin/crawler_cmd"]

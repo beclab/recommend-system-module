@@ -1,0 +1,15 @@
+FROM golang:alpine AS build
+WORKDIR /go/src/app
+COPY argo_task   /go/src/app
+
+
+RUN go build \
+    -o argotask \
+    -ldflags="-s -w " \
+    main.go
+
+FROM alpine:latest
+
+COPY --from=build /go/src/app/argotask /usr/bin/argotask
+
+CMD ["/usr/bin/argotask"]
