@@ -32,6 +32,7 @@ func addFeedInMongo(sources []string, feedMap map[string]*protobuf_entity.Feed) 
 			if len(addList) >= 100 {
 				api.AddFeedInMongo(source, addList)
 				addList = make([]*model.FeedAddModel, 0)
+				time.Sleep(time.Second * 1)
 			}
 		}
 		api.AddFeedInMongo(source, addList)
@@ -340,7 +341,6 @@ func main() {
 	startTimestamp := int64(time.Now().UTC().Unix())
 
 	providerList := make(map[string]*model.SyncProvider, 0)
-	//url := "http://recommend-service.os-system:6755/recommend-service/v1/status/recommenddev/" + common.GetTermiusUserName()
 	url := "http://app-service.os-system:6755/app-service/v1/recommenddev/" + common.GetTermiusUserName() + "/status"
 	client := &http.Client{Timeout: time.Second * 5}
 	//res, err := http.Get(url)
