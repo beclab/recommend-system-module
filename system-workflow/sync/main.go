@@ -32,7 +32,7 @@ func addFeedInMongo(sources []string, feedMap map[string]*protobuf_entity.Feed) 
 			if len(addList) >= 100 {
 				api.AddFeedInMongo(source, addList)
 				addList = make([]*model.FeedAddModel, 0)
-				time.Sleep(time.Second * 1)
+				//time.Sleep(time.Second * 1)
 			}
 		}
 		api.AddFeedInMongo(source, addList)
