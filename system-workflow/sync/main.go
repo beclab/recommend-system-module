@@ -319,6 +319,21 @@ func syncEntry(redisClient *redis.Client, provider *model.SyncProvider) {
 	}
 
 }
+
+func checkExistAlgorithmInFirstRun(resp model.RecommendServiceResponseModel) (bool, string) {
+	for _, argo := range resp.Data {
+		source := argo.Metadata.Name
+		lastExtractorTimeStr, _ := api.GetRedisConfig(source, "last_extractor_time").(string)
+		if lastExtractorTimeStr == "" {
+			lastSyncTimeStr, _ := api.GetRedisConfig(source, "last_sync_time").(string)
+			if lastSyncTimeStr != "" {
+				return true, source
+			}
+		}
+	}
+	return false, ""
+
+}
 func main() {
 	common.Logger.Info("package sync  start...")
 
@@ -344,13 +359,20 @@ func main() {
 		common.Logger.Error("json decode failed ", zap.String("url", url), zap.Error(err))
 		return
 	}
+	inFirstRun, runSource := checkExistAlgorithmInFirstRun(response)
 	for _, argo := range response.Data {
+		source := argo.Metadata.Name
+		lastSyncTimeStr, _ := api.GetRedisConfig(source, "last_sync_time").(string)
+		if inFirstRun && lastSyncTimeStr == "" {
+			common.Logger.Info("source not sync because exist algorithm fist num: ", zap.String("run source:", runSource), zap.String("skip source:", source))
+			continue
+		}
 		for _, provider := range argo.SyncProvider {
 			key := provider.Provider + provider.FeedName
 			p, exist := providerList[key]
 			if exist {
-				if !common.IsInStringArray(p.Source, argo.Metadata.Name) {
-					p.Source = append(p.Source, argo.Metadata.Name)
+				if !common.IsInStringArray(p.Source, source) {
+					p.Source = append(p.Source, source)
 				}
 				if p.EntrySyncDate < provider.EntryProvider.SyncDate {
 					p.EntrySyncDate = provider.EntryProvider.SyncDate
@@ -358,7 +380,7 @@ func main() {
 			} else {
 				var providerSetting model.SyncProvider
 				sourceArr := make([]string, 0)
-				sourceArr = append(sourceArr, argo.Metadata.Name)
+				sourceArr = append(sourceArr, source)
 				providerSetting.Source = sourceArr
 				providerSetting.FeedName = provider.FeedName
 				providerSetting.Provider = provider.Provider
@@ -367,6 +389,10 @@ func main() {
 				providerSetting.EntryUrl = provider.EntryProvider.Url
 				providerList[key] = &providerSetting
 			}
+		}
+		if !inFirstRun && lastSyncTimeStr == "" {
+			inFirstRun = true
+			runSource = source
 		}
 	}
 
