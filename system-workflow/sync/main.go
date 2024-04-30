@@ -364,7 +364,7 @@ func main() {
 		source := argo.Metadata.Name
 		lastSyncTimeStr, _ := api.GetRedisConfig(source, "last_sync_time").(string)
 		if inFirstRun && lastSyncTimeStr == "" {
-			common.Logger.Info("source not sync because exist algorithm fist num: ", zap.String("run source:", runSource), zap.String("skip source:", source))
+			common.Logger.Info("source not sync because exist algorithm in first run : ", zap.String("run source:", runSource), zap.String("skip source:", source))
 			continue
 		}
 		for _, provider := range argo.SyncProvider {

@@ -117,7 +117,6 @@ func UpdateEntriesInMongo(addList []*model.EntryAddModel) {
 
 func GetRedisConfig(provider, key string) interface{} {
 	url := common.RedisConfigApiUrl() + provider + "/" + key
-	common.Logger.Info("get redis config", zap.String("url", url))
 	res, err := http.Get(url)
 	if err != nil {
 		common.Logger.Error("get redis config  fail", zap.Error(err))
@@ -135,7 +134,7 @@ func GetRedisConfig(provider, key string) interface{} {
 		log.Print("json decode failed, err", err)
 		return ""
 	}
-
+	common.Logger.Info("get redis config", zap.String("url", url), zap.String("val", resObj.Data.(string)))
 	return resObj.Data
 }
 
