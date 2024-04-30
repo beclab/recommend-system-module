@@ -325,13 +325,8 @@ func checkExistAlgorithmInFirstRun(resp model.RecommendServiceResponseModel) (bo
 	for _, argo := range resp.Data {
 		source := argo.Metadata.Name
 		lastExtractorTimeStr, _ := api.GetRedisConfig(source, "last_extractor_time").(string)
-		common.Logger.Info("get last_extractor_time redis config", zap.String("source:", source), zap.String("extractor:", lastExtractorTimeStr))
 		if lastExtractorTimeStr == "" {
-			lastSyncTimeStr, _ := api.GetRedisConfig(source, "last_sync_time").(string)
-			common.Logger.Info("get last_sync_time redis config", zap.String("source:", source), zap.String("sync time:", lastSyncTimeStr))
-			if lastSyncTimeStr != "" {
-				return true, source
-			}
+			return true, source
 		}
 	}
 	return false, ""
@@ -364,8 +359,8 @@ func main() {
 	inFirstRun, runSource := checkExistAlgorithmInFirstRun(response)
 	for _, argo := range response.Data {
 		source := argo.Metadata.Name
-		lastSyncTimeStr, _ := api.GetRedisConfig(source, "last_sync_time").(string)
-		if inFirstRun && lastSyncTimeStr == "" {
+		lastExtractorTimeStr, _ := api.GetRedisConfig(source, "last_extractor_time").(string)
+		if lastExtractorTimeStr == "" && inFirstRun && source != runSource {
 			common.Logger.Info("source not sync because exist algorithm in first run : ", zap.String("run source:", runSource), zap.String("skip source:", source))
 			continue
 		}
@@ -391,10 +386,6 @@ func main() {
 				providerSetting.EntryUrl = provider.EntryProvider.Url
 				providerList[key] = &providerSetting
 			}
-		}
-		if !inFirstRun && lastSyncTimeStr == "" {
-			inFirstRun = true
-			runSource = source
 		}
 	}
 
