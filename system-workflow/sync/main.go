@@ -176,7 +176,7 @@ func syncFeed(mongoClient *mongo.Client, redisClient *redis.Client, provider *mo
 		}
 		addFeedInMongo(provider.Source, packageFeeds)
 	} else {
-		_, increasePackageDataList, _ := syncFeedGetPackage(fmt.Sprintf("%s&package_type=increment&start=%d", provider.FeedUrl, 1709816400), false) //saveData.SyncStartTimestamp
+		_, increasePackageDataList, _ := syncFeedGetPackage(fmt.Sprintf("%s&package_type=increment&start=%d", provider.FeedUrl, saveData.SyncStartTimestamp), false)
 
 		for _, increasePackage := range increasePackageDataList {
 			addPackageFeeds := make(map[string]*protobuf_entity.Feed, 0)
