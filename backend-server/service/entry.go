@@ -22,11 +22,11 @@ func ProcessFeedEntries(store *storage.Storage, feed *model.Feed, entries model.
 		savedEntry := store.GetEntryByUrl(feed.ID.Hex(), entry.URL)
 
 		if savedEntry == nil {
-			//rawContent, fullContent, publishedAt := crawler.EntryCrawler(store, entry, feed) //"", entry.URL, entry.Title, entry.ImageUrl, entry.Author, entry.PublishedAtParsed.Unix(), feed)
-			//entry.RawContent = rawContent
-			//entry.FullContent = fullContent
-			//entry.PublishedAt = publishedAt
 			crawler.EntryCrawler(entry, feed)
+			if entry.PublishedAt == 0 {
+				entry.PublishedAt = entry.PublishedAtParsed.Unix()
+			}
+
 			if entry.FullContent != "" {
 				newEntries = append(newEntries, entry)
 				if len(newEntries) > 20 {

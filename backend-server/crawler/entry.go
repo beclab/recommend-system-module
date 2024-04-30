@@ -28,7 +28,7 @@ func EntryCrawler(entry *model.Entry, feed *model.Feed) {
 		if entry.Title == "" {
 			entry.Title = extractTitleByHtml(entry.RawContent)
 		}
-		fullContent, pureContent, templateDate, imageUrlFromContent, _, templateAuthor, _, publishedAtTimestamp := processor.ArticleReadabilityExtractor(entry.RawContent, entry.URL, feed.FeedURL, "", true)
+		fullContent, pureContent, _, imageUrlFromContent, _, templateAuthor, _, publishedAtTimestamp := processor.ArticleReadabilityExtractor(entry.RawContent, entry.URL, feed.FeedURL, "", true)
 
 		entry.FullContent = fullContent
 		if entry.ImageUrl == "" {
@@ -37,9 +37,9 @@ func EntryCrawler(entry *model.Entry, feed *model.Feed) {
 		if templateAuthor != "" {
 			entry.Author = templateAuthor
 		}
-		if templateDate != nil {
+		/*if templateDate != nil {
 			entry.PublishedAt = (*templateDate).Unix()
-		}
+		}*/
 		if publishedAtTimestamp != 0 {
 			entry.PublishedAt = publishedAtTimestamp
 		}
