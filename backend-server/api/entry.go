@@ -62,7 +62,7 @@ func (h *handler) newFetchContent(entry *model.Entry) string {
 func (h *handler) knowledgeFetchContent(w http.ResponseWriter, r *http.Request) {
 	entryID := request.RouteStringParam(r, "entryID")
 
-	common.Logger.Error("knowledge fetch  entry content", zap.String("entryID", entryID))
+	common.Logger.Info("knowledge fetch  entry content", zap.String("entryID", entryID))
 	entry, err := h.store.GetEntryById(entryID)
 	if err != nil {
 		common.Logger.Error("load entry error", zap.String("entryID", entryID), zap.Error(err))
