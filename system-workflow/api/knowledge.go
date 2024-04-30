@@ -134,7 +134,6 @@ func GetRedisConfig(provider, key string) interface{} {
 		log.Print("json decode failed, err", err)
 		return ""
 	}
-	common.Logger.Info("get redis config", zap.String("url", url), zap.String("val", resObj.Data.(string)))
 	return resObj.Data
 }
 

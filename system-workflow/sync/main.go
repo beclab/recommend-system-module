@@ -325,8 +325,10 @@ func checkExistAlgorithmInFirstRun(resp model.RecommendServiceResponseModel) (bo
 	for _, argo := range resp.Data {
 		source := argo.Metadata.Name
 		lastExtractorTimeStr, _ := api.GetRedisConfig(source, "last_extractor_time").(string)
+		common.Logger.Info("get last_extractor_time redis config", zap.String("source:", source), zap.String("extractor:", lastExtractorTimeStr))
 		if lastExtractorTimeStr == "" {
 			lastSyncTimeStr, _ := api.GetRedisConfig(source, "last_sync_time").(string)
+			common.Logger.Info("get last_sync_time redis config", zap.String("source:", source), zap.String("sync time:", lastSyncTimeStr))
 			if lastSyncTimeStr != "" {
 				return true, source
 			}
