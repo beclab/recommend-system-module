@@ -77,7 +77,6 @@ func GetEntryAddModel(entryModel *Entry, feedUrl string) *EntryAddModel {
 	result.PublishedAt = entryModel.PublishedAt
 	result.Author = entryModel.Author
 	result.RawContent = entryModel.RawContent
-	//result.PureContent = entryModel.PureContent
 	result.FullContent = entryModel.FullContent
 	result.ImageUrl = entryModel.ImageUrl
 	result.Crawler = true
