@@ -72,7 +72,6 @@ func (h *handler) knowledgeFetchContent(w http.ResponseWriter, r *http.Request) 
 		json.OK(w, r, "")
 		return
 	}
-	common.Logger.Error("knowledge fetch  entry content", zap.Int("full content:", len(entry.FullContent)))
 	if entry.FullContent == "" {
 		go func() {
 			h.newFetchContent(entry)
