@@ -60,7 +60,7 @@ func (h *handler) newFetchContent(entry *model.Entry) string {
 			feedSearchRSSList = append(feedSearchRSSList, feedNotification)
 		}
 	}
-	crawler.EntryCrawler(entry, feedUrl, userAgent, cookie, certificates, fetchViaProxy)
+	entry = crawler.EntryCrawler(entry, feedUrl, userAgent, cookie, certificates, fetchViaProxy)
 
 	notificationData := model.NotificationData{
 		Name:      entry.Title,

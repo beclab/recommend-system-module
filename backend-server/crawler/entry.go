@@ -12,7 +12,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func EntryCrawler(entry *model.Entry, feedUrl, userAgent, cookie string, certificates, fetchViaProxy bool) {
+func EntryCrawler(entry *model.Entry, feedUrl, userAgent, cookie string, certificates, fetchViaProxy bool) *model.Entry {
 	//entryID, entryUrl, entryTitle, imageUrl, author string, entryPublishedAt int64, feed *model.Feed) (string, string, int64) {
 
 	entry.RawContent = fetchRawContnt(
@@ -65,6 +65,7 @@ func EntryCrawler(entry *model.Entry, feedUrl, userAgent, cookie string, certifi
 	} else {
 		common.Logger.Error("crawler raw content is null", zap.String("url", entry.URL))
 	}
+	return entry
 	//return rawContent, rtContent, entryPublishedAt
 }
 
