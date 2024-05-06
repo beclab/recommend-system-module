@@ -22,7 +22,8 @@ func ProcessFeedEntries(store *storage.Storage, feed *model.Feed, entries model.
 		savedEntry := store.GetEntryByUrl(feed.ID.Hex(), entry.URL)
 
 		if savedEntry == nil {
-			crawler.EntryCrawler(entry, feed)
+			//crawler.EntryCrawler(entry, feed)
+			crawler.EntryCrawler(entry, feed.FeedURL, feed.UserAgent, feed.Cookie, feed.AllowSelfSignedCertificates, feed.FetchViaProxy)
 			if entry.PublishedAt == 0 {
 				entry.PublishedAt = entry.PublishedAtParsed.Unix()
 			}

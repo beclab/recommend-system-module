@@ -34,17 +34,34 @@ func (h *handler) fetchContent(w http.ResponseWriter, r *http.Request) {
 
 func (h *handler) newFetchContent(entry *model.Entry) string {
 	feed, _ := h.store.GetFeedById(entry.FeedID)
-	crawler.EntryCrawler(entry, feed) //entry.ID.Hex(), entry.URL, entry.Title, entry.ImageUrl, entry.Author, entry.PublishedAt, feed)
+	//crawler.EntryCrawler(entry, feed) //entry.ID.Hex(), entry.URL, entry.Title, entry.ImageUrl, entry.Author, entry.PublishedAt, feed)
+
+	feedUrl := ""
+	userAgent := ""
+	cookie := ""
+	certificates := false
+	fetchViaProxy := false
 
 	var feedSearchRSSList []model.FeedNotification
-	if feed.ID != primitive.NilObjectID {
-		feedNotification := model.FeedNotification{
-			FeedId:   feed.ID.Hex(),
-			FeedName: feed.Title,
-			FeedIcon: "",
+	if feed != nil {
+
+		feedUrl = feed.FeedURL
+		userAgent = feed.UserAgent
+		cookie = feed.Cookie
+		certificates = feed.AllowSelfSignedCertificates
+		fetchViaProxy = feed.FetchViaProxy
+
+		if feed.ID != primitive.NilObjectID {
+			feedNotification := model.FeedNotification{
+				FeedId:   feed.ID.Hex(),
+				FeedName: feed.Title,
+				FeedIcon: "",
+			}
+			feedSearchRSSList = append(feedSearchRSSList, feedNotification)
 		}
-		feedSearchRSSList = append(feedSearchRSSList, feedNotification)
 	}
+	crawler.EntryCrawler(entry, feedUrl, userAgent, cookie, certificates, fetchViaProxy)
+
 	notificationData := model.NotificationData{
 		Name:      entry.Title,
 		EntryId:   entry.ID.Hex(),

@@ -12,23 +12,23 @@ import (
 	"go.uber.org/zap"
 )
 
-func EntryCrawler(entry *model.Entry, feed *model.Feed) {
+func EntryCrawler(entry *model.Entry, feedUrl, userAgent, cookie string, certificates, fetchViaProxy bool) {
 	//entryID, entryUrl, entryTitle, imageUrl, author string, entryPublishedAt int64, feed *model.Feed) (string, string, int64) {
 
 	entry.RawContent = fetchRawContnt(
 		entry.URL,
 		entry.Title,
-		feed.UserAgent,
-		feed.Cookie,
-		feed.AllowSelfSignedCertificates,
-		feed.FetchViaProxy,
+		userAgent,
+		cookie,
+		certificates,
+		fetchViaProxy,
 	)
 
 	if entry.RawContent != "" {
 		if entry.Title == "" {
 			entry.Title = extractTitleByHtml(entry.RawContent)
 		}
-		fullContent, pureContent, _, imageUrlFromContent, _, templateAuthor, _, publishedAtTimestamp := processor.ArticleReadabilityExtractor(entry.RawContent, entry.URL, feed.FeedURL, "", true)
+		fullContent, pureContent, _, imageUrlFromContent, _, templateAuthor, _, publishedAtTimestamp := processor.ArticleReadabilityExtractor(entry.RawContent, entry.URL, feedUrl, "", true)
 
 		entry.FullContent = fullContent
 		if entry.ImageUrl == "" {
