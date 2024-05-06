@@ -70,7 +70,7 @@ func (h *handler) newFetchContent(entry *model.Entry) string {
 		Content:   entry.FullContent,
 	}
 	docId := search.InputRSS(&notificationData)
-	updateDocIDEntry := &model.Entry{ID: entry.ID, DocId: docId, Language: entry.Language, Author: entry.Author, RawContent: entry.RawContent, FullContent: entry.FullContent}
+	updateDocIDEntry := &model.Entry{ID: entry.ID, DocId: docId, Title: entry.Title, Language: entry.Language, Author: entry.Author, RawContent: entry.RawContent, FullContent: entry.FullContent}
 	h.store.UpdateEntryDocID(updateDocIDEntry)
 
 	return entry.FullContent
