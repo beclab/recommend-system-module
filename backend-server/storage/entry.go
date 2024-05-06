@@ -96,7 +96,7 @@ func (s *Storage) UpdateEntryContent(entry *model.Entry) error {
 func (s *Storage) UpdateEntryDocID(entry *model.Entry) error {
 	coll := getEntryMongodbColl(s)
 	filter := bson.M{"_id": entry.ID}
-	update := bson.M{"$set": bson.M{"doc_id": entry.DocId}}
+	update := bson.M{"$set": bson.M{"crawler": true, "language": entry.Language, "author": entry.Author, "title": entry.Title, "raw_content": entry.RawContent, "full_content": entry.FullContent, "doc_id": entry.DocId}}
 
 	if _, err := coll.UpdateOne(context.TODO(), filter, update); err != nil {
 		common.Logger.Error("unable to update entry", zap.String("url", entry.ID.Hex()), zap.Error(err))
