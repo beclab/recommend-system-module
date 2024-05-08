@@ -29,7 +29,7 @@ func EntryCrawler(entry *model.Entry, feedUrl, userAgent, cookie string, certifi
 			entry.Title = extractTitleByHtml(entry.RawContent)
 		}
 		common.Logger.Info("crawler entry start to extract", zap.String("url", entry.URL))
-		fullContent, pureContent, _, imageUrlFromContent, _, templateAuthor, _, publishedAtTimestamp := processor.ArticleReadabilityExtractor(entry.RawContent, entry.URL, feedUrl, "", true)
+		fullContent, pureContent, dateInArticle, imageUrlFromContent, _, templateAuthor, _, publishedAtTimestamp := processor.ArticleReadabilityExtractor(entry.RawContent, entry.URL, feedUrl, "", true)
 
 		entry.FullContent = fullContent
 		if entry.ImageUrl == "" {
@@ -38,11 +38,13 @@ func EntryCrawler(entry *model.Entry, feedUrl, userAgent, cookie string, certifi
 		if templateAuthor != "" {
 			entry.Author = templateAuthor
 		}
-		/*if templateDate != nil {
-			entry.PublishedAt = (*templateDate).Unix()
-		}*/
 		if publishedAtTimestamp != 0 {
 			entry.PublishedAt = publishedAtTimestamp
+		} else {
+			if dateInArticle != nil {
+				entry.PublishedAt = (*dateInArticle).Unix()
+			}
+
 		}
 
 		languageLen := len(pureContent)
