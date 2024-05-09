@@ -14,7 +14,7 @@ type Feed struct {
 	Title                       string             `bson:"title"`
 	Description                 string             `bson:"description"`
 	Language                    string             `bson:"language"`
-	IconMimeType                string             `bson:"icon_mime_type"`
+	IconMimeType                string             `bson:"icon_type"`
 	IconContent                 string             `bson:"icon_content"`
 	CheckedAt                   time.Time          `bson:"checked_at"`
 	ParsingErrorMsg             string             `bson:"parsing_error_message"`

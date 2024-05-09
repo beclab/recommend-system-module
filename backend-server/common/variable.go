@@ -20,7 +20,7 @@ const (
 	defaultEntryMongoUpdateApiUrl = "http://localhost:3010/knowledge/entry/"
 
 	FeedSource                   = "wise"
-	DefaultWorkerPoolSize        = 5
+	DefaultWorkerPoolSize        = 1
 	DefaultContentWorkerPoolSize = 3
 	DefaultPollingFrequency      = 15
 	DefaultBatchSize             = 100
