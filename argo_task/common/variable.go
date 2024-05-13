@@ -206,9 +206,9 @@ func GenerateArgoSyncPostData(nameSpace string) []byte {
 
 	var spec ArgoSpecData
 
-	spec.Schedule = "*/3 * * * *"
+	spec.Schedule = "7/10 * * * *"
 	spec.StartingDeadlineSeconds = 0
-	spec.ConcurrencyPolicy = "Forbid"
+	spec.ConcurrencyPolicy = "Replace"
 	spec.SuccessfulJobsHistoryLimit = 1
 	spec.FailedJobsHistoryLimit = 1
 	spec.TTLStrategy = getArgoFlowTTL()
@@ -268,7 +268,7 @@ func GenerateArgoCrawlercPostData(nameSpace string) []byte {
 	var spec ArgoSpecData
 	spec.Schedule = "*/4 * * * *"
 	spec.StartingDeadlineSeconds = 0
-	spec.ConcurrencyPolicy = "Forbid"
+	spec.ConcurrencyPolicy = "Replace"
 	spec.SuccessfulJobsHistoryLimit = 1
 	spec.FailedJobsHistoryLimit = 1
 	spec.TTLStrategy = getArgoFlowTTL()

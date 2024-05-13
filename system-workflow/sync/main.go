@@ -281,11 +281,16 @@ func syncEntryDownloadPackage(provider string, newPackage *model.EntryPackage) {
 
 }
 
-func syncEntry(redisClient *redis.Client, provider *model.SyncProvider) {
-	currentUtcTime := time.Now().UTC()
-	checkUtcTime := currentUtcTime.AddDate(0, 0, -int(provider.EntrySyncDate))
-	startTime := int64(checkUtcTime.Unix())
-	url := provider.EntryUrl + "&start=" + strconv.FormatInt(startTime, 10)
+func syncEntry(redisClient *redis.Client, provider *model.SyncProvider, lastSyncTime int64) {
+	if lastSyncTime == 0 {
+		currentUtcTime := time.Now().UTC()
+		checkUtcTime := currentUtcTime.AddDate(0, 0, -int(provider.EntrySyncDate))
+		lastSyncTime = int64(checkUtcTime.Unix())
+	} else {
+		lastSyncTime = lastSyncTime - 6*60*60
+	}
+
+	url := provider.EntryUrl + "&start=" + strconv.FormatInt(lastSyncTime, 10)
 	common.Logger.Info("sync entry:", zap.String("url:", url))
 	client := &http.Client{Timeout: time.Second * 5}
 	res, err := client.Get(url)
@@ -356,14 +361,14 @@ func main() {
 		common.Logger.Error("json decode failed ", zap.String("url", url), zap.Error(err))
 		return
 	}
-	inFirstRun, runSource := checkExistAlgorithmInFirstRun(response)
+	//inFirstRun, runSource := checkExistAlgorithmInFirstRun(response)
 	for _, argo := range response.Data {
 		source := argo.Metadata.Name
-		lastExtractorTimeStr, _ := api.GetRedisConfig(source, "last_extractor_time").(string)
+		/*lastExtractorTimeStr, _ := api.GetRedisConfig(source, "last_extractor_time").(string)
 		if lastExtractorTimeStr == "" && inFirstRun && source != runSource {
 			common.Logger.Info("source not sync because exist algorithm in first run : ", zap.String("run source:", runSource), zap.String("skip source:", source))
 			continue
-		}
+		}*/
 		for _, provider := range argo.SyncProvider {
 			key := provider.Provider + provider.FeedName
 			p, exist := providerList[key]
@@ -406,7 +411,7 @@ func main() {
 		if lastSyncTimeStr == "" || startTimestamp > lastSyncTime+10*60 {
 
 			syncFeed(mongoClient, redisClient, provider)
-			syncEntry(redisClient, provider)
+			syncEntry(redisClient, provider, lastSyncTime)
 			api.SetRedisConfig(key, "last_sync_time", startTimestamp)
 		}
 
