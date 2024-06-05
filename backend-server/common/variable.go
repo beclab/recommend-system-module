@@ -4,6 +4,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const (
@@ -16,6 +17,11 @@ const (
 	defaultMongoFeedColl       = "feeds"
 	defaultMongoEntryColl      = "entries"
 	defaultMongoAlgorithmsColl = "algorithms"
+
+	defaultDatabaseURL                = "host=124.222.40.95  user=postgres password=liujx123 dbname=rss sslmode=disable"
+	defaultDatabaseMaxConns           = 20
+	defaultDatabaseMinConns           = 1
+	defaultDatabaseConnectionLifetime = 5
 
 	defaultEntryMongoUpdateApiUrl = "http://localhost:3010/knowledge/entry/"
 
@@ -40,6 +46,23 @@ func GetListenAddr() string {
 
 func GetPollingFrequency() int {
 	return ParseInt(os.Getenv("POLLING_FREQUENCY"), DefaultPollingFrequency)
+}
+
+func DatabaseURL() string {
+	return ParseString(os.Getenv("DATABASE_URL"), defaultDatabaseURL)
+}
+
+func DatabaseMaxConns() int {
+	return ParseInt(os.Getenv("DATABASE_MAX_CONNS"), defaultDatabaseMaxConns)
+}
+
+func DatabaseMinConns() int {
+	return ParseInt(os.Getenv("DATABASE_MIN_CONNS"), defaultDatabaseMinConns)
+}
+
+func DatabaseConnectionLifetime() time.Duration {
+	lifeTIme := ParseInt(os.Getenv("DATABASE_LIFETIME"), defaultDatabaseConnectionLifetime)
+	return time.Duration(lifeTIme) * time.Minute
 }
 
 func GetMongoURI() string {

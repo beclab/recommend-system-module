@@ -1,15 +1,16 @@
 package storage
 
 import (
-	"go.mongodb.org/mongo-driver/mongo"
+	"database/sql"
 )
 
 // Storage handles all operations related to the database.
 type Storage struct {
-	mongodb *mongo.Client
+	//mongodb *mongo.Client
+	db *sql.DB
 }
 
 // NewStorage returns a new Storage.
-func NewStorage(mongodb *mongo.Client) *Storage {
-	return &Storage{mongodb}
+func NewStorage(db *sql.DB) *Storage {
+	return &Storage{db}
 }

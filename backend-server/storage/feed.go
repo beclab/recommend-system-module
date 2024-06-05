@@ -1,46 +1,50 @@
 package storage
 
 import (
-	"context"
+	"database/sql"
 	"fmt"
-	"sort"
 	"time"
 
 	"bytetrade.io/web3os/backend-server/common"
 	"bytetrade.io/web3os/backend-server/model"
-	"go.uber.org/zap"
-
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func getFeedMongodbColl(s *Storage) *mongo.Collection {
-	return s.mongodb.Database(common.GetMongoDbName()).Collection(common.GetMongoFeedColl())
-}
-
 func (s *Storage) FeedExists(feedID string) bool {
-	coll := getFeedMongodbColl(s)
-	id, _ := primitive.ObjectIDFromHex(feedID)
-	filter := bson.M{"_id": id}
-	count, err := coll.CountDocuments(context.TODO(), filter)
-	if err != nil {
-		return false
-	}
-	return count > 0
+	var result bool
+	query := `SELECT true FROM feeds WHERE  id=$2`
+	s.db.QueryRow(query, feedID).Scan(&result)
+	return result
 }
 
 func (s *Storage) GetFeedById(feedID string) (*model.Feed, error) {
-	coll := getFeedMongodbColl(s)
 	var feed model.Feed
-	id, _ := primitive.ObjectIDFromHex(feedID)
-	filter := bson.M{"_id": id}
-	err := coll.FindOne(context.TODO(), filter).Decode(&feed)
-	if err != nil {
-		return nil, fmt.Errorf(`store: unable to fetch feed: %v`, err)
+	query := `SELECT id, feed_url, site_url, title,etag_header,last_modified_header,checked_at,parsing_error_count,
+				parsing_error_message,user_agent,cookie,username,password,ignore_http_cache,allow_self_signed_certificates,fetch_via_proxy 
+			  FROM feeds WHERE id=$1`
+	err := s.db.QueryRow(query, feedID).Scan(&feed.ID,
+		&feed.FeedURL,
+		&feed.SiteURL,
+		&feed.Title,
+		&feed.EtagHeader,
+		&feed.LastModifiedHeader,
+		&feed.CheckedAt,
+		&feed.ParsingErrorCount,
+		&feed.ParsingErrorMsg,
+		&feed.UserAgent,
+		&feed.Cookie,
+		&feed.Username,
+		&feed.Password,
+		&feed.IgnoreHTTPCache,
+		&feed.AllowSelfSignedCertificates,
+		&feed.FetchViaProxy,
+	)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	} else if err != nil {
+		return nil, fmt.Errorf("unable to fetch icon by hash: %v", err)
 	}
-	return &feed, nil
 
+	return &feed, nil
 }
 
 type CheckFeed struct {
@@ -48,77 +52,98 @@ type CheckFeed struct {
 	checkTime time.Time
 }
 
-func (s *Storage) FeedToUpdateList(batchSize int) ([]model.Job, error) {
-	coll := getFeedMongodbColl(s)
-	filter := bson.M{"sources": common.FeedSource}
-
-	//opts := options.Find().SetProjection(bson.M{"parsing_error_count": 1, "checked_at": 1})
-
-	feeds := make(model.Feeds, 0)
-	cur, err := coll.Find(context.TODO(), filter)
+func (s *Storage) FeedToUpdateList(batchSize int) (jobs model.JobList, err error) {
+	errorLimit := common.GetPollingParsingErrorLimit()
+	query := `
+		SELECT
+			id
+		FROM
+			feeds
+		WHERE
+			sources= 'wise' AND 
+			CASE WHEN $1 > 0 THEN parsing_error_count < $1 ELSE parsing_error_count >= 0 END
+		ORDER BY check_at ASC LIMIT $2
+	`
+	rows, err := s.db.Query(query, errorLimit, batchSize)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf(`store: unable to fetch batch of jobs: %v`, err)
 	}
-	defer cur.Close(context.Background())
-	err = cur.All(context.Background(), &feeds)
-	if err != nil {
-		return nil, err
-	}
-	common.Logger.Info("FeedToUpdateList ..", zap.Int("size", len(feeds)))
-	jobFeedIDs := make([]model.Job, 0)
-	checkFeeds := make([]*CheckFeed, 0)
-	for _, feed := range feeds {
-		errorLimit := common.GetPollingParsingErrorLimit()
-		if errorLimit == 0 || feed.ParsingErrorCount < errorLimit {
+	defer rows.Close()
 
-			t := feed.CheckedAt
-			checkFeeds = append(checkFeeds, &CheckFeed{feedId: feed.ID.Hex(), checkTime: t})
+	for rows.Next() {
+		var job model.Job
+		if err := rows.Scan(&job.FeedID); err != nil {
+			return nil, fmt.Errorf(`store: unable to fetch job: %v`, err)
 		}
+		jobs = append(jobs, job)
 	}
-	sort.SliceStable(checkFeeds, func(i, j int) bool {
-		return checkFeeds[i].checkTime.Before(checkFeeds[j].checkTime)
-	})
-	for i := 0; i < batchSize && i < len(checkFeeds); i++ {
-
-		jobFeedIDs = append(jobFeedIDs, model.Job{FeedID: checkFeeds[i].feedId})
-	}
-	return jobFeedIDs, nil
+	return jobs, nil
 }
 
 func (s *Storage) UpdateFeedError(feedID string, feed *model.Feed) error {
-	coll := getFeedMongodbColl(s)
-	id, _ := primitive.ObjectIDFromHex(feedID)
-	filter := bson.M{"_id": id}
+	query := `
+		UPDATE
+			feeds
+		SET
+			parsing_error_count=$1,
+			update_at=$2
+		WHERE
+			id=$3 
+	`
+	_, err := s.db.Exec(query,
+		feed.ParsingErrorCount,
+		time.Now(),
+		feed.ID,
+	)
 
-	update := bson.M{"$set": bson.M{"update_at": time.Now(), "parsing_error_count": feed.ParsingErrorCount}}
-
-	if _, err := coll.UpdateOne(context.TODO(), filter, update); err != nil {
-		return fmt.Errorf(`store: unable to update feed  (%s): %v`, feed.FeedURL, err)
+	if err != nil {
+		return fmt.Errorf(`store: unable to update feed error #%d (%s): %v`, feed.ID, feed.FeedURL, err)
 	}
+
 	return nil
 }
 
 func (s *Storage) ResetFeedHeader(feedID string) error {
-	coll := getFeedMongodbColl(s)
-	id, _ := primitive.ObjectIDFromHex(feedID)
-	filter := bson.M{"_id": id}
+	_, err := s.db.Exec(`UPDATE feeds SET etag_header='', parsing_error_msg='' where id=$1`, feedID)
+	return err
 
-	update := bson.M{"$set": bson.M{"etag_header": "", "last_modified_header": ""}}
-
-	if _, err := coll.UpdateOne(context.TODO(), filter, update); err != nil {
-		return fmt.Errorf(`store: unable to update feed  (%s): %v`, feedID, err)
-	}
-	return nil
 }
 
-// UpdateFeed updates an existing feed.
 func (s *Storage) UpdateFeed(feedID string, feed *model.Feed) (err error) {
-	coll := getFeedMongodbColl(s)
-	id, _ := primitive.ObjectIDFromHex(feedID)
-	filter := bson.M{"_id": id}
-	update := bson.M{"$set": feed}
-	if _, err := coll.UpdateOne(context.TODO(), filter, update); err != nil {
-		return fmt.Errorf(`store: unable to update feed  (%s): %v`, feed.FeedURL, err)
+	query := `
+		UPDATE
+			feeds
+		SET
+			feed_url=$1,
+			site_url=$2,
+			title=$3,
+			etag_header=$4,
+			last_modified_header=$5,
+			icon_type=$6,
+			icon_content=$7,
+			checked_at=$8,
+			parsing_error_msg=$9,
+			parsing_error_count=$10,
+		WHERE
+			id=$11 
+	`
+	_, err = s.db.Exec(query,
+		feed.FeedURL,
+		feed.SiteURL,
+		feed.Title,
+		feed.EtagHeader,
+		feed.LastModifiedHeader,
+		feed.IconMimeType,
+		feed.IconContent,
+		feed.CheckedAt,
+		feed.ParsingErrorMsg,
+		feed.ParsingErrorCount,
+		feedID,
+	)
+
+	if err != nil {
+		return fmt.Errorf(`store: unable to update feed #%d (%s): %v`, feed.ID, feed.FeedURL, err)
 	}
+
 	return nil
 }
