@@ -396,9 +396,8 @@ func main() {
 
 	redisClient := common.GetRDBClient()
 	defer redisClient.Close()
-
-	postgresClient := common.GetRDBClient()
-
+	postgresClient := common.NewPostgresClient()
+	defer postgresClient.Close()
 	for key, provider := range providerList {
 		lastSyncTimeStr, _ := api.GetRedisConfig(key, "last_sync_time").(string)
 		lastSyncTime, _ := strconv.ParseInt(lastSyncTimeStr, 10, 64)

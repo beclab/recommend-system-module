@@ -1,6 +1,7 @@
 package common
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -19,6 +20,10 @@ const (
 	defaultMongoAlgorithmsColl = "algorithms"
 
 	defaultDatabaseURL                = "host=124.222.40.95  user=postgres password=liujx123 dbname=rss_v4 sslmode=disable"
+	defaultPGHost                     = "124.222.40.95"
+	defaultPGUser                     = "postgres"
+	defaultPGPass                     = "liujx123"
+	defaultPGPDBName                  = "rss_v4"
 	defaultDatabaseMaxConns           = 20
 	defaultDatabaseMinConns           = 1
 	defaultDatabaseConnectionLifetime = 5
@@ -48,8 +53,24 @@ func GetPollingFrequency() int {
 	return ParseInt(os.Getenv("POLLING_FREQUENCY"), DefaultPollingFrequency)
 }
 
+func GetPGHost() string {
+	return ParseString(os.Getenv("PG_HOST"), defaultPGHost)
+}
+
+func GetPGUser() string {
+	return ParseString(os.Getenv("PG_USER"), defaultPGUser)
+}
+
+func GetPGPass() string {
+	return ParseString(os.Getenv("PG_PASS"), defaultPGPass)
+}
+
+func GetPGDbName() string {
+	return ParseString(os.Getenv("PG_DB_NAME"), defaultPGPDBName)
+}
+
 func DatabaseURL() string {
-	return ParseString(os.Getenv("DATABASE_URL"), defaultDatabaseURL)
+	return fmt.Sprintf("host=%s  user=%s password=%s dbname=%s sslmode=disable", GetPGHost(), GetPGUser(), GetPGPass(), GetPGDbName())
 }
 
 func DatabaseMaxConns() int {
