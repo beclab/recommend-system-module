@@ -47,11 +47,6 @@ func (s *Storage) GetFeedById(feedID string) (*model.Feed, error) {
 	return &feed, nil
 }
 
-type CheckFeed struct {
-	feedId    string
-	checkTime time.Time
-}
-
 func (s *Storage) FeedToUpdateList(batchSize int) (jobs model.JobList, err error) {
 	errorLimit := common.GetPollingParsingErrorLimit()
 	query := `
@@ -60,7 +55,7 @@ func (s *Storage) FeedToUpdateList(batchSize int) (jobs model.JobList, err error
 		FROM
 			feeds
 		WHERE
-			sources= 'wise' AND 
+			'{"wise"}' && sources AND 
 			CASE WHEN $1 > 0 THEN parsing_error_count < $1 ELSE parsing_error_count >= 0 END
 		ORDER BY check_at ASC LIMIT $2
 	`

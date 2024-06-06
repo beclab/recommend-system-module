@@ -18,7 +18,7 @@ const (
 	defaultMongoEntryColl      = "entries"
 	defaultMongoAlgorithmsColl = "algorithms"
 
-	defaultDatabaseURL                = "host=124.222.40.95  user=postgres password=liujx123 dbname=rss sslmode=disable"
+	defaultDatabaseURL                = "host=124.222.40.95  user=postgres password=liujx123 dbname=rss_v3 sslmode=disable"
 	defaultDatabaseMaxConns           = 20
 	defaultDatabaseMinConns           = 1
 	defaultDatabaseConnectionLifetime = 5

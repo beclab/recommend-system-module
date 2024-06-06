@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -18,7 +19,6 @@ import (
 	"bytetrade.io/web3os/system_workflow/storge"
 
 	"github.com/redis/go-redis/v9"
-	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/proto"
 )
@@ -133,7 +133,7 @@ func syncFeedGetPackage(feedUrl string, whetherAll bool) ([]*protobuf_entity.Fee
 
 }
 
-func syncFeed(mongoClient *mongo.Client, redisClient *redis.Client, provider *model.SyncProvider) {
+func syncFeed(postgresClient *sql.DB, redisClient *redis.Client, provider *model.SyncProvider) {
 	syncStartTime := time.Now()
 	saveData, _ := storge.GetFeedSync(redisClient, provider.Provider, provider.FeedName)
 	if saveData == nil {
@@ -227,7 +227,7 @@ func syncFeed(mongoClient *mongo.Client, redisClient *redis.Client, provider *mo
 					}
 				}
 			}
-			storge.UpdateFeed(mongoClient, provider.Source, updateFeedList)
+			storge.UpdateFeed(postgresClient, provider.Source, updateFeedList)
 		}
 	}
 	var redisSaveData model.FeedSyncData
@@ -395,14 +395,9 @@ func main() {
 	}
 
 	redisClient := common.GetRDBClient()
-
-	mongoClient, getMongoClientErr, closeMongoClientFun := common.NewMongodbConnection()
-	if getMongoClientErr != nil {
-		common.Logger.Error("unable to connect mongo ", zap.Error(getMongoClientErr))
-	}
-
 	defer redisClient.Close()
-	defer closeMongoClientFun()
+
+	postgresClient := common.GetRDBClient()
 
 	for key, provider := range providerList {
 		lastSyncTimeStr, _ := api.GetRedisConfig(key, "last_sync_time").(string)
@@ -410,7 +405,7 @@ func main() {
 		common.Logger.Info("sync  start", zap.String("last sync time str", lastSyncTimeStr), zap.Int64("last sync time", lastSyncTime), zap.Int64("now time", startTimestamp))
 		if lastSyncTimeStr == "" || startTimestamp > lastSyncTime+10*60 {
 
-			syncFeed(mongoClient, redisClient, provider)
+			syncFeed(postgresClient, redisClient, provider)
 			syncEntry(redisClient, provider, lastSyncTime)
 			api.SetRedisConfig(key, "last_sync_time", startTimestamp)
 		}
