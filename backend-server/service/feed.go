@@ -18,7 +18,7 @@ import (
 )
 
 func rssRrefresh(store *storage.Storage, feed *model.Feed, feedURL string) *model.Feed {
-	common.Logger.Info("start refresh feed ", zap.String("feedId", feed.ID.Hex()))
+	common.Logger.Info("start refresh feed ", zap.String("feedId", feed.ID))
 	request := client.NewClientWithConfig(feedURL)
 	request.WithCredentials(feed.Username, feed.Password)
 	request.WithUserAgent(feed.UserAgent)
@@ -36,8 +36,8 @@ func rssRrefresh(store *storage.Storage, feed *model.Feed, feedURL string) *mode
 	response, requestErr := browser.Exec(request)
 	if requestErr != nil {
 		feed.ParsingErrorCount++
-		store.UpdateFeedError(feed.ID.Hex(), feed)
-		common.Logger.Error("refresh feed load from mongodb error id", zap.String("feedId", feed.ID.Hex()), zap.Error(requestErr))
+		store.UpdateFeedError(feed.ID, feed)
+		common.Logger.Error("refresh feed load from mongodb error id", zap.String("feedId", feed.ID), zap.Error(requestErr))
 		return nil
 	}
 
@@ -47,17 +47,17 @@ func rssRrefresh(store *storage.Storage, feed *model.Feed, feedURL string) *mode
 		updatedFeed, parseErr := parser.ParseFeed(response.EffectiveURL, response.BodyAsString())
 		if parseErr != nil {
 			feed.ParsingErrorCount++
-			store.UpdateFeedError(feed.ID.Hex(), feed)
-			common.Logger.Error("refresh feed ParseFeed error id: %s,%v", zap.String("feedId", feed.ID.Hex()), zap.Error(parseErr))
+			store.UpdateFeedError(feed.ID, feed)
+			common.Logger.Error("refresh feed ParseFeed error id: %s,%v", zap.String("feedId", feed.ID), zap.Error(parseErr))
 			return nil
 		}
 		updatedFeed.EtagHeader = response.ETag
 		updatedFeed.LastModifiedHeader = response.LastModified
 		updatedFeed.FeedURL = response.EffectiveURL
-		common.Logger.Info("[RefreshFeed] Feed ", zap.String("feedId", feed.ID.Hex()), zap.Int("entry size", len(updatedFeed.Entries)))
+		common.Logger.Info("[RefreshFeed] Feed ", zap.String("feedId", feed.ID), zap.Int("entry size", len(updatedFeed.Entries)))
 		return updatedFeed
 	} else {
-		common.Logger.Debug("[RefreshFeed] Feed #%s not modified", zap.String("feedId", feed.ID.Hex()))
+		common.Logger.Debug("[RefreshFeed] Feed #%s not modified", zap.String("feedId", feed.ID))
 	}
 	return nil
 }

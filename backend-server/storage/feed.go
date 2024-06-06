@@ -7,11 +7,12 @@ import (
 
 	"bytetrade.io/web3os/backend-server/common"
 	"bytetrade.io/web3os/backend-server/model"
+	"go.uber.org/zap"
 )
 
 func (s *Storage) FeedExists(feedID string) bool {
 	var result bool
-	query := `SELECT true FROM feeds WHERE  id=$2`
+	query := `SELECT true FROM feeds WHERE  id=$1`
 	s.db.QueryRow(query, feedID).Scan(&result)
 	return result
 }
@@ -41,6 +42,7 @@ func (s *Storage) GetFeedById(feedID string) (*model.Feed, error) {
 	if err == sql.ErrNoRows {
 		return nil, nil
 	} else if err != nil {
+		common.Logger.Error("unable to fetch", zap.Error(err))
 		return nil, fmt.Errorf("unable to fetch icon by hash: %v", err)
 	}
 
@@ -57,7 +59,7 @@ func (s *Storage) FeedToUpdateList(batchSize int) (jobs model.JobList, err error
 		WHERE
 			'{"wise"}' && sources AND 
 			CASE WHEN $1 > 0 THEN parsing_error_count < $1 ELSE parsing_error_count >= 0 END
-		ORDER BY check_at ASC LIMIT $2
+		ORDER BY checked_at ASC LIMIT $2
 	`
 	rows, err := s.db.Query(query, errorLimit, batchSize)
 	if err != nil {
@@ -75,7 +77,7 @@ func (s *Storage) FeedToUpdateList(batchSize int) (jobs model.JobList, err error
 	return jobs, nil
 }
 
-func (s *Storage) UpdateFeedError(feedID string, feed *model.Feed) error {
+func (s *Storage) UpdateFeedError(feedID string, feed *model.Feed) {
 	query := `
 		UPDATE
 			feeds
@@ -92,19 +94,19 @@ func (s *Storage) UpdateFeedError(feedID string, feed *model.Feed) error {
 	)
 
 	if err != nil {
-		return fmt.Errorf(`store: unable to update feed error #%d (%s): %v`, feed.ID, feed.FeedURL, err)
+		common.Logger.Error("unable to update feed error", zap.Error(err))
 	}
 
-	return nil
 }
 
-func (s *Storage) ResetFeedHeader(feedID string) error {
+func (s *Storage) ResetFeedHeader(feedID string) {
 	_, err := s.db.Exec(`UPDATE feeds SET etag_header='', parsing_error_msg='' where id=$1`, feedID)
-	return err
-
+	if err != nil {
+		common.Logger.Error("reset  feed header error", zap.Error(err))
+	}
 }
 
-func (s *Storage) UpdateFeed(feedID string, feed *model.Feed) (err error) {
+func (s *Storage) UpdateFeed(feedID string, feed *model.Feed) error {
 	query := `
 		UPDATE
 			feeds
@@ -117,12 +119,11 @@ func (s *Storage) UpdateFeed(feedID string, feed *model.Feed) (err error) {
 			icon_type=$6,
 			icon_content=$7,
 			checked_at=$8,
-			parsing_error_msg=$9,
-			parsing_error_count=$10,
+			parsing_error_count=$9
 		WHERE
-			id=$11 
+			id=$10
 	`
-	_, err = s.db.Exec(query,
+	_, err := s.db.Exec(query,
 		feed.FeedURL,
 		feed.SiteURL,
 		feed.Title,
@@ -131,14 +132,10 @@ func (s *Storage) UpdateFeed(feedID string, feed *model.Feed) (err error) {
 		feed.IconMimeType,
 		feed.IconContent,
 		feed.CheckedAt,
-		feed.ParsingErrorMsg,
 		feed.ParsingErrorCount,
 		feedID,
 	)
 
-	if err != nil {
-		return fmt.Errorf(`store: unable to update feed #%d (%s): %v`, feed.ID, feed.FeedURL, err)
-	}
+	return err
 
-	return nil
 }

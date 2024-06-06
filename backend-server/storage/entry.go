@@ -4,7 +4,10 @@ import (
 	"database/sql"
 	"fmt"
 
+	"bytetrade.io/web3os/backend-server/common"
 	"bytetrade.io/web3os/backend-server/model"
+	"github.com/lib/pq"
+	"go.uber.org/zap"
 )
 
 func (s *Storage) GetEntryDocList(entryIDs []string) ([]string, error) {
@@ -23,7 +26,8 @@ func (s *Storage) GetEntryDocList(entryIDs []string) ([]string, error) {
 			&entry.DocId,
 		)
 		if err != nil {
-			return nil, fmt.Errorf(`store: unable to fetch feeds row: %w`, err)
+			common.Logger.Error("get entry doc list err", zap.Error(err))
+			return nil, fmt.Errorf(`store: unable to fetch entries row: %w`, err)
 		}
 		docIDList = append(docIDList, entry.DocId)
 	}
@@ -46,6 +50,7 @@ func (s *Storage) GetEntryById(entryID string) (*model.Entry, error) {
 	if err == sql.ErrNoRows {
 		return nil, nil
 	} else if err != nil {
+		common.Logger.Error("entry get by id fail", zap.Error(err))
 		return nil, fmt.Errorf("unable to fetch entry by id: %v", err)
 	}
 
@@ -62,25 +67,29 @@ func (s *Storage) GetEntryByUrl(feedID, url string) *model.Entry {
 		&entry.FullContent,
 		&entry.DocId,
 		&entry.Author,
-		&entry.Sources,
+		pq.Array(&entry.Sources),
 	)
 	if err == sql.ErrNoRows {
 		return nil
 	} else if err != nil {
+		common.Logger.Error("entry get by url fail", zap.Error(err))
 		return nil
 	}
 
 	return &entry
 }
 
-func (s *Storage) UpdateEntryContent(entry *model.Entry) error {
+func (s *Storage) UpdateEntryContent(entry *model.Entry) {
 	_, err := s.db.Exec(`UPDATE entries SET crawler=true,published_at=$1,language=$2,author=$3,title=$4,raw_content=$5,full_content=$6,doc_id=$7 where id=$8`,
 		entry.PublishedAt, entry.Language, entry.Author, entry.Title, entry.RawContent, entry.FullContent, entry.DocId, entry.ID)
-	return err
+	if err != nil {
+		common.Logger.Error("update entry content  fail", zap.Error(err))
+	}
 }
 
-func (s *Storage) UpdateEntryDocID(entry *model.Entry) error {
+func (s *Storage) UpdateEntryDocID(entry *model.Entry) {
 	_, err := s.db.Exec(`UPDATE entries SET doc_id=1 where id=$1`, entry.DocId, entry.ID)
-	return err
-
+	if err != nil {
+		common.Logger.Error("update entry doc  fail", zap.Error(err))
+	}
 }

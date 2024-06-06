@@ -12,7 +12,6 @@ import (
 	"bytetrade.io/web3os/backend-server/model"
 	"bytetrade.io/web3os/backend-server/service/search"
 	"bytetrade.io/web3os/backend-server/storage"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.uber.org/zap"
 )
 
@@ -64,8 +63,9 @@ func doReq(list []*model.EntryAddModel, entries model.Entries, feedSearchRSSList
 					Content:   entry.FullContent,
 				}
 				docId := search.InputRSS(&notificationData)
-				entryObjID, _ := primitive.ObjectIDFromHex(entryID)
-				updateDocIDEntry := &model.Entry{ID: entryObjID, DocId: docId}
+				//entryObjID, _ := primitive.ObjectIDFromHex(entryID)
+				//updateDocIDEntry := &model.Entry{ID: entryObjID, DocId: docId}
+				updateDocIDEntry := &model.Entry{ID: entryID, DocId: docId}
 				store.UpdateEntryDocID(updateDocIDEntry)
 			}
 		}

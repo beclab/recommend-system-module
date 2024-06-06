@@ -4,17 +4,15 @@ import (
 	"time"
 
 	"bytetrade.io/web3os/backend-server/reader/date"
-
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type Entry struct {
-	ID                primitive.ObjectID `json:"id"`
-	FeedID            string             `json:"feed"`
-	Status            string             `json:"status"`
-	Title             string             `json:"title"`
-	URL               string             `json:"url"`
-	CommentsURL       string             `json:"comments_url"`
+	ID                string `json:"id"`
+	FeedID            string `json:"feed"`
+	Status            string `json:"status"`
+	Title             string `json:"title"`
+	URL               string `json:"url"`
+	CommentsURL       string `json:"comments_url"`
 	PublishedAtParsed time.Time
 	PublishedAt       int64 `json:"published_at"`
 
