@@ -125,3 +125,71 @@ func GetEntrySyncPackageData(rdb *redis.Client, provider, feedName, modelName st
 	}
 	return &redisEntrySyncPackageData, nil
 }
+
+func SaveTemplatePluginsPackage(rdb *redis.Client, data model.TemplatePluginsPackagInfo) error {
+	redisCacheData, err := json.Marshal(data)
+	if err != nil {
+		common.Logger.Error("marshal entrySyncSetting fail", zap.Error(err))
+		return err
+	}
+
+	err = rdb.Set(common.RedisCtx, "template_plugins", redisCacheData, 0).Err()
+
+	if err != nil {
+		common.Logger.Error("set feed sync setting fail", zap.Error(err))
+		return err
+	}
+	return nil
+}
+func GetTemplatePluginsPackage(rdb *redis.Client) (*model.TemplatePluginsPackagInfo, error) {
+
+	jsonData, err := rdb.Get(common.RedisCtx, "template_plugins").Result()
+	if err != nil {
+		common.Logger.Error("get feed sync setting fail", zap.Error(err))
+		return nil, err
+	}
+	if jsonData == "" {
+		return nil, nil
+	}
+	var redisCacheData model.TemplatePluginsPackagInfo
+	unmarshalErr := json.Unmarshal([]byte(jsonData), &redisCacheData)
+	if unmarshalErr != nil {
+		common.Logger.Error("unmarshal feed sync setting fail", zap.Error(err))
+		return nil, err
+	}
+	return &redisCacheData, nil
+}
+
+func SaveDiscoveryFeedPackage(rdb *redis.Client, data model.DiscoveryFeedPackagInfo) error {
+	redisCacheData, err := json.Marshal(data)
+	if err != nil {
+		common.Logger.Error("marshal entrySyncSetting fail", zap.Error(err))
+		return err
+	}
+
+	err = rdb.Set(common.RedisCtx, "discovery_feed", redisCacheData, 0).Err()
+
+	if err != nil {
+		common.Logger.Error("set feed sync setting fail", zap.Error(err))
+		return err
+	}
+	return nil
+}
+func GetDiscoveryFeedPackage(rdb *redis.Client) (*model.DiscoveryFeedPackagInfo, error) {
+
+	jsonData, err := rdb.Get(common.RedisCtx, "discovery_feed").Result()
+	if err != nil {
+		common.Logger.Error("get feed sync setting fail", zap.Error(err))
+		return nil, err
+	}
+	if jsonData == "" {
+		return nil, nil
+	}
+	var redisCacheData model.DiscoveryFeedPackagInfo
+	unmarshalErr := json.Unmarshal([]byte(jsonData), &redisCacheData)
+	if unmarshalErr != nil {
+		common.Logger.Error("unmarshal feed sync setting fail", zap.Error(err))
+		return nil, err
+	}
+	return &redisCacheData, nil
+}

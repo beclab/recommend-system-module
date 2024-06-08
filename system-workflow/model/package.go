@@ -37,3 +37,18 @@ type FeedPackageIncrementInfo struct {
 
 type FeedPackageAllInfos []*FeedPackageAllInfo
 type FeedPackageIncrementInfos []*FeedPackageIncrementInfo
+
+type TemplatePluginsPackagInfo struct {
+	ID      string `json:"id"`
+	Url     string `json:"url"`
+	MD5     string `json:"md5"`
+	Version string `json:"version"`
+}
+type TemplatePluginsPackagInfos []*TemplatePluginsPackagInfo
+
+type DiscoveryFeedPackagInfo struct {
+	ID  string `json:"id"`
+	Url string `json:"url"`
+	MD5 string `json:"md5"`
+}
+type DiscoveryFeedPackagInfos []*DiscoveryFeedPackagInfo
