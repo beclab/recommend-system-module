@@ -88,7 +88,7 @@ func (s *Storage) UpdateEntryContent(entry *model.Entry) {
 }
 
 func (s *Storage) UpdateEntryDocID(entry *model.Entry) {
-	_, err := s.db.Exec(`UPDATE entries SET doc_id=1 where id=$1`, entry.DocId, entry.ID)
+	_, err := s.db.Exec(`UPDATE entries SET doc_id=$1 where id=$2`, entry.DocId, entry.ID)
 	if err != nil {
 		common.Logger.Error("update entry doc  fail", zap.Error(err))
 	}
