@@ -29,6 +29,21 @@ func GetTermiusUserName() string {
 	return os.Getenv("TERMIUS_USER_NAME")
 }
 
+func GetSyncTemplatePluginsUrl() string {
+	envDir := os.Getenv("SYNC_TEMPLATE_PLUGINS_URL")
+	if envDir == "" {
+		return "https://recommend-provider-prd.bttcdn.com/api/provider/templatePlugins"
+	}
+	return envDir
+}
+func GetSyncDiscoveryFeedPackageUrl() string {
+	envDir := os.Getenv("SYNC_DISCOVERY_FEEDPACKAGE_URL")
+	if envDir == "" {
+		return "https://recommend-provider-prd.bttcdn.com/api/provider/discoveryFeedPackages"
+	}
+	return envDir
+}
+
 func NFSRootDirectory() string {
 	envDir := os.Getenv("NFS_ROOT_DIRECTORY")
 	if envDir == "" {

@@ -338,15 +338,16 @@ func checkExistAlgorithmInFirstRun(resp model.RecommendServiceResponseModel) (bo
 
 }
 
-func syncTemplatePluginsloadPackage(newPackage *model.TemplatePluginsPackagInfo) {
+func syncTemplatePluginsloadPackage(newPackage *model.TemplatePluginsPackagInfo) error {
 
 	path := filepath.Join(common.JUICEFSRootDirectory(), "template_plugins")
 	common.CreateNotExistDirectory(path, "template_plugins")
 
-	client := &http.Client{Timeout: time.Second * 5}
+	client := &http.Client{Timeout: time.Second * 20}
 	res, err := client.Get(newPackage.Url)
 	if err != nil {
 		common.Logger.Error("get TemplatePlugins  fail", zap.Error(err))
+		return err
 	}
 	defer res.Body.Close()
 
@@ -358,11 +359,12 @@ func syncTemplatePluginsloadPackage(newPackage *model.TemplatePluginsPackagInfo)
 	fileName := fmt.Sprintf("plugins.so%s", newPackage.Version)
 	uncompressByte := common.DoZlibUnCompress(body)
 	fileToSave(filepath.Join(path, fileName), uncompressByte)
+	return nil
 
 }
 
 func syncTemplatePlugins(redisClient *redis.Client) {
-	url := os.Getenv("SYNC_TEMPLATE_PLUGINS_URL")
+	url := common.GetSyncTemplatePluginsUrl()
 	common.Logger.Info("sync template plugins:", zap.String("url:", url))
 	client := &http.Client{Timeout: time.Second * 5}
 	res, err := client.Get(url)
@@ -385,8 +387,11 @@ func syncTemplatePlugins(redisClient *redis.Client) {
 	if len(packages) > 0 {
 		saveData, _ := storge.GetTemplatePluginsPackage(redisClient)
 		if saveData == nil || saveData.Version != packages[0].Version {
-			syncTemplatePluginsloadPackage(packages[0])
-			storge.SaveTemplatePluginsPackage(redisClient, *packages[0])
+			saveError := syncTemplatePluginsloadPackage(packages[0])
+			if saveError == nil {
+				storge.SaveTemplatePluginsPackage(redisClient, *packages[0])
+			}
+
 		}
 	}
 }
@@ -417,7 +422,7 @@ func syncDiscoveryFeedloadPackage(mongoClient *mongo.Client, newPackage *model.D
 }
 
 func syncDiscoveryFeedPackage(mongoClient *mongo.Client, redisClient *redis.Client) {
-	url := os.Getenv("SYNC_DISCOVERY_FEEDPACKAGE_URL")
+	url := common.GetSyncDiscoveryFeedPackageUrl()
 	common.Logger.Info("sync discovery feedPackage:", zap.String("url:", url))
 	client := &http.Client{Timeout: time.Second * 5}
 	res, err := client.Get(url)
