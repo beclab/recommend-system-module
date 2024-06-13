@@ -140,3 +140,29 @@ func (f *FeedModificationRequest) Patch(feed *Feed) {
 
 // Feeds is a list of feed
 type Feeds []*Feed
+
+type FeedParseModel struct {
+	FeedURL      string `json:"feed_url"`
+	SiteURL      string `json:"site_url"`
+	Title        string `json:"title"`
+	Description  string `json:"description"`
+	IconMimeType string `json:"icon_type"`
+	IconContent  string `json:"icon_content"`
+}
+
+type ParseFeedResponseModel struct {
+	Code int            `json:"code"`
+	Data FeedParseModel `json:"data"`
+}
+
+func GetFeedParseModel(feedModel *Feed) FeedParseModel {
+	var result FeedParseModel
+
+	result.Title = feedModel.Title
+	result.FeedURL = feedModel.FeedURL
+	result.SiteURL = feedModel.SiteURL
+	result.Description = feedModel.Description
+	result.IconMimeType = feedModel.IconMimeType
+	result.IconContent = feedModel.IconContent
+	return result
+}

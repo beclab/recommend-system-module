@@ -28,6 +28,8 @@ func Serve(router *mux.Router, store *storage.Storage, pool *worker.Pool) {
 	sr.HandleFunc("/knowledge/feeds/{feedID}/refresh", handler.knowledgeRefreshFeed).Methods(http.MethodPut)
 	sr.HandleFunc("/knowledge/entries/{entryID}/fetch-content", handler.knowledgeFetchContent).Methods(http.MethodGet)
 
+	sr.HandleFunc("/knowledge/rssParse", handler.rssParse).Methods(http.MethodGet)
+
 	sr.HandleFunc("/search/inputRSS", handler.inputRSS).Methods(http.MethodPost)
 	sr.HandleFunc("/search/deleteRSS", handler.deleteRSS).Methods(http.MethodDelete)
 	sr.HandleFunc("/search/queryRSS", handler.queryRSS).Methods(http.MethodGet)
