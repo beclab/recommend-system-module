@@ -415,6 +415,7 @@ func syncDiscoveryFeedloadPackage(mongoClient *mongo.Client, newPackage *model.D
 	if unmarshalErr != nil {
 		common.Logger.Error("unmarshal all discovery feed object  error", zap.Error(unmarshalErr))
 	}
+	storge.RemoveDiscoveryFeed(mongoClient)
 	for _, discoveryFeed := range allPackageList.DiscoveryFeeds {
 		storge.CreateDiscoveryFeed(mongoClient, model.GetDiscoveryModel(discoveryFeed))
 	}
