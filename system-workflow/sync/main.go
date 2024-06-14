@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -18,7 +19,6 @@ import (
 	"bytetrade.io/web3os/system_workflow/storge"
 
 	"github.com/redis/go-redis/v9"
-	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/proto"
 )
@@ -133,7 +133,7 @@ func syncFeedGetPackage(feedUrl string, whetherAll bool) ([]*protobuf_entity.Fee
 
 }
 
-func syncFeed(mongoClient *mongo.Client, redisClient *redis.Client, provider *model.SyncProvider) {
+func syncFeed(postgresClient *sql.DB, redisClient *redis.Client, provider *model.SyncProvider) {
 	syncStartTime := time.Now()
 	saveData, _ := storge.GetFeedSync(redisClient, provider.Provider, provider.FeedName)
 	if saveData == nil {
@@ -227,7 +227,7 @@ func syncFeed(mongoClient *mongo.Client, redisClient *redis.Client, provider *mo
 					}
 				}
 			}
-			storge.UpdateFeed(mongoClient, provider.Source, updateFeedList)
+			storge.UpdateFeed(postgresClient, provider.Source, updateFeedList)
 		}
 	}
 	var redisSaveData model.FeedSyncData
@@ -396,7 +396,7 @@ func syncTemplatePlugins(redisClient *redis.Client) {
 	}
 }
 
-func syncDiscoveryFeedloadPackage(mongoClient *mongo.Client, newPackage *model.DiscoveryFeedPackagInfo) {
+func syncDiscoveryFeedloadPackage(postgresClient *sql.DB, newPackage *model.DiscoveryFeedPackagInfo) {
 
 	client := &http.Client{Timeout: time.Second * 5}
 	res, err := client.Get(newPackage.Url)
@@ -415,14 +415,14 @@ func syncDiscoveryFeedloadPackage(mongoClient *mongo.Client, newPackage *model.D
 	if unmarshalErr != nil {
 		common.Logger.Error("unmarshal all discovery feed object  error", zap.Error(unmarshalErr))
 	}
-	storge.RemoveDiscoveryFeed(mongoClient)
+	storge.RemoveDiscoveryFeed(postgresClient)
 	for _, discoveryFeed := range allPackageList.DiscoveryFeeds {
-		storge.CreateDiscoveryFeed(mongoClient, model.GetDiscoveryModel(discoveryFeed))
+		storge.CreateDiscoveryFeed(postgresClient, model.GetDiscoveryModel(discoveryFeed))
 	}
 
 }
 
-func syncDiscoveryFeedPackage(mongoClient *mongo.Client, redisClient *redis.Client) {
+func syncDiscoveryFeedPackage(postgresClient *sql.DB, redisClient *redis.Client) {
 	url := common.GetSyncDiscoveryFeedPackageUrl()
 	common.Logger.Info("sync discovery feedPackage:", zap.String("url:", url))
 	client := &http.Client{Timeout: time.Second * 5}
@@ -446,7 +446,7 @@ func syncDiscoveryFeedPackage(mongoClient *mongo.Client, redisClient *redis.Clie
 	if len(packages) > 0 {
 		saveData, _ := storge.GetDiscoveryFeedPackage(redisClient)
 		if saveData == nil || saveData.MD5 != packages[0].MD5 {
-			syncDiscoveryFeedloadPackage(mongoClient, packages[0])
+			syncDiscoveryFeedloadPackage(postgresClient, packages[0])
 			storge.SaveDiscoveryFeedPackage(redisClient, *packages[0])
 		}
 	}
@@ -510,22 +510,16 @@ func main() {
 	}
 
 	redisClient := common.GetRDBClient()
-
-	mongoClient, getMongoClientErr, closeMongoClientFun := common.NewMongodbConnection()
-	if getMongoClientErr != nil {
-		common.Logger.Error("unable to connect mongo ", zap.Error(getMongoClientErr))
-	}
-
 	defer redisClient.Close()
-	defer closeMongoClientFun()
-
+	postgresClient := common.NewPostgresClient()
+	defer postgresClient.Close()
 	for key, provider := range providerList {
 		lastSyncTimeStr, _ := api.GetRedisConfig(key, "last_sync_time").(string)
 		lastSyncTime, _ := strconv.ParseInt(lastSyncTimeStr, 10, 64)
 		common.Logger.Info("sync  start", zap.String("last sync time str", lastSyncTimeStr), zap.Int64("last sync time", lastSyncTime), zap.Int64("now time", startTimestamp))
 		if lastSyncTimeStr == "" || startTimestamp > lastSyncTime+10*60 {
 
-			syncFeed(mongoClient, redisClient, provider)
+			syncFeed(postgresClient, redisClient, provider)
 			syncEntry(redisClient, provider, lastSyncTime)
 			api.SetRedisConfig(key, "last_sync_time", startTimestamp)
 		}
@@ -534,6 +528,6 @@ func main() {
 	common.Logger.Info("feed and entry packages sync  end")
 
 	syncTemplatePlugins(redisClient)
-	syncDiscoveryFeedPackage(mongoClient, redisClient)
+	syncDiscoveryFeedPackage(postgresClient, redisClient)
 	common.Logger.Info("package sync  end")
 }

@@ -12,14 +12,15 @@ func ProcessFeedEntries(store *storage.Storage, feed *model.Feed, entries model.
 	updateEntries := make([]*model.Entry, 0)
 	var feedSearchRSSList []model.FeedNotification
 	feedNotification := model.FeedNotification{
-		FeedId:   feed.ID.Hex(),
+		//FeedId:   feed.ID.Hex(),
+		FeedId:   feed.ID,
 		FeedName: feed.Title,
 		FeedIcon: "",
 	}
 	feedSearchRSSList = append(feedSearchRSSList, feedNotification)
 
 	for _, entry := range entries {
-		savedEntry := store.GetEntryByUrl(feed.ID.Hex(), entry.URL)
+		savedEntry := store.GetEntryByUrl(feed.ID, entry.URL)
 
 		if savedEntry == nil {
 			//crawler.EntryCrawler(entry, feed)

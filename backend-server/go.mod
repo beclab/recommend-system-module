@@ -51,6 +51,7 @@ require (
 	github.com/gin-gonic/gin v1.9.1
 	github.com/google/uuid v1.4.0
 	github.com/gorilla/mux v1.8.1
+	github.com/lib/pq v1.10.9
 	github.com/pemistahl/lingua-go v1.4.0
 	github.com/rs/zerolog v1.31.0
 	go.mongodb.org/mongo-driver v1.15.0

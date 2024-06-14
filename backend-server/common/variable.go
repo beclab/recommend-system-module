@@ -1,9 +1,11 @@
 package common
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const (
@@ -16,6 +18,17 @@ const (
 	defaultMongoFeedColl       = "feeds"
 	defaultMongoEntryColl      = "entries"
 	defaultMongoAlgorithmsColl = "algorithms"
+
+	defaultDatabaseURL = "host=127.0.0.1  user=postgres password=postgres dbname=rss sslmode=disable"
+	defaultPGHost      = "127.0.0.1"
+	defaultPGUser      = "postgres"
+	defaultPGPass      = "postgres"
+	defaultPGPDBName   = "rss"
+	defaultPGPort      = 5432
+
+	defaultDatabaseMaxConns           = 20
+	defaultDatabaseMinConns           = 1
+	defaultDatabaseConnectionLifetime = 5
 
 	defaultEntryMongoUpdateApiUrl = "http://localhost:3010/knowledge/entry/"
 
@@ -40,6 +53,43 @@ func GetListenAddr() string {
 
 func GetPollingFrequency() int {
 	return ParseInt(os.Getenv("POLLING_FREQUENCY"), DefaultPollingFrequency)
+}
+
+func GetPGHost() string {
+	return ParseString(os.Getenv("PG_HOST"), defaultPGHost)
+}
+
+func GetPGUser() string {
+	return ParseString(os.Getenv("PG_USERNAME"), defaultPGUser)
+}
+
+func GetPGPass() string {
+	return ParseString(os.Getenv("PG_PASSWORD"), defaultPGPass)
+}
+
+func GetPGDbName() string {
+	return ParseString(os.Getenv("PG_DATABASE"), defaultPGPDBName)
+}
+
+func GetPGPort() int {
+	return ParseInt(os.Getenv("PG_PORT"), defaultPGPort)
+}
+
+func DatabaseURL() string {
+	return fmt.Sprintf("host=%s  port=%d user=%s password=%s dbname=%s sslmode=disable", GetPGHost(), GetPGPort(), GetPGUser(), GetPGPass(), GetPGDbName())
+}
+
+func DatabaseMaxConns() int {
+	return ParseInt(os.Getenv("DATABASE_MAX_CONNS"), defaultDatabaseMaxConns)
+}
+
+func DatabaseMinConns() int {
+	return ParseInt(os.Getenv("DATABASE_MIN_CONNS"), defaultDatabaseMinConns)
+}
+
+func DatabaseConnectionLifetime() time.Duration {
+	lifeTIme := ParseInt(os.Getenv("DATABASE_LIFETIME"), defaultDatabaseConnectionLifetime)
+	return time.Duration(lifeTIme) * time.Minute
 }
 
 func GetMongoURI() string {

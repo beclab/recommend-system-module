@@ -2,17 +2,16 @@ package model
 
 import (
 	"bytetrade.io/web3os/system_workflow/protobuf_entity"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type Discovery struct {
-	ID          primitive.ObjectID `bson:"_id"`
-	FeedUrl     string             `bson:"feed_url"`
-	SiteUrl     string             `bson:"site_url"`
-	Title       string             `bson:"title"`
-	Description string             `bson:"description"`
-	IconType    string             `bson:"icon_type"`
-	IconContent string             `bson:"icon_content"`
+	ID          string `json:"id"`
+	FeedUrl     string `json:"feed_url"`
+	SiteUrl     string `json:"site_url"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	IconType    string `json:"icon_type"`
+	IconContent string `json:"icon_content"`
 }
 
 func GetDiscoveryModel(protoFeed *protobuf_entity.DiscoveryFeed) *Discovery {

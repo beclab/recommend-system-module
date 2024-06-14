@@ -4,37 +4,35 @@ import (
 	"time"
 
 	"bytetrade.io/web3os/backend-server/reader/date"
-
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type Entry struct {
-	ID                primitive.ObjectID `bson:"_id"`
-	FeedID            string             `bson:"feed"`
-	Status            string             `bson:"status"`
-	Title             string             `bson:"title"`
-	URL               string             `bson:"url"`
-	CommentsURL       string             `bson:"comments_url"`
+	ID                string `json:"id"`
+	FeedID            string `json:"feed"`
+	Status            string `json:"status"`
+	Title             string `json:"title"`
+	URL               string `json:"url"`
+	CommentsURL       string `json:"comments_url"`
 	PublishedAtParsed time.Time
-	PublishedAt       int64 `bson:"published_at"`
+	PublishedAt       int64 `json:"published_at"`
 
-	CreatedAt  time.Time `bson:"createdAt"`
-	UpdatedAt  time.Time `bson:"updatedAt"`
-	Content    string    `bson:"content"`
-	RawContent string    `bson:"raw_content"`
+	CreatedAt  time.Time `json:"createdAt"`
+	UpdatedAt  time.Time `json:"updatedAt"`
+	Content    string    `json:"content"`
+	RawContent string    `json:"raw_content"`
 	//PureContent string             `bson:"pure_content"`
-	FullContent string   `bson:"full_content"`
-	DocId       string   `bson:"doc_id"`
-	Author      string   `bson:"author"`
-	ImageUrl    string   `bson:"image_url"`
-	Readlater   bool     `bson:"readlater"`
-	Crawler     bool     `bson:"crawler"`
-	Starred     bool     `bson:"starred"`
-	Disabled    bool     `bson:"disabled"`
-	Saved       bool     `bson:"saved"`
-	Unread      bool     `bson:"unread"`
-	Language    string   `bson:"language"`
-	Sources     []string `bson:"sources"`
+	FullContent string   `json:"full_content"`
+	DocId       string   `json:"doc_id"`
+	Author      string   `json:"author"`
+	ImageUrl    string   `json:"image_url"`
+	Readlater   bool     `json:"readlater"`
+	Crawler     bool     `json:"crawler"`
+	Starred     bool     `json:"starred"`
+	Disabled    bool     `json:"disabled"`
+	Saved       bool     `json:"saved"`
+	Unread      bool     `json:"unread"`
+	Language    string   `json:"language"`
+	Sources     []string `json:"sources"`
 }
 
 type EntryAddModel struct {

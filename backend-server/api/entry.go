@@ -9,7 +9,6 @@ import (
 	"bytetrade.io/web3os/backend-server/http/response/json"
 	"bytetrade.io/web3os/backend-server/model"
 	"bytetrade.io/web3os/backend-server/service/search"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.uber.org/zap"
 )
 
@@ -51,9 +50,9 @@ func (h *handler) newFetchContent(entry *model.Entry) string {
 		certificates = feed.AllowSelfSignedCertificates
 		fetchViaProxy = feed.FetchViaProxy
 
-		if feed.ID != primitive.NilObjectID {
+		if feed.ID != "" {
 			feedNotification := model.FeedNotification{
-				FeedId:   feed.ID.Hex(),
+				FeedId:   feed.ID,
 				FeedName: feed.Title,
 				FeedIcon: "",
 			}
@@ -64,7 +63,7 @@ func (h *handler) newFetchContent(entry *model.Entry) string {
 
 	notificationData := model.NotificationData{
 		Name:      entry.Title,
-		EntryId:   entry.ID.Hex(),
+		EntryId:   entry.ID,
 		Created:   entry.PublishedAt,
 		FeedInfos: feedSearchRSSList,
 		Content:   entry.FullContent,

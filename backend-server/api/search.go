@@ -6,7 +6,6 @@ import (
 
 	respJson "bytetrade.io/web3os/backend-server/http/response/json"
 	"bytetrade.io/web3os/backend-server/service/search"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"bytetrade.io/web3os/backend-server/common"
 	"bytetrade.io/web3os/backend-server/http/request"
@@ -23,8 +22,8 @@ func (h *handler) inputRSS(w http.ResponseWriter, r *http.Request) {
 	}
 	docId := search.InputRSS(&notificationData)
 
-	id, _ := primitive.ObjectIDFromHex(notificationData.EntryId)
-	entry := &model.Entry{ID: id, DocId: docId}
+	//id, _ := primitive.ObjectIDFromHex(notificationData.EntryId)
+	entry := &model.Entry{ID: notificationData.EntryId, DocId: docId}
 	h.store.UpdateEntryDocID(entry)
 	respJson.OK(w, r, docId)
 }
