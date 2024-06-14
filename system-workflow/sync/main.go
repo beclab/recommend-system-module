@@ -396,7 +396,7 @@ func syncTemplatePlugins(redisClient *redis.Client) {
 	}
 }
 
-func syncDiscoveryFeedloadPackage(mongoClient *mongo.Client, newPackage *model.DiscoveryFeedPackagInfo) {
+func syncDiscoveryFeedloadPackage(postgresClient *sql.DB, newPackage *model.DiscoveryFeedPackagInfo) {
 
 	client := &http.Client{Timeout: time.Second * 5}
 	res, err := client.Get(newPackage.Url)
@@ -415,14 +415,14 @@ func syncDiscoveryFeedloadPackage(mongoClient *mongo.Client, newPackage *model.D
 	if unmarshalErr != nil {
 		common.Logger.Error("unmarshal all discovery feed object  error", zap.Error(unmarshalErr))
 	}
-	storge.RemoveDiscoveryFeed(mongoClient)
+	storge.RemoveDiscoveryFeed(postgresClient)
 	for _, discoveryFeed := range allPackageList.DiscoveryFeeds {
-		storge.CreateDiscoveryFeed(mongoClient, model.GetDiscoveryModel(discoveryFeed))
+		storge.CreateDiscoveryFeed(postgresClient, model.GetDiscoveryModel(discoveryFeed))
 	}
 
 }
 
-func syncDiscoveryFeedPackage(mongoClient *mongo.Client, redisClient *redis.Client) {
+func syncDiscoveryFeedPackage(postgresClient *sql.DB, redisClient *redis.Client) {
 	url := common.GetSyncDiscoveryFeedPackageUrl()
 	common.Logger.Info("sync discovery feedPackage:", zap.String("url:", url))
 	client := &http.Client{Timeout: time.Second * 5}
@@ -446,7 +446,7 @@ func syncDiscoveryFeedPackage(mongoClient *mongo.Client, redisClient *redis.Clie
 	if len(packages) > 0 {
 		saveData, _ := storge.GetDiscoveryFeedPackage(redisClient)
 		if saveData == nil || saveData.MD5 != packages[0].MD5 {
-			syncDiscoveryFeedloadPackage(mongoClient, packages[0])
+			syncDiscoveryFeedloadPackage(postgresClient, packages[0])
 			storge.SaveDiscoveryFeedPackage(redisClient, *packages[0])
 		}
 	}
@@ -528,6 +528,6 @@ func main() {
 	common.Logger.Info("feed and entry packages sync  end")
 
 	syncTemplatePlugins(redisClient)
-	syncDiscoveryFeedPackage(mongoClient, redisClient)
+	syncDiscoveryFeedPackage(postgresClient, redisClient)
 	common.Logger.Info("package sync  end")
 }

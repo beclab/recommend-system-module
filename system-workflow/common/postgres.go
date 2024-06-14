@@ -13,13 +13,13 @@ import (
 func GetPGHost() string {
 	host := os.Getenv("PG_HOST")
 	if host == "" {
-		return "124.222.40.95"
+		return "127.0.0.1"
 	}
 	return host
 }
 
 func GetPGUser() string {
-	user := os.Getenv("PG_USER")
+	user := os.Getenv("PG_USERNAME")
 	if user == "" {
 		return "postgres"
 	}
@@ -28,22 +28,27 @@ func GetPGUser() string {
 }
 
 func GetPGPass() string {
-	pass := os.Getenv("PG_PASS")
+	pass := os.Getenv("PG_PASSWORD")
 	if pass == "" {
-		return "liujx123"
+		return "postgres"
 	}
 	return pass
 }
 
 func GetPGDbName() string {
-	dbName := os.Getenv("PG_DB_NAME")
+	dbName := os.Getenv("PG_DATABASE")
 	if dbName == "" {
-		return "rss_v4"
+		return "rss"
 	}
 	return dbName
 }
+
+func GetPGPort() int {
+	return ParseInt(os.Getenv("PG_PORT"), 5432)
+}
+
 func GetDatabaseURL() string {
-	return fmt.Sprintf("host=%s  user=%s password=%s dbname=%s sslmode=disable", GetPGHost(), GetPGUser(), GetPGPass(), GetPGDbName())
+	return fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", GetPGHost(), GetPGPort(), GetPGUser(), GetPGPass(), GetPGDbName())
 }
 
 func NewPostgresClient() *sql.DB {

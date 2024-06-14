@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -10,12 +11,11 @@ import (
 	"bytetrade.io/web3os/system_workflow/model"
 	"bytetrade.io/web3os/system_workflow/protobuf_entity"
 	"bytetrade.io/web3os/system_workflow/storge"
-	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/proto"
 )
 
-func syncDiscoveryFeedloadPackage(mongoClient *mongo.Client, newPackage *model.DiscoveryFeedPackagInfo) {
+func syncDiscoveryFeedloadPackage(postgresClient *sql.DB, newPackage *model.DiscoveryFeedPackagInfo) {
 
 	client := &http.Client{Timeout: time.Second * 5}
 	res, err := client.Get(newPackage.Url)
@@ -34,14 +34,14 @@ func syncDiscoveryFeedloadPackage(mongoClient *mongo.Client, newPackage *model.D
 	if unmarshalErr != nil {
 		common.Logger.Error("unmarshal all discovery feed object  error", zap.Error(unmarshalErr))
 	}
-	storge.RemoveDiscoveryFeed(mongoClient)
+	storge.RemoveDiscoveryFeed(postgresClient)
 	for _, discoveryFeed := range allPackageList.DiscoveryFeeds {
-		storge.CreateDiscoveryFeed(mongoClient, model.GetDiscoveryModel(discoveryFeed))
+		storge.CreateDiscoveryFeed(postgresClient, model.GetDiscoveryModel(discoveryFeed))
 	}
 
 }
 
-func syncDiscoveryFeedPackage(mongoClient *mongo.Client) {
+func syncDiscoveryFeedPackage(postgresClient *sql.DB) {
 	url := common.GetSyncDiscoveryFeedPackageUrl()
 	common.Logger.Info("sync discovery feedPackage:", zap.String("url:", url))
 	client := &http.Client{Timeout: time.Second * 5}
@@ -63,17 +63,16 @@ func syncDiscoveryFeedPackage(mongoClient *mongo.Client) {
 		return
 	}
 	if len(packages) > 0 {
-		syncDiscoveryFeedloadPackage(mongoClient, packages[0])
+		syncDiscoveryFeedloadPackage(postgresClient, packages[0])
 	}
 
 }
 
 func main() {
 
-	mongoClient, _, closeMongoClientFun := common.NewMongodbConnection()
+	postgresClient := common.NewPostgresClient()
+	defer postgresClient.Close()
 
-	defer closeMongoClientFun()
-
-	syncDiscoveryFeedPackage(mongoClient)
+	syncDiscoveryFeedPackage(postgresClient)
 
 }
