@@ -198,7 +198,7 @@ func GenerateArgoSyncPostData(nameSpace string) []byte {
 	temp2Container.Image = "beclab/recommend-sync" + version
 	temp2Container.ImagePullPolicy = imagePullPolicy
 	temp2Container.VolumeMounts = []ArgoTemplatesContainerVolData{templatesVol1, templatesVol2}
-	temp2Container.Env = []ArgoTemplatesContainerEnvData{getMongoUrlEnv(), getMongoDbEnv(), getRedisAddEnv(), getRedisPasswordEnv(), getNfsDirectoryEnv(), getJuicefsDirectoryEnv(), getKnowledgeBaseApiUrlEnv(), getConfigFileEnv(), termiusUserNameEnv}
+	temp2Container.Env = []ArgoTemplatesContainerEnvData{getMongoUrlEnv(), getMongoDbEnv(), getRedisAddEnv(), getRedisPasswordEnv(), getPostgresHostEnv(), getPostgresUserEnv(), getPostgresPassEnv(), getPostgresDBEnv(), getPostgresPortEnv(), getPostgresPortEnv(), getNfsDirectoryEnv(), getJuicefsDirectoryEnv(), getKnowledgeBaseApiUrlEnv(), getConfigFileEnv(), termiusUserNameEnv}
 	temp2.Name = "sync-template"
 	temp2.Container = &temp2Container
 
@@ -310,6 +310,64 @@ func getMongoDbEnv() ArgoTemplatesContainerEnvData {
 	mongoDbEnv.Name = "TERMINUS_RECOMMEND_MONGODB_NAME"
 	mongoDbEnv.ValueFrom = &mongoDbEnvValueFrom
 	return mongoDbEnv
+}
+
+func getPostgresHostEnv() ArgoTemplatesContainerEnvData {
+	var redisAddEnv ArgoTemplatesContainerEnvData
+	var redisAddEnvValueFrom ArgoTemplatesContainerEnvValueFromData
+	var redisAddEnvMapKey ArgoTemplatesContainerEnvMapKeyData
+	redisAddEnvMapKey.Name = "rss-secrets-auth"
+	redisAddEnvMapKey.Key = "postgres_host"
+	redisAddEnvValueFrom.ConfigMapKeyRef = redisAddEnvMapKey
+	redisAddEnv.Name = "PG_HOST"
+	redisAddEnv.ValueFrom = &redisAddEnvValueFrom
+	return redisAddEnv
+}
+func getPostgresUserEnv() ArgoTemplatesContainerEnvData {
+	var redisAddEnv ArgoTemplatesContainerEnvData
+	var redisAddEnvValueFrom ArgoTemplatesContainerEnvValueFromData
+	var redisAddEnvMapKey ArgoTemplatesContainerEnvMapKeyData
+	redisAddEnvMapKey.Name = "rss-secrets-auth"
+	redisAddEnvMapKey.Key = "postgres_user"
+	redisAddEnvValueFrom.ConfigMapKeyRef = redisAddEnvMapKey
+	redisAddEnv.Name = "PG_USERNAME"
+	redisAddEnv.ValueFrom = &redisAddEnvValueFrom
+	return redisAddEnv
+}
+func getPostgresPassEnv() ArgoTemplatesContainerEnvData {
+	var redisAddEnv ArgoTemplatesContainerEnvData
+	var redisAddEnvValueFrom ArgoTemplatesContainerEnvValueFromData
+	var redisAddEnvMapKey ArgoTemplatesContainerEnvMapKeyData
+	redisAddEnvMapKey.Name = "rss-secrets-auth"
+	redisAddEnvMapKey.Key = "postgres_password"
+	redisAddEnvValueFrom.ConfigMapKeyRef = redisAddEnvMapKey
+	redisAddEnv.Name = "PG_PASSWORD"
+	redisAddEnv.ValueFrom = &redisAddEnvValueFrom
+	return redisAddEnv
+}
+
+func getPostgresDBEnv() ArgoTemplatesContainerEnvData {
+	var redisAddEnv ArgoTemplatesContainerEnvData
+	var redisAddEnvValueFrom ArgoTemplatesContainerEnvValueFromData
+	var redisAddEnvMapKey ArgoTemplatesContainerEnvMapKeyData
+	redisAddEnvMapKey.Name = "rss-secrets-auth"
+	redisAddEnvMapKey.Key = "postgres_db"
+	redisAddEnvValueFrom.ConfigMapKeyRef = redisAddEnvMapKey
+	redisAddEnv.Name = "PG_DATABASE"
+	redisAddEnv.ValueFrom = &redisAddEnvValueFrom
+	return redisAddEnv
+}
+
+func getPostgresPortEnv() ArgoTemplatesContainerEnvData {
+	var redisAddEnv ArgoTemplatesContainerEnvData
+	var redisAddEnvValueFrom ArgoTemplatesContainerEnvValueFromData
+	var redisAddEnvMapKey ArgoTemplatesContainerEnvMapKeyData
+	redisAddEnvMapKey.Name = "rss-secrets-auth"
+	redisAddEnvMapKey.Key = "postgres_port"
+	redisAddEnvValueFrom.ConfigMapKeyRef = redisAddEnvMapKey
+	redisAddEnv.Name = "PG_PORT"
+	redisAddEnv.ValueFrom = &redisAddEnvValueFrom
+	return redisAddEnv
 }
 
 func getRedisAddEnv() ArgoTemplatesContainerEnvData {
