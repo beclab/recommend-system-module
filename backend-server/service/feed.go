@@ -17,6 +17,26 @@ import (
 	"bytetrade.io/web3os/backend-server/storage"
 )
 
+func RssParseFromURL(feedURL string) *model.Feed {
+	request := client.NewClientWithConfig(feedURL)
+	response, requestErr := browser.Exec(request)
+	if requestErr != nil {
+		common.Logger.Error("rss parse browse request error", zap.String("feedURL", feedURL), zap.Error(requestErr))
+		return nil
+	}
+	updatedFeed, parseErr := parser.ParseFeed(response.EffectiveURL, response.BodyAsString())
+	if parseErr != nil {
+		common.Logger.Error("rss parse  error", zap.String("feedURL", feedURL), zap.Error(requestErr))
+		return nil
+	}
+	icon := CheckFeedIcon(updatedFeed.SiteURL, "", false, false)
+	if icon != nil {
+		updatedFeed.IconMimeType = icon.MimeType
+		updatedFeed.IconContent = fmt.Sprintf("%s;base64,%s", icon.MimeType, base64.StdEncoding.EncodeToString(icon.Content))
+	}
+	return updatedFeed
+}
+
 func rssRrefresh(store *storage.Storage, feed *model.Feed, feedURL string) *model.Feed {
 	common.Logger.Info("start refresh feed ", zap.String("feedId", feed.ID))
 	request := client.NewClientWithConfig(feedURL)
@@ -104,9 +124,7 @@ func RefreshFeed(store *storage.Storage, feedID string) {
 			if originalFeed.SiteURL == "" {
 				originalFeed.SiteURL = originalFeed.FeedURL
 			}
-			icon := CheckFeedIcon(
-				store, originalFeed.SiteURL, originalFeed.UserAgent, originalFeed.FetchViaProxy, originalFeed.AllowSelfSignedCertificates,
-			)
+			icon := CheckFeedIcon(originalFeed.SiteURL, originalFeed.UserAgent, originalFeed.FetchViaProxy, originalFeed.AllowSelfSignedCertificates)
 			if icon != nil {
 				originalFeed.IconMimeType = icon.MimeType
 				originalFeed.IconContent = fmt.Sprintf("%s;base64,%s", icon.MimeType, base64.StdEncoding.EncodeToString(icon.Content))
@@ -128,7 +146,7 @@ func RefreshFeed(store *storage.Storage, feedID string) {
 
 }
 
-func CheckFeedIcon(store *storage.Storage, websiteURL, userAgent string, fetchViaProxy, allowSelfSignedCertificates bool) *model.Icon {
+func CheckFeedIcon(websiteURL, userAgent string, fetchViaProxy, allowSelfSignedCertificates bool) *model.Icon {
 	iconO, _ := icon.FindIcon(websiteURL, userAgent, fetchViaProxy, allowSelfSignedCertificates)
 
 	return iconO
