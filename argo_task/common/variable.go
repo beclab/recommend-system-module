@@ -198,7 +198,7 @@ func GenerateArgoSyncPostData(nameSpace string) []byte {
 	temp2Container.Image = "beclab/recommend-sync" + version
 	temp2Container.ImagePullPolicy = imagePullPolicy
 	temp2Container.VolumeMounts = []ArgoTemplatesContainerVolData{templatesVol1, templatesVol2}
-	temp2Container.Env = []ArgoTemplatesContainerEnvData{getMongoUrlEnv(), getMongoDbEnv(), getRedisAddEnv(), getRedisPasswordEnv(), getPostgresHostEnv(), getPostgresUserEnv(), getPostgresPassEnv(), getPostgresDBEnv(), getPostgresPortEnv(), getPostgresPortEnv(), getNfsDirectoryEnv(), getJuicefsDirectoryEnv(), getKnowledgeBaseApiUrlEnv(), getConfigFileEnv(), termiusUserNameEnv}
+	temp2Container.Env = []ArgoTemplatesContainerEnvData{getMongoUrlEnv(), getMongoDbEnv(), getRedisAddEnv(), getRedisPasswordEnv(), getPostgresHostEnv(), getPostgresUserEnv(), getPostgresPassEnv(), getPostgresDBEnv(), getPostgresPortEnv(), getNfsDirectoryEnv(), getJuicefsDirectoryEnv(), getKnowledgeBaseApiUrlEnv(), getConfigFileEnv(), termiusUserNameEnv}
 	temp2.Name = "sync-template"
 	temp2.Container = &temp2Container
 
