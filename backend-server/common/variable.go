@@ -19,11 +19,13 @@ const (
 	defaultMongoEntryColl      = "entries"
 	defaultMongoAlgorithmsColl = "algorithms"
 
-	defaultDatabaseURL                = "host=124.222.40.95  user=postgres password=liujx123 dbname=rss_v4 sslmode=disable"
-	defaultPGHost                     = "124.222.40.95"
-	defaultPGUser                     = "postgres"
-	defaultPGPass                     = "liujx123"
-	defaultPGPDBName                  = "rss_v4"
+	defaultDatabaseURL = "host=124.222.40.95  user=postgres password=liujx123 dbname=rss_v4 sslmode=disable"
+	defaultPGHost      = "124.222.40.95"
+	defaultPGUser      = "postgres"
+	defaultPGPass      = "liujx123"
+	defaultPGPDBName   = "rss_v4"
+	defaultPGPort      = 5432
+
 	defaultDatabaseMaxConns           = 20
 	defaultDatabaseMinConns           = 1
 	defaultDatabaseConnectionLifetime = 5
@@ -58,19 +60,23 @@ func GetPGHost() string {
 }
 
 func GetPGUser() string {
-	return ParseString(os.Getenv("PG_USER"), defaultPGUser)
+	return ParseString(os.Getenv("PG_USERNAME"), defaultPGUser)
 }
 
 func GetPGPass() string {
-	return ParseString(os.Getenv("PG_PASS"), defaultPGPass)
+	return ParseString(os.Getenv("PG_PASSWORD"), defaultPGPass)
 }
 
 func GetPGDbName() string {
-	return ParseString(os.Getenv("PG_DB_NAME"), defaultPGPDBName)
+	return ParseString(os.Getenv("PG_DATABASE"), defaultPGPDBName)
+}
+
+func GetPGPort() int {
+	return ParseInt(os.Getenv("PG_PORT"), defaultPGPort)
 }
 
 func DatabaseURL() string {
-	return fmt.Sprintf("host=%s  user=%s password=%s dbname=%s sslmode=disable", GetPGHost(), GetPGUser(), GetPGPass(), GetPGDbName())
+	return fmt.Sprintf("host=%s  port=%d user=%s password=%s dbname=%s sslmode=disable", GetPGHost(), GetPGPort(), GetPGUser(), GetPGPass(), GetPGDbName())
 }
 
 func DatabaseMaxConns() int {
