@@ -146,7 +146,7 @@ type ArgoData struct {
 }
 
 func GenerateArgoSyncPostData(nameSpace string) []byte {
-	imagePullPolicy := "Always"
+	imagePullPolicy := "IfNotPresent"
 
 	var postObj ArgoData
 	var workFlow ArgoWorkflowData
@@ -229,7 +229,7 @@ func GenerateArgoSyncPostData(nameSpace string) []byte {
 }
 
 func GenerateArgoCrawlercPostData(nameSpace string) []byte {
-	imagePullPolicy := "Always"
+	imagePullPolicy := "IfNotPresent"
 
 	var postObj ArgoData
 	var workFlow ArgoWorkflowData
