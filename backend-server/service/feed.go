@@ -29,6 +29,7 @@ func RssParseFromURL(feedURL string) *model.Feed {
 		common.Logger.Error("rss parse  error", zap.String("feedURL", feedURL), zap.Error(requestErr))
 		return nil
 	}
+	updatedFeed.FeedURL = feedURL
 	icon := CheckFeedIcon(updatedFeed.SiteURL, "", false, false)
 	if icon != nil {
 		updatedFeed.IconMimeType = icon.MimeType
