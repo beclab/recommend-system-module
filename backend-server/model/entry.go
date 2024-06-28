@@ -7,12 +7,12 @@ import (
 )
 
 type Entry struct {
-	ID                string `json:"id"`
-	FeedID            string `json:"feed"`
-	Status            string `json:"status"`
-	Title             string `json:"title"`
-	URL               string `json:"url"`
-	CommentsURL       string `json:"comments_url"`
+	ID                string  `json:"id"`
+	FeedID            *string `json:"feed"`
+	Status            string  `json:"status"`
+	Title             string  `json:"title"`
+	URL               string  `json:"url"`
+	CommentsURL       string  `json:"comments_url"`
 	PublishedAtParsed time.Time
 	PublishedAt       int64 `json:"published_at"`
 
