@@ -32,7 +32,7 @@ func (h *handler) fetchContent(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) newFetchContent(entry *model.Entry) string {
-	feed, _ := h.store.GetFeedById(entry.FeedID)
+	feed, _ := h.store.GetFeedById(*entry.FeedID)
 	//crawler.EntryCrawler(entry, feed) //entry.ID.Hex(), entry.URL, entry.Title, entry.ImageUrl, entry.Author, entry.PublishedAt, feed)
 
 	feedUrl := ""

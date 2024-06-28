@@ -45,7 +45,7 @@ func (s *Storage) GetEntryById(entryID string) (*model.Entry, error) {
 		&entry.FullContent,
 		&entry.DocId,
 		&entry.Author,
-		&entry.Sources,
+		pq.Array(&entry.Sources),
 	)
 	if err == sql.ErrNoRows {
 		return nil, nil
