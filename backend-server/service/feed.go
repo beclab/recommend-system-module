@@ -39,7 +39,7 @@ func RssParseFromURL(feedURL string) *model.Feed {
 }
 
 func rssRrefresh(store *storage.Storage, feed *model.Feed, feedURL string) *model.Feed {
-	common.Logger.Info("start refresh feed ", zap.String("feedId", feed.ID))
+	common.Logger.Info("start refresh feed ", zap.String("feedId", feed.ID), zap.String("feed url:", feedURL))
 	request := client.NewClientWithConfig(feedURL)
 	request.WithCredentials(feed.Username, feed.Password)
 	request.WithUserAgent(feed.UserAgent)
@@ -58,7 +58,7 @@ func rssRrefresh(store *storage.Storage, feed *model.Feed, feedURL string) *mode
 	if requestErr != nil {
 		feed.ParsingErrorCount++
 		store.UpdateFeedError(feed.ID, feed)
-		common.Logger.Error("refresh feed load from mongodb error id", zap.String("feedId", feed.ID), zap.Error(requestErr))
+		common.Logger.Error("refresh feed load from db error id", zap.String("feedId", feed.ID), zap.Error(requestErr))
 		return nil
 	}
 
@@ -88,7 +88,7 @@ func rssRrefresh(store *storage.Storage, feed *model.Feed, feedURL string) *mode
 func RefreshFeed(store *storage.Storage, feedID string) {
 	originalFeed, storeErr := store.GetFeedById(feedID)
 	if storeErr != nil {
-		common.Logger.Error("refresh feed load from mongodb error id", zap.String("feedId", feedID), zap.Error(storeErr))
+		common.Logger.Error("refresh feed load from db error id", zap.String("feedId", feedID), zap.Error(storeErr))
 	}
 
 	if originalFeed == nil {

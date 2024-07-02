@@ -3,7 +3,6 @@ package storage
 import (
 	"database/sql"
 	"fmt"
-	"time"
 
 	"bytetrade.io/web3os/backend-server/common"
 	"bytetrade.io/web3os/backend-server/model"
@@ -82,14 +81,12 @@ func (s *Storage) UpdateFeedError(feedID string, feed *model.Feed) {
 		UPDATE
 			feeds
 		SET
-			parsing_error_count=$1,
-			update_at=$2
+			parsing_error_count=$1
 		WHERE
-			id=$3 
+			id=$2 
 	`
 	_, err := s.db.Exec(query,
 		feed.ParsingErrorCount,
-		time.Now(),
 		feed.ID,
 	)
 
@@ -100,7 +97,7 @@ func (s *Storage) UpdateFeedError(feedID string, feed *model.Feed) {
 }
 
 func (s *Storage) ResetFeedHeader(feedID string) {
-	_, err := s.db.Exec(`UPDATE feeds SET etag_header='', parsing_error_msg='' where id=$1`, feedID)
+	_, err := s.db.Exec(`UPDATE feeds SET etag_header='' where id=$1`, feedID)
 	if err != nil {
 		common.Logger.Error("reset  feed header error", zap.Error(err))
 	}
