@@ -21,18 +21,18 @@ type Entry struct {
 	Content    string    `json:"content"`
 	RawContent string    `json:"raw_content"`
 	//PureContent string             `bson:"pure_content"`
-	FullContent string   `json:"full_content"`
-	DocId       string   `json:"doc_id"`
-	Author      string   `json:"author"`
-	ImageUrl    string   `json:"image_url"`
-	Readlater   bool     `json:"readlater"`
-	Crawler     bool     `json:"crawler"`
-	Starred     bool     `json:"starred"`
-	Disabled    bool     `json:"disabled"`
-	Saved       bool     `json:"saved"`
-	Unread      bool     `json:"unread"`
-	Language    string   `json:"language"`
-	Sources     []string `json:"sources"`
+	FullContent string `json:"full_content"`
+	//DocId       string   `json:"doc_id"`
+	Author    string   `json:"author"`
+	ImageUrl  string   `json:"image_url"`
+	Readlater bool     `json:"readlater"`
+	Crawler   bool     `json:"crawler"`
+	Starred   bool     `json:"starred"`
+	Disabled  bool     `json:"disabled"`
+	Saved     bool     `json:"saved"`
+	Unread    bool     `json:"unread"`
+	Language  string   `json:"language"`
+	Sources   []string `json:"sources"`
 }
 
 type EntryAddModel struct {
