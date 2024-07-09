@@ -8,7 +8,6 @@ import (
 	"bytetrade.io/web3os/backend-server/http/request"
 	"bytetrade.io/web3os/backend-server/http/response/json"
 	"bytetrade.io/web3os/backend-server/model"
-	"bytetrade.io/web3os/backend-server/service/search"
 	"go.uber.org/zap"
 )
 
@@ -44,7 +43,6 @@ func (h *handler) newFetchContent(entry *model.Entry) string {
 	certificates := false
 	fetchViaProxy := false
 
-	var feedSearchRSSList []model.FeedNotification
 	if feed != nil {
 
 		feedUrl = feed.FeedURL
@@ -53,26 +51,10 @@ func (h *handler) newFetchContent(entry *model.Entry) string {
 		certificates = feed.AllowSelfSignedCertificates
 		fetchViaProxy = feed.FetchViaProxy
 
-		if feed.ID != "" {
-			feedNotification := model.FeedNotification{
-				FeedId:   feed.ID,
-				FeedName: feed.Title,
-				FeedIcon: "",
-			}
-			feedSearchRSSList = append(feedSearchRSSList, feedNotification)
-		}
 	}
 	crawler.EntryCrawler(entry, feedUrl, userAgent, cookie, certificates, fetchViaProxy)
 
-	notificationData := model.NotificationData{
-		Name:      entry.Title,
-		EntryId:   entry.ID,
-		Created:   entry.PublishedAt,
-		FeedInfos: feedSearchRSSList,
-		Content:   entry.FullContent,
-	}
-	docId := search.InputRSS(&notificationData)
-	updateDocIDEntry := &model.Entry{ID: entry.ID, DocId: docId, PublishedAt: entry.PublishedAt, Title: entry.Title, Language: entry.Language, Author: entry.Author, RawContent: entry.RawContent, FullContent: entry.FullContent}
+	updateDocIDEntry := &model.Entry{ID: entry.ID, PublishedAt: entry.PublishedAt, Title: entry.Title, Language: entry.Language, Author: entry.Author, RawContent: entry.RawContent, FullContent: entry.FullContent}
 	h.store.UpdateEntryContent(updateDocIDEntry)
 
 	return entry.FullContent
