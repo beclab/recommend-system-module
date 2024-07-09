@@ -111,10 +111,6 @@ func GetMongoAlgorithmsColl() string {
 	return ParseString(os.Getenv("MONGODB_ALGORITHMS_COLL"), defaultMongoAlgorithmsColl)
 }
 
-func GetZincRpcStart() bool {
-	return parseBool(os.Getenv("ZINC_RPC_START"), false)
-}
-
 func GetWorkPoolSize() int {
 	return ParseInt(os.Getenv("WORK_POOL_SIZE"), DefaultWorkerPoolSize)
 }

@@ -10,14 +10,6 @@ import (
 func ProcessFeedEntries(store *storage.Storage, feed *model.Feed, entries model.Entries) {
 	newEntries := make([]*model.Entry, 0)
 	updateEntries := make([]*model.Entry, 0)
-	var feedSearchRSSList []model.FeedNotification
-	feedNotification := model.FeedNotification{
-		//FeedId:   feed.ID.Hex(),
-		FeedId:   feed.ID,
-		FeedName: feed.Title,
-		FeedIcon: "",
-	}
-	feedSearchRSSList = append(feedSearchRSSList, feedNotification)
 
 	for _, entry := range entries {
 		savedEntry := store.GetEntryByUrl(feed.ID, entry.URL)
@@ -32,7 +24,7 @@ func ProcessFeedEntries(store *storage.Storage, feed *model.Feed, entries model.
 			if entry.FullContent != "" {
 				newEntries = append(newEntries, entry)
 				if len(newEntries) > 20 {
-					knowledge.SaveFeedEntries(store, newEntries, feed, feedSearchRSSList)
+					knowledge.SaveFeedEntries(store, newEntries, feed)
 					newEntries = make([]*model.Entry, 0)
 				}
 			}
@@ -43,8 +35,8 @@ func ProcessFeedEntries(store *storage.Storage, feed *model.Feed, entries model.
 			}
 		}
 	}
-	knowledge.SaveFeedEntries(store, newEntries, feed, feedSearchRSSList)
-	knowledge.UpdateFeedEntries(store, updateEntries, feed, feedSearchRSSList)
+	knowledge.SaveFeedEntries(store, newEntries, feed)
+	knowledge.UpdateFeedEntries(store, updateEntries, feed)
 }
 
 func contains(s []string, e string) bool {

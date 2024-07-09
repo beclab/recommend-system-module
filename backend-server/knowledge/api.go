@@ -10,12 +10,11 @@ import (
 
 	"bytetrade.io/web3os/backend-server/common"
 	"bytetrade.io/web3os/backend-server/model"
-	"bytetrade.io/web3os/backend-server/service/search"
 	"bytetrade.io/web3os/backend-server/storage"
 	"go.uber.org/zap"
 )
 
-func SaveFeedEntries(store *storage.Storage, entries model.Entries, feed *model.Feed, feedSearchRSSList []model.FeedNotification) {
+func SaveFeedEntries(store *storage.Storage, entries model.Entries, feed *model.Feed) {
 	common.Logger.Info("add entry in mongo", zap.Int("len", len(entries)))
 	if len(entries) == 0 {
 		return
@@ -26,11 +25,11 @@ func SaveFeedEntries(store *storage.Storage, entries model.Entries, feed *model.
 		reqModel := model.GetEntryAddModel(entryModel, feed.FeedURL)
 		addList = append(addList, reqModel)
 	}
-	doReq(addList, entries, feedSearchRSSList, store)
+	doReq(addList, entries, store)
 
 }
 
-func doReq(list []*model.EntryAddModel, entries model.Entries, feedSearchRSSList []model.FeedNotification, store *storage.Storage) {
+func doReq(list []*model.EntryAddModel, entries model.Entries, store *storage.Storage) {
 	jsonByte, _ := json.Marshal(list)
 	url := common.EntryMonogoUpdateApiUrl()
 	request, _ := http.NewRequest("POST", url, bytes.NewBuffer(jsonByte))
@@ -38,7 +37,7 @@ func doReq(list []*model.EntryAddModel, entries model.Entries, feedSearchRSSList
 	client := &http.Client{Timeout: 5 * time.Second}
 	response, err := client.Do(request)
 	if err != nil {
-		common.Logger.Error("add entry in mongo  fail", zap.Error(err))
+		common.Logger.Error("add entry in knowledg  fail", zap.Error(err))
 	}
 	defer response.Body.Close()
 	responseBody, _ := io.ReadAll(response.Body)
@@ -48,32 +47,12 @@ func doReq(list []*model.EntryAddModel, entries model.Entries, feedSearchRSSList
 		return
 	}
 	if resObj.Code == 0 {
-		resEntryMap := make(map[string]string, 0)
-		for _, resDataDetail := range resObj.Data {
-			resEntryMap[resDataDetail.Url] = resDataDetail.ID
-		}
-		for _, entry := range entries {
-			entryID, ok := resEntryMap[entry.URL]
-			if ok {
-				notificationData := model.NotificationData{
-					Name:      entry.Title,
-					EntryId:   entryID,
-					Created:   entry.PublishedAt,
-					FeedInfos: feedSearchRSSList,
-					Content:   entry.FullContent,
-				}
-				docId := search.InputRSS(&notificationData)
-				//entryObjID, _ := primitive.ObjectIDFromHex(entryID)
-				//updateDocIDEntry := &model.Entry{ID: entryObjID, DocId: docId}
-				updateDocIDEntry := &model.Entry{ID: entryID, DocId: docId}
-				store.UpdateEntryDocID(updateDocIDEntry)
-			}
-		}
+		common.Logger.Info("add entry in knowledg success")
 	}
 
 }
 
-func UpdateFeedEntries(store *storage.Storage, entries model.Entries, feed *model.Feed, feedSearchRSSList []model.FeedNotification) {
+func UpdateFeedEntries(store *storage.Storage, entries model.Entries, feed *model.Feed) {
 	common.Logger.Info("update entry in mongo", zap.Int("len", len(entries)))
 	if len(entries) == 0 {
 		return
@@ -84,6 +63,6 @@ func UpdateFeedEntries(store *storage.Storage, entries model.Entries, feed *mode
 		reqModel := model.GetEntryUpdateSourceModel(entryModel, feed.FeedURL)
 		addList = append(addList, reqModel)
 	}
-	doReq(addList, entries, feedSearchRSSList, store)
+	doReq(addList, entries, store)
 
 }
