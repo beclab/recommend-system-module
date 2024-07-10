@@ -7,6 +7,7 @@ import (
 	"bytetrade.io/web3os/backend-server/common"
 	"bytetrade.io/web3os/backend-server/model"
 	"github.com/lib/pq"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.uber.org/zap"
 )
 
@@ -59,4 +60,33 @@ func (s *Storage) UpdateEntryContent(entry *model.Entry) {
 	if err != nil {
 		common.Logger.Error("update entry content  fail", zap.Error(err))
 	}
+}
+
+func (s *Storage) CreateEnclosure(entry *model.Entry) (string, error) {
+	enclosureID := primitive.NewObjectID().Hex()
+
+	query := `
+		INSERT INTO enclosures
+			(id,entry_id, content, mime_type, url, local_path,download_status)
+		VALUES
+			($1, $2, $3, $4, $5,$6)
+		RETURNING
+			id
+	`
+
+	err := s.db.QueryRow(
+		query,
+		entry.ID,
+		entry.MediaContent,
+		entry.MediaType,
+		entry.MediaUrl,
+		"",
+		"",
+	).Scan(&enclosureID)
+
+	if err != nil {
+		return "", fmt.Errorf(`store: unable to create enclosure %v`, err)
+	}
+
+	return enclosureID, nil
 }

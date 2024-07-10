@@ -23,16 +23,20 @@ type Entry struct {
 	//PureContent string             `bson:"pure_content"`
 	FullContent string `json:"full_content"`
 	//DocId       string   `json:"doc_id"`
-	Author    string   `json:"author"`
-	ImageUrl  string   `json:"image_url"`
-	Readlater bool     `json:"readlater"`
-	Crawler   bool     `json:"crawler"`
-	Starred   bool     `json:"starred"`
-	Disabled  bool     `json:"disabled"`
-	Saved     bool     `json:"saved"`
-	Unread    bool     `json:"unread"`
-	Language  string   `json:"language"`
-	Sources   []string `json:"sources"`
+	Author       string `json:"author"`
+	ImageUrl     string `json:"image_url"`
+	Readlater    bool   `json:"readlater"`
+	Crawler      bool   `json:"crawler"`
+	Starred      bool   `json:"starred"`
+	Disabled     bool   `json:"disabled"`
+	Saved        bool   `json:"saved"`
+	Unread       bool   `json:"unread"`
+	Language     string `json:"language"`
+	MediaContent string `json:"media_content"`
+	MediaUrl     string `json:"media_url"`
+	MediaType    string `json:"media_type"`
+
+	Sources []string `json:"sources"`
 }
 
 type EntryAddModel struct {
@@ -143,3 +147,10 @@ func GetEntryFromWeChatEntry(wechatEntry *WeChatEntry) *Entry {
 }
 
 type WeChatEntries []*WeChatEntry
+
+type EntryDownloadModel struct {
+	DataSource  string `json:"data_source"`
+	TaskUser    string `json:"task_user"`
+	DownloadAPP string `json:"download_app"`
+	EnclosureId string `json:"enclosure_id"`
+}

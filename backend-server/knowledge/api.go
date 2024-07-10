@@ -29,6 +29,30 @@ func SaveFeedEntries(store *storage.Storage, entries model.Entries, feed *model.
 
 }
 
+func doDownloadReq(download model.EntryDownloadModel) {
+	downloadUrl := common.DownloadApiUrl()
+	algoJsonByte, err := json.Marshal(download)
+	if err != nil {
+		common.Logger.Error("add download json marshal  fail", zap.Error(err))
+	}
+
+	common.Logger.Info("start download ", zap.String("url", download.DataSource))
+	algoReq, _ := http.NewRequest("POST", downloadUrl, bytes.NewBuffer(algoJsonByte))
+	algoReq.Header.Set("Content-Type", "application/json")
+	algoClient := &http.Client{Timeout: time.Second * 5}
+	_, err = algoClient.Do(algoReq)
+
+	defer algoReq.Body.Close()
+	body, _ := io.ReadAll(algoReq.Body)
+	jsonStr := string(body)
+	common.Logger.Info("new download response: ", zap.String("body", jsonStr))
+
+	if err != nil {
+		common.Logger.Error("new download   fail", zap.Error(err))
+	}
+
+	common.Logger.Info("update algorith finish ", zap.String("download url", download.DataSource))
+}
 func doReq(list []*model.EntryAddModel, entries model.Entries, store *storage.Storage) {
 	jsonByte, _ := json.Marshal(list)
 	url := common.EntryMonogoUpdateApiUrl()
@@ -47,7 +71,28 @@ func doReq(list []*model.EntryAddModel, entries model.Entries, store *storage.St
 		return
 	}
 	if resObj.Code == 0 {
-		common.Logger.Info("add entry in knowledg success")
+		resEntryMap := make(map[string]string, 0)
+		for _, resDataDetail := range resObj.Data {
+			resEntryMap[resDataDetail.Url] = resDataDetail.ID
+		}
+		for _, entry := range entries {
+			entryID, ok := resEntryMap[entry.URL]
+			if ok {
+				entry.ID = entryID
+				if entry.MediaContent != "" || entry.MediaUrl != "" {
+					enclosureID, createEnclosureErr := store.CreateEnclosure(entry)
+					if createEnclosureErr != nil && entry.MediaUrl != "" {
+						var download model.EntryDownloadModel
+						download.DataSource = entry.MediaUrl
+						download.TaskUser = common.CurrentUser()
+						download.DownloadAPP = "wise"
+						download.EnclosureId = enclosureID
+						doDownloadReq(download)
+					}
+				}
+			}
+		}
+
 	}
 
 }

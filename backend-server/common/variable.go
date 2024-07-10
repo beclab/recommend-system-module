@@ -32,6 +32,8 @@ const (
 
 	defaultEntryMongoUpdateApiUrl = "http://localhost:3010/knowledge/entry/"
 
+	defaultDownloadApiUrl = "http://localhost:3010/knowledge/entry/"
+
 	FeedSource                   = "wise"
 	DefaultWorkerPoolSize        = 1
 	DefaultContentWorkerPoolSize = 3
@@ -44,6 +46,19 @@ func EntryMonogoUpdateApiUrl() string {
 	if env == "" {
 		return defaultEntryMongoUpdateApiUrl
 	}
+	return env
+}
+
+func DownloadApiUrl() string {
+	env := os.Getenv("DOWNLOAD_API_URL")
+	if env == "" {
+		return defaultDownloadApiUrl
+	}
+	return env
+}
+
+func CurrentUser() string {
+	env := os.Getenv("CURRENT_USER")
 	return env
 }
 
