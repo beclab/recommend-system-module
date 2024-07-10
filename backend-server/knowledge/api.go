@@ -53,6 +53,18 @@ func doDownloadReq(download model.EntryDownloadModel) {
 
 	common.Logger.Info("update algorith finish ", zap.String("download url", download.DataSource))
 }
+func NewEnclosure(entry *model.Entry, store *storage.Storage) {
+	enclosureID, createEnclosureErr := store.CreateEnclosure(entry)
+	if createEnclosureErr != nil && entry.MediaUrl != "" {
+		var download model.EntryDownloadModel
+		download.DataSource = entry.MediaUrl
+		download.TaskUser = common.CurrentUser()
+		download.DownloadAPP = "wise"
+		download.EnclosureId = enclosureID
+		doDownloadReq(download)
+	}
+}
+
 func doReq(list []*model.EntryAddModel, entries model.Entries, store *storage.Storage) {
 	jsonByte, _ := json.Marshal(list)
 	url := common.EntryMonogoUpdateApiUrl()
@@ -80,15 +92,7 @@ func doReq(list []*model.EntryAddModel, entries model.Entries, store *storage.St
 			if ok {
 				entry.ID = entryID
 				if entry.MediaContent != "" || entry.MediaUrl != "" {
-					enclosureID, createEnclosureErr := store.CreateEnclosure(entry)
-					if createEnclosureErr != nil && entry.MediaUrl != "" {
-						var download model.EntryDownloadModel
-						download.DataSource = entry.MediaUrl
-						download.TaskUser = common.CurrentUser()
-						download.DownloadAPP = "wise"
-						download.EnclosureId = enclosureID
-						doDownloadReq(download)
-					}
+					NewEnclosure(entry, store)
 				}
 			}
 		}

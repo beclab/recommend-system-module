@@ -55,7 +55,7 @@ func (s *Storage) GetEntryByUrl(feedID, url string) *model.Entry {
 }
 
 func (s *Storage) UpdateEntryContent(entry *model.Entry) {
-	_, err := s.db.Exec(`UPDATE entries SET crawler=true,published_at=$1,language=$2,author=$3,title=$4,raw_content=$5,full_content=$6 where id=$8`,
+	_, err := s.db.Exec(`UPDATE entries SET crawler=true,published_at=$1,language=$2,author=$3,title=$4,raw_content=$5,full_content=$6 where id=$7`,
 		entry.PublishedAt, entry.Language, entry.Author, entry.Title, entry.RawContent, entry.FullContent, entry.ID)
 	if err != nil {
 		common.Logger.Error("update entry content  fail", zap.Error(err))
@@ -69,20 +69,19 @@ func (s *Storage) CreateEnclosure(entry *model.Entry) (string, error) {
 		INSERT INTO enclosures
 			(id,entry_id, content, mime_type, url, local_path,download_status)
 		VALUES
-			($1, $2, $3, $4, $5,$6)
-		RETURNING
-			id
+			($1, $2, $3, $4, $5,$6,$7)
 	`
 
-	err := s.db.QueryRow(
+	_, err := s.db.Exec(
 		query,
+		enclosureID,
 		entry.ID,
 		entry.MediaContent,
 		entry.MediaType,
 		entry.MediaUrl,
 		"",
 		"",
-	).Scan(&enclosureID)
+	)
 
 	if err != nil {
 		return "", fmt.Errorf(`store: unable to create enclosure %v`, err)

@@ -7,6 +7,7 @@ import (
 	"bytetrade.io/web3os/backend-server/crawler"
 	"bytetrade.io/web3os/backend-server/http/request"
 	"bytetrade.io/web3os/backend-server/http/response/json"
+	"bytetrade.io/web3os/backend-server/knowledge"
 	"bytetrade.io/web3os/backend-server/model"
 	"go.uber.org/zap"
 )
@@ -57,6 +58,9 @@ func (h *handler) newFetchContent(entry *model.Entry) string {
 	updateDocIDEntry := &model.Entry{ID: entry.ID, PublishedAt: entry.PublishedAt, Title: entry.Title, Language: entry.Language, Author: entry.Author, RawContent: entry.RawContent, FullContent: entry.FullContent}
 	h.store.UpdateEntryContent(updateDocIDEntry)
 
+	if entry.MediaContent != "" || entry.MediaUrl != "" {
+		knowledge.NewEnclosure(entry, h.store)
+	}
 	return entry.FullContent
 }
 
