@@ -63,7 +63,7 @@ func DownloadApiUrl() string {
 }
 
 func CurrentUser() string {
-	env := os.Getenv("CURRENT_USER")
+	env := ParseString(os.Getenv("CURRENT_USER"), "")
 	return env
 }
 
