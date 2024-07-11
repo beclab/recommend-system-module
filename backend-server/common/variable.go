@@ -19,18 +19,25 @@ const (
 	defaultMongoEntryColl      = "entries"
 	defaultMongoAlgorithmsColl = "algorithms"
 
-	defaultDatabaseURL = "host=127.0.0.1  user=postgres password=postgres dbname=rss sslmode=disable"
-	defaultPGHost      = "127.0.0.1"
-	defaultPGUser      = "postgres"
-	defaultPGPass      = "postgres"
-	defaultPGPDBName   = "rss"
-	defaultPGPort      = 5432
+	//defaultDatabaseURL = "host=127.0.0.1  user=postgres password=postgres dbname=rss sslmode=disable"
+	defaultDatabaseURL = "host=124.222.40.95  user=postgres password=liujx123 dbname=rss_v4 sslmode=disable"
+	//defaultPGHost      = "127.0.0.1"
+	//defaultPGUser      = "postgres"
+	//defaultPGPass      = "postgres"
+	//defaultPGPDBName   = "rss"
+	defaultPGHost    = "124.222.40.95"
+	defaultPGUser    = "postgres"
+	defaultPGPass    = "liujx123"
+	defaultPGPDBName = "rss_v4"
+	defaultPGPort    = 5432
 
 	defaultDatabaseMaxConns           = 20
 	defaultDatabaseMinConns           = 1
 	defaultDatabaseConnectionLifetime = 5
 
 	defaultEntryMongoUpdateApiUrl = "http://localhost:3010/knowledge/entry/"
+
+	defaultDownloadApiUrl = "http://localhost:3010/knowledge/entry/"
 
 	FeedSource                   = "wise"
 	DefaultWorkerPoolSize        = 1
@@ -44,6 +51,19 @@ func EntryMonogoUpdateApiUrl() string {
 	if env == "" {
 		return defaultEntryMongoUpdateApiUrl
 	}
+	return env
+}
+
+func DownloadApiUrl() string {
+	env := os.Getenv("DOWNLOAD_API_URL")
+	if env == "" {
+		return defaultDownloadApiUrl
+	}
+	return env
+}
+
+func CurrentUser() string {
+	env := os.Getenv("CURRENT_USER")
 	return env
 }
 
