@@ -54,8 +54,8 @@ func doDownloadReq(download model.EntryDownloadModel) {
 	common.Logger.Info("update download finish ", zap.String("download url", download.DataSource))
 }
 func NewEnclosure(entry *model.Entry, store *storage.Storage) {
-	enclosureID, createEnclosureErr := store.CreateEnclosure(entry)
-	if createEnclosureErr != nil && entry.MediaUrl != "" {
+	enclosureID, _ := store.CreateEnclosure(entry)
+	if entry.MediaUrl != "" {
 		var download model.EntryDownloadModel
 		download.DataSource = entry.MediaUrl
 		download.TaskUser = common.CurrentUser()
@@ -63,7 +63,7 @@ func NewEnclosure(entry *model.Entry, store *storage.Storage) {
 		download.EnclosureId = enclosureID
 		doDownloadReq(download)
 	} else {
-		common.Logger.Error("new enclosure err", zap.Error(createEnclosureErr))
+		common.Logger.Error("entry mediaUrl is null")
 	}
 }
 

@@ -84,6 +84,7 @@ func (s *Storage) CreateEnclosure(entry *model.Entry) (string, error) {
 	)
 
 	if err != nil {
+		common.Logger.Error("unable to create enclosure", zap.Error(err))
 		return "", fmt.Errorf(`store: unable to create enclosure %v`, err)
 	}
 
