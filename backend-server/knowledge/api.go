@@ -51,7 +51,7 @@ func doDownloadReq(download model.EntryDownloadModel) {
 		common.Logger.Error("new download   fail", zap.Error(err))
 	}
 
-	common.Logger.Info("update algorith finish ", zap.String("download url", download.DataSource))
+	common.Logger.Info("update download finish ", zap.String("download url", download.DataSource))
 }
 func NewEnclosure(entry *model.Entry, store *storage.Storage) {
 	enclosureID, createEnclosureErr := store.CreateEnclosure(entry)
@@ -62,6 +62,8 @@ func NewEnclosure(entry *model.Entry, store *storage.Storage) {
 		download.DownloadAPP = "wise"
 		download.EnclosureId = enclosureID
 		doDownloadReq(download)
+	} else {
+		common.Logger.Error("new enclosure err", zap.Error(createEnclosureErr))
 	}
 }
 
