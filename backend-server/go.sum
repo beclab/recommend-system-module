@@ -2,8 +2,8 @@ github.com/PuerkitoBio/goquery v1.9.1 h1:mTL6XjbJTZdpfL+Gwl5U2h1l9yEkJjhmlTeV9VP
 github.com/PuerkitoBio/goquery v1.9.1/go.mod h1:cW1n6TmIMDoORQU5IU/P1T3tGFunOeXEpGP2WHRwkbY=
 github.com/andybalholm/cascadia v1.3.2 h1:3Xi6Dw5lHF15JtdcmAHD3i1+T8plmv7BQ/nsViSLyss=
 github.com/andybalholm/cascadia v1.3.2/go.mod h1:7gtRlve5FxPPgIgX36uWBX58OdBsSS6lUvCFb+h7KvU=
-github.com/beclab/article-extractor v0.0.14 h1:avie4Qe3l/a+fcPHpnVJUAm78kiBA4UkjV7MRLQQAXM=
-github.com/beclab/article-extractor v0.0.14/go.mod h1:mGT6FvsLc9xzccWLO02XPvpNBcejj8ZTz40u7bkCBgI=
+github.com/beclab/article-extractor v0.0.15 h1:l2NYoVmQEGH+s1OrfwFZkZrX9yxpnWTooNnbNAgaawQ=
+github.com/beclab/article-extractor v0.0.15/go.mod h1:mGT6FvsLc9xzccWLO02XPvpNBcejj8ZTz40u7bkCBgI=
 github.com/bytedance/sonic v1.5.0/go.mod h1:ED5hyg4y6t3/9Ku1R6dU/4KyJ48DZ4jPhfY1O2AihPM=
 github.com/bytedance/sonic v1.10.0-rc/go.mod h1:ElCzW+ufi8qKqNW0FY314xriJhyJhuoJ3gFZdAHF7NM=
 github.com/bytedance/sonic v1.10.2 h1:GQebETVBxYB7JGWJtLBi07OVzWwt+8dWA00gEVW2ZFE=

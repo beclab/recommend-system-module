@@ -15,7 +15,7 @@ import (
 func EntryCrawler(entry *model.Entry, feedUrl, userAgent, cookie string, certificates, fetchViaProxy bool) {
 	//entryID, entryUrl, entryTitle, imageUrl, author string, entryPublishedAt int64, feed *model.Feed) (string, string, int64) {
 	common.Logger.Info("crawler entry start", zap.String("url", entry.URL))
-	entry.RawContent = fetchRawContnt(
+	entry.RawContent = FetchRawContnt(
 		entry.URL,
 		entry.Title,
 		userAgent,
@@ -75,7 +75,7 @@ func EntryCrawler(entry *model.Entry, feedUrl, userAgent, cookie string, certifi
 	//return rawContent, rtContent, entryPublishedAt
 }
 
-func fetchRawContnt(websiteURL, title, userAgent string, cookie string, allowSelfSignedCertificates, useProxy bool) string {
+func FetchRawContnt(websiteURL, title, userAgent string, cookie string, allowSelfSignedCertificates, useProxy bool) string {
 	clt := client.NewClientWithConfig(websiteURL)
 	clt.WithUserAgent(userAgent)
 	clt.WithCookie(cookie)

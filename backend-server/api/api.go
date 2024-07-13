@@ -29,5 +29,6 @@ func Serve(router *mux.Router, store *storage.Storage, pool *worker.Pool) {
 	sr.HandleFunc("/knowledge/entries/{entryID}/fetch-content", handler.knowledgeFetchContent).Methods(http.MethodGet)
 
 	sr.HandleFunc("/knowledge/rssParse", handler.rssParse).Methods(http.MethodGet)
+	sr.HandleFunc("/knowledge/radioDetection", handler.radioDetection).Methods(http.MethodGet)
 
 }
