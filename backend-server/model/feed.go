@@ -153,6 +153,11 @@ type ParseFeedResponseModel struct {
 	Data FeedParseModel `json:"data"`
 }
 
+type StrResponseModel struct {
+	Code int    `json:"code"`
+	Data string `json:"data"`
+}
+
 func GetFeedParseModel(feedModel *Feed) FeedParseModel {
 	var result FeedParseModel
 
