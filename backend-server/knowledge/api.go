@@ -76,6 +76,7 @@ func doReq(list []*model.EntryAddModel, entries model.Entries, store *storage.St
 	response, err := client.Do(request)
 	if err != nil {
 		common.Logger.Error("add entry in knowledg  fail", zap.Error(err))
+		return
 	}
 	defer response.Body.Close()
 	responseBody, _ := io.ReadAll(response.Body)
