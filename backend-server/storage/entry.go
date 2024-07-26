@@ -54,13 +54,13 @@ func (s *Storage) GetEntryByUrl(feedID, url string) *model.Entry {
 	return &entry
 }
 
-func (s *Storage) UpdateEntryContent(entry *model.Entry) {
+/*func (s *Storage) UpdateEntryContent(entry *model.Entry) {
 	_, err := s.db.Exec(`UPDATE entries SET crawler=true,published_at=$1,language=$2,author=$3,title=$4,raw_content=$5,full_content=$6 where id=$7`,
 		entry.PublishedAt, entry.Language, entry.Author, entry.Title, entry.RawContent, entry.FullContent, entry.ID)
 	if err != nil {
 		common.Logger.Error("update entry content  fail", zap.Error(err))
 	}
-}
+}*/
 
 func (s *Storage) CreateEnclosure(entry *model.Entry) (string, error) {
 	enclosureID := primitive.NewObjectID().Hex()
