@@ -2,6 +2,7 @@ package api
 
 import (
 	"net/http"
+	"strings"
 
 	"bytetrade.io/web3os/backend-server/common"
 	"bytetrade.io/web3os/backend-server/crawler"
@@ -56,8 +57,9 @@ func (h *handler) newFetchContent(entry *model.Entry) string {
 	}
 	crawler.EntryCrawler(entry, feedUrl, userAgent, cookie, certificates, fetchViaProxy)
 
-	updateDocIDEntry := &model.Entry{ID: entry.ID, PublishedAt: entry.PublishedAt, Title: entry.Title, Language: entry.Language, Author: entry.Author, RawContent: entry.RawContent, FullContent: entry.FullContent}
-	h.store.UpdateEntryContent(updateDocIDEntry)
+	updateEntry := &model.Entry{ID: entry.ID, URL: entry.URL, PublishedAt: entry.PublishedAt, Title: entry.Title, Language: entry.Language, Author: entry.Author, RawContent: entry.RawContent, FullContent: entry.FullContent}
+	//h.store.UpdateEntryContent(updateDocIDEntry)
+	knowledge.UpdateLibraryEntryContent(updateEntry)
 
 	if entry.MediaContent != "" || entry.MediaUrl != "" {
 		knowledge.NewEnclosure(entry, h.store)
@@ -78,7 +80,7 @@ func (h *handler) knowledgeFetchContent(w http.ResponseWriter, r *http.Request) 
 		json.OK(w, r, "")
 		return
 	}
-	if entry.FullContent == "" {
+	if strings.TrimSpace(entry.FullContent) == "" {
 		go func() {
 			h.newFetchContent(entry)
 		}()

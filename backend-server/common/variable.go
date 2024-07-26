@@ -37,7 +37,7 @@ const (
 
 	defaultEntryMongoUpdateApiUrl = "http://localhost:3010/knowledge/entry/"
 
-	defaultDownloadApiUrl = "http://localhost:3010/knowledge/entry/"
+	defaultDownloadApiUrl = "http://localhost:3080/api/termius/download"
 
 	FeedSource                   = "wise"
 	DefaultWorkerPoolSize        = 1

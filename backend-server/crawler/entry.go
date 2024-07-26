@@ -25,7 +25,7 @@ func EntryCrawler(entry *model.Entry, feedUrl, userAgent, cookie string, certifi
 	)
 
 	if entry.RawContent != "" {
-		if entry.Title == "" {
+		if strings.TrimSpace(entry.Title) == "" {
 			entry.Title = extractTitleByHtml(entry.RawContent)
 		}
 		common.Logger.Info("crawler entry start to extract", zap.String("url", entry.URL))

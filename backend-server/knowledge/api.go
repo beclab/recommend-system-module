@@ -76,6 +76,7 @@ func doReq(list []*model.EntryAddModel, entries model.Entries, store *storage.St
 	response, err := client.Do(request)
 	if err != nil {
 		common.Logger.Error("add entry in knowledg  fail", zap.Error(err))
+		return
 	}
 	defer response.Body.Close()
 	responseBody, _ := io.ReadAll(response.Body)
@@ -115,5 +116,34 @@ func UpdateFeedEntries(store *storage.Storage, entries model.Entries, feed *mode
 		addList = append(addList, reqModel)
 	}
 	doReq(addList, entries, store)
+}
+
+func UpdateLibraryEntryContent(entry *model.Entry) {
+	updateList := make([]*model.EntryAddModel, 0)
+	var updateEntry model.EntryAddModel
+	updateEntry.Url = entry.URL
+	updateEntry.Title = entry.Title
+	updateEntry.PublishedAt = entry.PublishedAt
+	updateEntry.Author = entry.Author
+	updateEntry.Language = entry.Language
+	updateEntry.RawContent = entry.RawContent
+	updateEntry.FullContent = entry.FullContent
+	updateEntry.Crawler = true
+	updateEntry.Extract = true
+	updateList = append(updateList, &updateEntry)
+	jsonByte, _ := json.Marshal(updateList)
+	url := common.EntryMonogoUpdateApiUrl()
+	request, _ := http.NewRequest("POST", url, bytes.NewBuffer(jsonByte))
+	request.Header.Set("Content-Type", "application/json")
+	client := &http.Client{Timeout: 5 * time.Second}
+	response, err := client.Do(request)
+	if err != nil {
+		common.Logger.Error("add entry in knowledg  fail", zap.Error(err))
+		return
+	}
+	defer response.Body.Close()
+	responseBody, _ := io.ReadAll(response.Body)
+	jsonStr := string(responseBody)
+	common.Logger.Info("update content response: ", zap.String("body", jsonStr))
 
 }
