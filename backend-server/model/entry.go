@@ -153,4 +153,6 @@ type EntryDownloadModel struct {
 	TaskUser    string `json:"task_user"`
 	DownloadAPP string `json:"download_app"`
 	EnclosureId string `json:"enclosure_id"`
+	FileName    string `json:"file_name"`
+	FileType    string `json:"file_type"`
 }
