@@ -67,7 +67,7 @@ func (s *Storage) CreateEnclosure(entry *model.Entry) (string, error) {
 
 	query := `
 		INSERT INTO enclosures
-			(id,entry_id, content, mime_type, url, local_path,download_status)
+			(id,entry_id, content, mime_type, url, local_file_path,download_status)
 		VALUES
 			($1, $2, $3, $4, $5,$6,$7)
 	`
