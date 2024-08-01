@@ -46,7 +46,7 @@ require (
 
 require (
 	github.com/PuerkitoBio/goquery v1.9.1
-	github.com/beclab/article-extractor v0.0.15
+	github.com/beclab/article-extractor v0.0.16
 	github.com/elastic/go-elasticsearch/v8 v8.11.0
 	github.com/gin-gonic/gin v1.9.1
 	github.com/google/uuid v1.4.0
