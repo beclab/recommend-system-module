@@ -36,7 +36,7 @@ func doDownloadReq(download model.EntryDownloadModel) {
 		common.Logger.Error("add download json marshal  fail", zap.Error(err))
 	}
 
-	common.Logger.Info("start download ", zap.String("url", download.DataSource))
+	common.Logger.Info("start download ", zap.String("url", download.DataSource), zap.String("file_type", download.FileType))
 	algoReq, _ := http.NewRequest("POST", downloadUrl, bytes.NewBuffer(algoJsonByte))
 	algoReq.Header.Set("Content-Type", "application/json")
 	algoClient := &http.Client{Timeout: time.Second * 5}
@@ -61,6 +61,9 @@ func NewEnclosure(entry *model.Entry, store *storage.Storage) {
 		download.TaskUser = common.CurrentUser()
 		download.DownloadAPP = "wise"
 		download.EnclosureId = enclosureID
+		download.FileName = ""
+		download.FileType = entry.MediaType
+
 		doDownloadReq(download)
 	} else {
 		common.Logger.Error("entry mediaUrl is null")
