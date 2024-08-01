@@ -10,7 +10,7 @@ import (
 func ProcessFeedEntries(store *storage.Storage, feed *model.Feed, entries model.Entries) {
 	newEntries := make([]*model.Entry, 0)
 	updateEntries := make([]*model.Entry, 0)
-
+	addEntryNum := 0
 	for _, entry := range entries {
 		savedEntry := store.GetEntryByUrl(feed.ID, entry.URL)
 
@@ -28,11 +28,15 @@ func ProcessFeedEntries(store *storage.Storage, feed *model.Feed, entries model.
 					newEntries = make([]*model.Entry, 0)
 				}
 			}
+			addEntryNum++
 		} else {
 			if !contains(savedEntry.Sources, "wise") {
 				entry.FullContent = savedEntry.FullContent
 				updateEntries = append(updateEntries, entry)
 			}
+		}
+		if addEntryNum >= 50 {
+			break
 		}
 	}
 	knowledge.SaveFeedEntries(store, newEntries, feed)
