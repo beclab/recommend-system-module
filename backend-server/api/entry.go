@@ -91,6 +91,7 @@ func (h *handler) knowledgeFetchContent(w http.ResponseWriter, r *http.Request) 
 
 func (h *handler) radioDetection(w http.ResponseWriter, r *http.Request) {
 	url := request.QueryStringParam(r, "url", "")
+	common.Logger.Info("knowledge radio query", zap.String("url", url))
 	useAgent := "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 	rawContent := crawler.FetchRawContnt(
 		url,
