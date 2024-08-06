@@ -80,7 +80,7 @@ func (s *Storage) CreateEnclosure(entry *model.Entry) (string, error) {
 		entry.MediaType,
 		entry.MediaUrl,
 		"",
-		"",
+		"downloading",
 	)
 
 	if err != nil {
