@@ -38,6 +38,7 @@ const (
 	defaultEntryMongoUpdateApiUrl = "http://localhost:3010/knowledge/entry/"
 
 	defaultDownloadApiUrl = "http://localhost:3080/api/termius/download"
+	defaultYtdlpApiUrl    = "http://127.0.0.1:3082/api/v1/get_metadata"
 
 	FeedSource                   = "wise"
 	DefaultWorkerPoolSize        = 1
@@ -58,6 +59,14 @@ func DownloadApiUrl() string {
 	env := os.Getenv("DOWNLOAD_API_URL")
 	if env == "" {
 		return defaultDownloadApiUrl
+	}
+	return env
+}
+
+func YTDLPApiUrl() string {
+	env := os.Getenv("YT_DLP_API_URL")
+	if env == "" {
+		return defaultYtdlpApiUrl
 	}
 	return env
 }

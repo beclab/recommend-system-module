@@ -71,6 +71,11 @@ type MongoEntryApiResponseModel struct {
 	Data    []EntryAddResponseModel `json:"data"`
 }
 
+type EntryFetchResponseModel struct {
+	Code int   `json:"code"`
+	Data Entry `json:"data"`
+}
+
 func GetEntryAddModel(entryModel *Entry, feedUrl string) *EntryAddModel {
 	var result EntryAddModel
 	result.Url = entryModel.URL
