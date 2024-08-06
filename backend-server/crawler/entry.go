@@ -6,6 +6,7 @@ import (
 
 	"bytetrade.io/web3os/backend-server/common"
 	"bytetrade.io/web3os/backend-server/http/client"
+	"bytetrade.io/web3os/backend-server/knowledge"
 	"bytetrade.io/web3os/backend-server/model"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/beclab/article-extractor/processor"
@@ -47,7 +48,15 @@ func EntryCrawler(entry *model.Entry, feedUrl, userAgent, cookie string, certifi
 			if dateInArticle != nil {
 				entry.PublishedAt = (*dateInArticle).Unix()
 			}
-
+		}
+		if isMetaFromYtdlp(entry.URL) {
+			metaEntry := knowledge.LoadMetaFromYtdlp(entry.URL)
+			if metaEntry != nil {
+				entry.Author = metaEntry.Author
+				entry.Title = metaEntry.Title
+				entry.PublishedAt = metaEntry.PublishedAt
+				entry.FullContent = metaEntry.FullContent
+			}
 		}
 
 		languageLen := len(pureContent)
@@ -111,6 +120,17 @@ func FetchRawContnt(websiteURL, title, userAgent string, cookie string, allowSel
 		return ""
 	}
 	return string(body)
+}
+
+func isMetaFromYtdlp(url string) bool {
+	mediaList := []string{"bilibili.com", "youtube.com", "vimeo.com", "rumble.com"}
+	for _, urlDomain := range mediaList {
+		if strings.Contains(url, urlDomain) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func extractTitleByHtml(content string) string {

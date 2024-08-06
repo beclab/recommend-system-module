@@ -150,3 +150,28 @@ func UpdateLibraryEntryContent(entry *model.Entry) {
 	common.Logger.Info("update content response: ", zap.String("body", jsonStr))
 
 }
+
+func LoadMetaFromYtdlp(entryUrl string) *model.Entry {
+	url := common.YTDLPApiUrl() + "?url=" + entryUrl
+	client := &http.Client{Timeout: time.Second * 50}
+	res, err := client.Get(url)
+	if err != nil {
+		common.Logger.Error("load ytdlp meta error", zap.Error(err))
+		return nil
+	}
+	if res.StatusCode != 200 {
+		common.Logger.Error("load ytdlp meta error")
+		return nil
+	}
+	defer res.Body.Close()
+	body, _ := io.ReadAll(res.Body)
+
+	var resObj model.EntryFetchResponseModel
+	if err := json.Unmarshal(body, &resObj); err != nil {
+		common.Logger.Error("load ytdlp meta ,json decode failed, err", zap.Error(err))
+		return nil
+	}
+
+	return &resObj.Data
+
+}
