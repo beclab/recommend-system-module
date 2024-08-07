@@ -23,7 +23,7 @@ func ProcessFeedEntries(store *storage.Storage, feed *model.Feed, entries model.
 				entry.PublishedAt = entry.PublishedAtParsed.Unix()
 			}
 
-			if entry.FullContent != "" {
+			if entry.FullContent != "" || entry.MediaUrl != "" {
 				newEntries = append(newEntries, entry)
 				if len(newEntries) > 20 {
 					knowledge.SaveFeedEntries(store, newEntries, feed)

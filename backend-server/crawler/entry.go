@@ -52,10 +52,19 @@ func EntryCrawler(entry *model.Entry, feedUrl, userAgent, cookie string, certifi
 		if isMetaFromYtdlp(entry.URL) {
 			metaEntry := knowledge.LoadMetaFromYtdlp(entry.URL)
 			if metaEntry != nil {
-				entry.Author = metaEntry.Author
-				entry.Title = metaEntry.Title
-				entry.PublishedAt = metaEntry.PublishedAt
-				entry.FullContent = metaEntry.FullContent
+				if metaEntry.Author != "" {
+					entry.Author = metaEntry.Author
+				}
+				if metaEntry.Title != "" {
+					entry.Title = metaEntry.Title
+				}
+				if metaEntry.PublishedAt != 0 {
+					entry.PublishedAt = metaEntry.PublishedAt
+				}
+				if metaEntry.FullContent != "" {
+					entry.FullContent = metaEntry.FullContent
+				}
+
 			}
 		}
 
