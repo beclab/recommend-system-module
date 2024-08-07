@@ -25,7 +25,7 @@ func SaveFeedEntries(store *storage.Storage, entries model.Entries, feed *model.
 		reqModel := model.GetEntryAddModel(entryModel, feed.FeedURL)
 		addList = append(addList, reqModel)
 	}
-	doReq(addList, entries, store)
+	doReq(addList, entries, store, true)
 
 }
 
@@ -70,12 +70,12 @@ func NewEnclosure(entry *model.Entry, store *storage.Storage) {
 	}
 }
 
-func doReq(list []*model.EntryAddModel, entries model.Entries, store *storage.Storage) {
+func doReq(list []*model.EntryAddModel, entries model.Entries, store *storage.Storage, isNew bool) {
 	jsonByte, _ := json.Marshal(list)
 	url := common.EntryMonogoUpdateApiUrl()
 	request, _ := http.NewRequest("POST", url, bytes.NewBuffer(jsonByte))
 	request.Header.Set("Content-Type", "application/json")
-	client := &http.Client{Timeout: 5 * time.Second}
+	client := &http.Client{Timeout: 20 * time.Second}
 	response, err := client.Do(request)
 	if err != nil {
 		common.Logger.Error("add entry in knowledg  fail", zap.Error(err))
@@ -90,15 +90,17 @@ func doReq(list []*model.EntryAddModel, entries model.Entries, store *storage.St
 	}
 	if resObj.Code == 0 {
 		resEntryMap := make(map[string]string, 0)
-		for _, resDataDetail := range resObj.Data {
-			resEntryMap[resDataDetail.Url] = resDataDetail.ID
-		}
-		for _, entry := range entries {
-			entryID, ok := resEntryMap[entry.URL]
-			if ok {
-				entry.ID = entryID
-				if entry.MediaContent != "" || entry.MediaUrl != "" {
-					NewEnclosure(entry, store)
+		if isNew {
+			for _, resDataDetail := range resObj.Data {
+				resEntryMap[resDataDetail.Url] = resDataDetail.ID
+			}
+			for _, entry := range entries {
+				entryID, ok := resEntryMap[entry.URL]
+				if ok {
+					entry.ID = entryID
+					if entry.MediaContent != "" || entry.MediaUrl != "" {
+						NewEnclosure(entry, store)
+					}
 				}
 			}
 		}
@@ -118,7 +120,7 @@ func UpdateFeedEntries(store *storage.Storage, entries model.Entries, feed *mode
 		reqModel := model.GetEntryUpdateSourceModel(entryModel, feed.FeedURL)
 		addList = append(addList, reqModel)
 	}
-	doReq(addList, entries, store)
+	doReq(addList, entries, store, false)
 }
 
 func UpdateLibraryEntryContent(entry *model.Entry) {
