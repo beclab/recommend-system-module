@@ -1,10 +1,12 @@
 package service
 
 import (
+	"bytetrade.io/web3os/backend-server/common"
 	"bytetrade.io/web3os/backend-server/crawler"
 	"bytetrade.io/web3os/backend-server/knowledge"
 	"bytetrade.io/web3os/backend-server/model"
 	"bytetrade.io/web3os/backend-server/storage"
+	"go.uber.org/zap"
 )
 
 func ProcessFeedEntries(store *storage.Storage, feed *model.Feed, entries model.Entries) {
@@ -27,6 +29,8 @@ func ProcessFeedEntries(store *storage.Storage, feed *model.Feed, entries model.
 					knowledge.SaveFeedEntries(store, newEntries, feed)
 					newEntries = make([]*model.Entry, 0)
 				}
+			} else {
+				common.Logger.Info("entry full content is empty", zap.String("url", entry.URL))
 			}
 			addEntryNum++
 		} else {

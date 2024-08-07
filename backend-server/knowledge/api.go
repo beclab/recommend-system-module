@@ -15,7 +15,7 @@ import (
 )
 
 func SaveFeedEntries(store *storage.Storage, entries model.Entries, feed *model.Feed) {
-	common.Logger.Info("add entry in mongo", zap.Int("len", len(entries)))
+	common.Logger.Info("add entry in knowledge", zap.Int("len", len(entries)))
 	if len(entries) == 0 {
 		return
 	}
@@ -110,7 +110,7 @@ func doReq(list []*model.EntryAddModel, entries model.Entries, store *storage.St
 }
 
 func UpdateFeedEntries(store *storage.Storage, entries model.Entries, feed *model.Feed) {
-	common.Logger.Info("update entry in mongo", zap.Int("len", len(entries)))
+	common.Logger.Info("update entry in knowledge", zap.Int("len", len(entries)))
 	if len(entries) == 0 {
 		return
 	}
