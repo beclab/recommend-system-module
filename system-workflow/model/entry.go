@@ -1,5 +1,7 @@
 package model
 
+import "bytetrade.io/web3os/system_workflow/protobuf_entity"
+
 type EntryAddModel struct {
 	Source      string   `json:"source,omitempty"`
 	Url         string   `json:"url,omitempty"`
@@ -43,4 +45,26 @@ type EntryApiResponseModel struct {
 	Code    int                       `json:"code"`
 	Message string                    `json:"message"`
 	Data    EntryApiDataResponseModel `json:"data"`
+}
+
+func GetProtoEntryTransModel(model string, protoEntity *protobuf_entity.Entry) *protobuf_entity.EntryTrans {
+	var result protobuf_entity.EntryTrans
+	result.Url = protoEntity.Url
+	result.CreatedAt = protoEntity.CreatedAt
+	result.PublishedAt = protoEntity.PublishedAt
+	result.Title = protoEntity.Title
+	result.Author = protoEntity.Author
+	result.FeedId = protoEntity.FeedId
+	result.FeedUrl = protoEntity.FeedUrl
+	result.ImageUrl = protoEntity.ImageUrl
+	result.KeywordList = protoEntity.KeywordList
+	result.Language = protoEntity.Language
+	if model == "bert_v2" {
+		result.Embedding = protoEntity.EmbeddingContentAll_MiniLM_L6V2Base
+	} else if model == "bert_v3" {
+		result.Embedding = protoEntity.EmbeddingContentParaphraseMultilingual_MiniLM_L12
+	}
+	result.RecallPoint = protoEntity.RecallPoint
+	result.PublishedAtTimestamp = protoEntity.PublishedAtTimestamp
+	return &result
 }
