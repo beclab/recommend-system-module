@@ -57,7 +57,7 @@ func (h *handler) newFetchContent(entry *model.Entry) string {
 	}
 	crawler.EntryCrawler(entry, feedUrl, userAgent, cookie, certificates, fetchViaProxy)
 
-	updateEntry := &model.Entry{ID: entry.ID, URL: entry.URL, PublishedAt: entry.PublishedAt, Title: entry.Title, Language: entry.Language, Author: entry.Author, RawContent: entry.RawContent, FullContent: entry.FullContent}
+	updateEntry := &model.Entry{ID: entry.ID, URL: entry.URL, ImageUrl: entry.ImageUrl, PublishedAt: entry.PublishedAt, Title: entry.Title, Language: entry.Language, Author: entry.Author, RawContent: entry.RawContent, FullContent: entry.FullContent}
 	//h.store.UpdateEntryContent(updateDocIDEntry)
 	knowledge.UpdateLibraryEntryContent(updateEntry)
 

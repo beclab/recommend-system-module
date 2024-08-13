@@ -12,6 +12,9 @@ var RedisCtx = context.Background()
 
 func GetRDBClient() *redis.Client {
 	add := os.Getenv("TERMINUS_RECOMMEND_REDIS_ADDR")
+	if add == "" {
+		add = "redis://localhost:6379"
+	}
 	password := os.Getenv("TERMINUS_RECOMMEND_REDIS_PASSOWRD")
 	log.Printf("redis connection uri:%s,password:%s", add, password)
 	var rdb = redis.NewClient(&redis.Options{
