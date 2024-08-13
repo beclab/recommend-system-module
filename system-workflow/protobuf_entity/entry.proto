@@ -20,6 +20,10 @@ message Entry {
     repeated float embedding_content_all_MiniLM_L6_v2_base=13;
     float recall_point=14;
     int64 published_at_timestamp=15;
+    int64 embedding_prepared_package_time_all_MiniLM_L6_v2_base=16;
+    bool embedding_method_paraphrase_multilingual_MiniLM_L12 = 17;
+    repeated float embedding_content_paraphrase_multilingual_MiniLM_L12 = 18;
+    int64 embedding_prepared_package_time_paraphrase_multilingual_MiniLM_L12 = 19;
 }
 
 message ListEntry {

@@ -6,4 +6,5 @@ echo $PROTOBUF_ENTITY_DIR
 echo $DUMP_PACKAGE_DIR
 protoc --go_out=$DUMP_PACKAGE_DIR  --proto_path=$DUMP_PACKAGE_DIR   $PROTOBUF_ENTITY_DIR/feed.proto
 protoc --go_out=$DUMP_PACKAGE_DIR  --proto_path=$DUMP_PACKAGE_DIR   $PROTOBUF_ENTITY_DIR/entry.proto
+protoc --go_out=$DUMP_PACKAGE_DIR  --proto_path=$DUMP_PACKAGE_DIR   $PROTOBUF_ENTITY_DIR/entrytrans.proto
 protoc --go_out=$DUMP_PACKAGE_DIR  --proto_path=$DUMP_PACKAGE_DIR   $PROTOBUF_ENTITY_DIR/discoveryfeed.proto

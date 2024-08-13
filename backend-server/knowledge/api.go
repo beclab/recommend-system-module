@@ -128,6 +128,7 @@ func UpdateLibraryEntryContent(entry *model.Entry) {
 	var updateEntry model.EntryAddModel
 	updateEntry.Url = entry.URL
 	updateEntry.Title = entry.Title
+	updateEntry.ImageUrl = entry.ImageUrl
 	updateEntry.PublishedAt = entry.PublishedAt
 	updateEntry.Author = entry.Author
 	updateEntry.Language = entry.Language

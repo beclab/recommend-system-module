@@ -275,9 +275,28 @@ func syncEntryDownloadPackage(provider string, newPackage *model.EntryPackage) {
 	if err != nil {
 		common.Logger.Error("feed fail to get response", zap.Error(err))
 	}
+	uncompressByte := common.DoZlibUnCompress(body)
+	var allPackageData protobuf_entity.ListEntry
+	transEntryList := make([]*protobuf_entity.EntryTrans, 0)
+	unmarshalErr := proto.Unmarshal(uncompressByte, &allPackageData)
+	if unmarshalErr != nil {
+		common.Logger.Error("unmarshal all feed object  error", zap.Error(unmarshalErr))
+	}
+	for _, entry := range allPackageData.Entries {
+		entryTrans := model.GetProtoEntryTransModel(newPackage.ModelName, entry)
+		transEntryList = append(transEntryList, entryTrans)
+
+	}
+	var transProtobuf protobuf_entity.ListEntryTrans
+	transProtobuf.Entries = transEntryList
+
+	currentProtoByte, marshalErr := proto.Marshal(&transProtobuf)
+	if marshalErr != nil {
+		common.Logger.Error("save to file marshal Err ", zap.Error(marshalErr))
+	}
 
 	fileName := fmt.Sprintf("%d.zlib", newPackage.StartTime)
-	fileToSave(filepath.Join(path, fileName), body)
+	fileToSave(filepath.Join(path, fileName), currentProtoByte)
 
 }
 
