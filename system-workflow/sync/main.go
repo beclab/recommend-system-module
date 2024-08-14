@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"bytetrade.io/web3os/system_workflow/api"
@@ -471,6 +472,19 @@ func syncDiscoveryFeedPackage(postgresClient *sql.DB, redisClient *redis.Client)
 	}
 
 }
+
+func fetchModelNameFromUrl(url string) string {
+	start := strings.Index(url, "model_name=")
+	if start != -1 {
+		start += len("model_name=")
+		end := strings.Index(url[start:], "&")
+		if end != -1 {
+			modelName := url[start : start+end]
+			return modelName
+		}
+	}
+	return ""
+}
 func main() {
 	common.Logger.Info("package sync  start...")
 
@@ -504,7 +518,10 @@ func main() {
 			continue
 		}*/
 		for _, provider := range argo.SyncProvider {
-			key := provider.Provider + provider.FeedName
+			entryProviderUrl := provider.EntryProvider.Url
+			modelName := fetchModelNameFromUrl(entryProviderUrl)
+			key := provider.Provider + provider.FeedName + "_" + modelName
+			common.Logger.Error("generate sync provider", zap.String("entry url", entryProviderUrl), zap.String("key", key))
 			p, exist := providerList[key]
 			if exist {
 				if !common.IsInStringArray(p.Source, source) {
