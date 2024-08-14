@@ -474,16 +474,18 @@ func syncDiscoveryFeedPackage(postgresClient *sql.DB, redisClient *redis.Client)
 }
 
 func fetchModelNameFromUrl(url string) string {
+	modelName := ""
 	start := strings.Index(url, "model_name=")
 	if start != -1 {
 		start += len("model_name=")
 		end := strings.Index(url[start:], "&")
 		if end != -1 {
-			modelName := url[start : start+end]
-			return modelName
+			modelName = url[start : start+end]
+		} else {
+			modelName = url[start:]
 		}
 	}
-	return ""
+	return modelName
 }
 func main() {
 	common.Logger.Info("package sync  start...")
