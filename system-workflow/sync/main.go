@@ -8,9 +8,11 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	"bytetrade.io/web3os/system_workflow/api"
@@ -20,34 +22,35 @@ import (
 	"bytetrade.io/web3os/system_workflow/storge"
 
 	"github.com/redis/go-redis/v9"
+	"github.com/robfig/cron/v3"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/proto"
 )
 
-func addFeedInMongo(sources []string, feedMap map[string]*protobuf_entity.Feed) {
+func addFeedInMongo(source string, feedMap map[string]*protobuf_entity.Feed) {
 	addList := make([]*model.FeedAddModel, 0)
-	for _, source := range sources {
-		for _, currentFeed := range feedMap {
-			reqModel := model.GetFeedAddModel(currentFeed)
-			addList = append(addList, reqModel)
-			if len(addList) >= 100 {
-				api.AddFeedInMongo(source, addList)
-				addList = make([]*model.FeedAddModel, 0)
-				//time.Sleep(time.Second * 1)
-			}
+	//for _, source := range sources {
+	for _, currentFeed := range feedMap {
+		reqModel := model.GetFeedAddModel(currentFeed)
+		addList = append(addList, reqModel)
+		if len(addList) >= 100 {
+			api.AddFeedInMongo(source, addList)
+			addList = make([]*model.FeedAddModel, 0)
+			//time.Sleep(time.Second * 1)
 		}
-		api.AddFeedInMongo(source, addList)
 	}
+	api.AddFeedInMongo(source, addList)
+	//}
 }
 
-func delFeedInMongo(sources []string, feedMap map[string]*protobuf_entity.Feed) {
-	for _, source := range sources {
-		delList := make([]string, 0)
-		for feedUrl := range feedMap {
-			delList = append(delList, feedUrl)
-		}
-		api.DelFeedInMongo(source, delList)
+func delFeedInMongo(source string, feedMap map[string]*protobuf_entity.Feed) {
+	//for _, source := range sources {
+	delList := make([]string, 0)
+	for feedUrl := range feedMap {
+		delList = append(delList, feedUrl)
 	}
+	api.DelFeedInMongo(source, delList)
+	//}
 }
 
 func syncFeedDownloadPackage(packageUrl string, whetherAll bool) (*protobuf_entity.FeedAllPackage, *protobuf_entity.FeedIncremntPackage) {
@@ -134,13 +137,13 @@ func syncFeedGetPackage(feedUrl string, whetherAll bool) ([]*protobuf_entity.Fee
 
 }
 
-func syncFeed(postgresClient *sql.DB, redisClient *redis.Client, provider *model.SyncProvider) {
+func syncFeed(postgresClient *sql.DB, redisClient *redis.Client, provider model.AlgoSyncProviderResponseModel, source string) {
 	syncStartTime := time.Now()
-	saveData, _ := storge.GetFeedSync(redisClient, provider.Provider, provider.FeedName)
+	saveData, _ := storge.GetFeedSync(redisClient, provider.Provider, provider.FeedName, source)
 	if saveData == nil {
 		packageFeeds := make(map[string]*protobuf_entity.Feed, 0)
-		allPackageDataList, _, packageTime := syncFeedGetPackage(fmt.Sprintf("%s&package_type=all", provider.FeedUrl), true)
-		_, increasePackageDataList, _ := syncFeedGetPackage(fmt.Sprintf("%s&package_type=increment&start=%d", provider.FeedUrl, packageTime), false)
+		allPackageDataList, _, packageTime := syncFeedGetPackage(fmt.Sprintf("%s&package_type=all", provider.FeedProvider.Url), true)
+		_, increasePackageDataList, _ := syncFeedGetPackage(fmt.Sprintf("%s&package_type=increment&start=%d", provider.FeedProvider.Url, packageTime), false)
 		for _, allPackage := range allPackageDataList {
 			for _, feed := range allPackage.Feeds {
 				packageFeeds[feed.FeedUrl] = feed
@@ -175,9 +178,9 @@ func syncFeed(postgresClient *sql.DB, redisClient *redis.Client, provider *model
 				}
 			}
 		}
-		addFeedInMongo(provider.Source, packageFeeds)
+		addFeedInMongo(source, packageFeeds)
 	} else {
-		_, increasePackageDataList, _ := syncFeedGetPackage(fmt.Sprintf("%s&package_type=increment&start=%d", provider.FeedUrl, saveData.SyncStartTimestamp), false)
+		_, increasePackageDataList, _ := syncFeedGetPackage(fmt.Sprintf("%s&package_type=increment&start=%d", provider.FeedProvider.Url, saveData.SyncStartTimestamp), false)
 
 		for _, increasePackage := range increasePackageDataList {
 			addPackageFeeds := make(map[string]*protobuf_entity.Feed, 0)
@@ -206,8 +209,8 @@ func syncFeed(postgresClient *sql.DB, redisClient *redis.Client, provider *model
 					deletePackageFeeds[updateFeed.FeedUrl] = &updateFeed
 				}
 			}
-			addFeedInMongo(provider.Source, addPackageFeeds)
-			delFeedInMongo(provider.Source, deletePackageFeeds)
+			addFeedInMongo(source, addPackageFeeds)
+			delFeedInMongo(source, deletePackageFeeds)
 			updateFeedList := make(map[string]map[string]interface{}, 0)
 			for _, operation := range increasePackage.FeedOperations {
 				var curUpdateFeed map[string]interface{}
@@ -228,13 +231,13 @@ func syncFeed(postgresClient *sql.DB, redisClient *redis.Client, provider *model
 					}
 				}
 			}
-			storge.UpdateFeed(postgresClient, provider.Source, updateFeedList)
+			storge.UpdateFeed(postgresClient, source, updateFeedList)
 		}
 	}
 	var redisSaveData model.FeedSyncData
 	redisSaveData.SyncEndTimestamp = time.Now().UTC().Unix()
 	redisSaveData.SyncStartTimestamp = syncStartTime.UTC().Unix()
-	storge.SaveFeedSync(redisClient, provider.Provider, provider.FeedName, redisSaveData)
+	storge.SaveFeedSync(redisClient, provider.Provider, provider.FeedName, source, redisSaveData)
 }
 
 func fileToSave(path string, fileBytes []byte) {
@@ -487,7 +490,7 @@ func fetchModelNameFromUrl(url string) string {
 	}
 	return modelName
 }
-func main() {
+func doSyncTask() {
 	common.Logger.Info("package sync  start...")
 
 	startTimestamp := int64(time.Now().UTC().Unix())
@@ -511,6 +514,10 @@ func main() {
 		common.Logger.Error("json decode failed ", zap.String("url", url), zap.Error(err))
 		return
 	}
+	redisClient := common.GetRDBClient()
+	defer redisClient.Close()
+	postgresClient := common.NewPostgresClient()
+	defer postgresClient.Close()
 	//inFirstRun, runSource := checkExistAlgorithmInFirstRun(response)
 	for _, argo := range response.Data {
 		source := argo.Metadata.Name
@@ -526,17 +533,17 @@ func main() {
 			common.Logger.Error("generate sync provider", zap.String("entry url", entryProviderUrl), zap.String("key", key))
 			p, exist := providerList[key]
 			if exist {
-				if !common.IsInStringArray(p.Source, source) {
+				/*if !common.IsInStringArray(p.Source, source) {
 					p.Source = append(p.Source, source)
-				}
+				}*/
 				if p.EntrySyncDate < provider.EntryProvider.SyncDate {
 					p.EntrySyncDate = provider.EntryProvider.SyncDate
 				}
 			} else {
 				var providerSetting model.SyncProvider
-				sourceArr := make([]string, 0)
-				sourceArr = append(sourceArr, source)
-				providerSetting.Source = sourceArr
+				//sourceArr := make([]string, 0)
+				//sourceArr = append(sourceArr, source)
+				//providerSetting.Source = sourceArr
 				providerSetting.FeedName = provider.FeedName
 				providerSetting.Provider = provider.Provider
 				providerSetting.FeedUrl = provider.FeedProvider.Url
@@ -544,20 +551,17 @@ func main() {
 				providerSetting.EntryUrl = provider.EntryProvider.Url
 				providerList[key] = &providerSetting
 			}
+			syncFeed(postgresClient, redisClient, provider, source)
 		}
 	}
 
-	redisClient := common.GetRDBClient()
-	defer redisClient.Close()
-	postgresClient := common.NewPostgresClient()
-	defer postgresClient.Close()
 	for key, provider := range providerList {
 		lastSyncTimeStr, _ := api.GetRedisConfig(key, "last_sync_time").(string)
 		lastSyncTime, _ := strconv.ParseInt(lastSyncTimeStr, 10, 64)
 		common.Logger.Info("sync  start", zap.String("last sync time str", lastSyncTimeStr), zap.Int64("last sync time", lastSyncTime), zap.Int64("now time", startTimestamp))
 		if lastSyncTimeStr == "" || startTimestamp > lastSyncTime+10*60 {
 
-			syncFeed(postgresClient, redisClient, provider)
+			//syncFeed(postgresClient, redisClient, provider)
 			syncEntry(redisClient, provider, lastSyncTime)
 			api.SetRedisConfig(key, "last_sync_time", startTimestamp)
 		}
@@ -568,4 +572,21 @@ func main() {
 	syncTemplatePlugins(redisClient)
 	syncDiscoveryFeedPackage(postgresClient, redisClient)
 	common.Logger.Info("package sync  end")
+}
+
+func main() {
+	common.Logger.Info("crawler task start ...")
+	c := cron.New()
+	argoCheckCr := "@every " + common.GeSyncFrequency() + "m"
+	c.AddFunc(argoCheckCr, func() {
+		common.Logger.Info("do crawler task  ...")
+		doSyncTask()
+	})
+	c.Start()
+
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, os.Interrupt)
+	signal.Notify(stop, syscall.SIGTERM)
+	<-stop
+	common.Logger.Info("crawler task end...")
 }

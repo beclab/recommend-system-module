@@ -29,6 +29,24 @@ func GetTermiusUserName() string {
 	return os.Getenv("TERMIUS_USER_NAME")
 }
 
+func GeSyncFrequency() string {
+	defaultFeq := "5"
+	frequency := os.Getenv("SYNC_TASK_FREQUENCY")
+	if frequency == "" {
+		return defaultFeq
+	}
+	return frequency
+}
+
+func GetCrawlerFrequency() string {
+	defaultFeq := "5"
+	frequency := os.Getenv("CRAWLER_TASK_FREQUENCY")
+	if frequency == "" {
+		return defaultFeq
+	}
+	return frequency
+}
+
 func GetSyncTemplatePluginsUrl() string {
 	envDir := os.Getenv("SYNC_TEMPLATE_PLUGINS_URL")
 	if envDir == "" {

@@ -6,10 +6,13 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"os/signal"
 	"strconv"
+	"syscall"
 	"time"
 
 	"bytetrade.io/web3os/system_workflow/api"
+	"github.com/robfig/cron/v3"
 
 	"sync"
 
@@ -43,59 +46,6 @@ func loadSources() []string {
 		sourceArr = append(sourceArr, argo.Metadata.Name)
 	}
 	return sourceArr
-}
-func main() {
-	sources := loadSources()
-	startTimestamp := int64(time.Now().UTC().Unix())
-	workNum := common.ParseInt(os.Getenv("CRAWLER_WORKER_POOL"), 5)
-	for _, source := range sources {
-		lastPrerankTimeStr, _ := api.GetRedisConfig(source, "last_prerank_time").(string)
-		lastPrerankTime, _ := strconv.ParseInt(lastPrerankTimeStr, 10, 64)
-		lastCrawlerTimeStr, _ := api.GetRedisConfig(source, "last_crawler_time").(string)
-		lastCrawlerTime, _ := strconv.ParseInt(lastCrawlerTimeStr, 10, 64)
-		common.Logger.Info("crawler  start ", zap.String("source:", source), zap.Int64("last prerank time:", lastPrerankTime), zap.Int64("last crawler time:", lastCrawlerTime))
-		if lastPrerankTimeStr != "" && (lastCrawlerTimeStr == "" || lastPrerankTime > lastCrawlerTime) {
-			limit := 100
-			offset := 0
-			crawlerList := make([]model.EntryAddModel, 0)
-			crawlerData := api.GetUncrawleredList(offset, limit, source)
-			crawlerList = append(crawlerList, crawlerData.Items...)
-			sum := crawlerData.Count
-			for i := 1; i*limit < sum; i++ {
-				common.Logger.Info("get crawler data ", zap.String("source:", source), zap.Int("page", i))
-				crawlerData := api.GetUncrawleredList(limit*i, limit, source)
-				crawlerList = append(crawlerList, crawlerData.Items...)
-			}
-
-			if len(crawlerList) > limit {
-				var wg sync.WaitGroup
-				wg.Add(workNum)
-				perCount := len(crawlerList) / workNum
-				for i := 0; i < workNum; i++ {
-					start := i * perCount
-					end := start + perCount
-					if i == workNum-1 {
-						end = len(crawlerList)
-					}
-					go func() {
-						common.Logger.Info(fmt.Sprintf("start:%d,end:%d", start, end))
-						list := crawlerList[start:end]
-						doCrawler(list)
-						wg.Done()
-					}()
-				}
-				wg.Wait()
-
-			} else {
-				doCrawler(crawlerList)
-			}
-			api.SetRedisConfig(source, "last_crawler_time", startTimestamp)
-			common.Logger.Info("crawler  end ", zap.String("source:", source), zap.Int("rank len:", len(crawlerList)), zap.Int64("change last_crawler_time time:", startTimestamp))
-		}
-	}
-
-	common.Logger.Info("crawler fetch content end")
-
 }
 
 func doCrawler(list []model.EntryAddModel) {
@@ -150,4 +100,75 @@ func fetchRawContnt(url string) string {
 		return ""
 	}
 	return string(body)
+}
+
+func doCrawlerTask() {
+	sources := loadSources()
+	startTimestamp := int64(time.Now().UTC().Unix())
+	workNum := common.ParseInt(os.Getenv("CRAWLER_WORKER_POOL"), 5)
+	for _, source := range sources {
+		lastPrerankTimeStr, _ := api.GetRedisConfig(source, "last_prerank_time").(string)
+		lastPrerankTime, _ := strconv.ParseInt(lastPrerankTimeStr, 10, 64)
+		lastCrawlerTimeStr, _ := api.GetRedisConfig(source, "last_crawler_time").(string)
+		lastCrawlerTime, _ := strconv.ParseInt(lastCrawlerTimeStr, 10, 64)
+		common.Logger.Info("crawler  start ", zap.String("source:", source), zap.Int64("last prerank time:", lastPrerankTime), zap.Int64("last crawler time:", lastCrawlerTime))
+		if lastPrerankTimeStr != "" && (lastCrawlerTimeStr == "" || lastPrerankTime > lastCrawlerTime) {
+			limit := 100
+			offset := 0
+			crawlerList := make([]model.EntryAddModel, 0)
+			crawlerData := api.GetUncrawleredList(offset, limit, source)
+			crawlerList = append(crawlerList, crawlerData.Items...)
+			sum := crawlerData.Count
+			for i := 1; i*limit < sum; i++ {
+				common.Logger.Info("get crawler data ", zap.String("source:", source), zap.Int("page", i))
+				crawlerData := api.GetUncrawleredList(limit*i, limit, source)
+				crawlerList = append(crawlerList, crawlerData.Items...)
+			}
+
+			if len(crawlerList) > limit {
+				var wg sync.WaitGroup
+				wg.Add(workNum)
+				perCount := len(crawlerList) / workNum
+				for i := 0; i < workNum; i++ {
+					start := i * perCount
+					end := start + perCount
+					if i == workNum-1 {
+						end = len(crawlerList)
+					}
+					go func() {
+						common.Logger.Info(fmt.Sprintf("start:%d,end:%d", start, end))
+						list := crawlerList[start:end]
+						doCrawler(list)
+						wg.Done()
+					}()
+				}
+				wg.Wait()
+
+			} else {
+				doCrawler(crawlerList)
+			}
+			api.SetRedisConfig(source, "last_crawler_time", startTimestamp)
+			common.Logger.Info("crawler  end ", zap.String("source:", source), zap.Int("rank len:", len(crawlerList)), zap.Int64("change last_crawler_time time:", startTimestamp))
+		}
+	}
+
+	common.Logger.Info("crawler fetch content end")
+
+}
+
+func main() {
+	common.Logger.Info("crawler task start ...")
+	c := cron.New()
+	argoCheckCr := "@every " + common.GetCrawlerFrequency() + "m"
+	c.AddFunc(argoCheckCr, func() {
+		common.Logger.Info("do crawler task  ...")
+		doCrawlerTask()
+	})
+	c.Start()
+
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, os.Interrupt)
+	signal.Notify(stop, syscall.SIGTERM)
+	<-stop
+	common.Logger.Info("crawler task end...")
 }
