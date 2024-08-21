@@ -48,7 +48,7 @@ func loadSources() []string {
 	return sourceArr
 }
 
-func doCrawler(list []model.EntryAddModel) {
+func doCrawler(source string, list []model.EntryCrawlerModel) {
 	if len(list) > 0 {
 		addList := make([]*model.EntryAddModel, 0)
 		for _, entry := range list {
@@ -56,7 +56,7 @@ func doCrawler(list []model.EntryAddModel) {
 			if rawContent != "" {
 				var addEntry model.EntryAddModel
 				addEntry.Url = entry.Url
-				addEntry.Source = entry.Source
+				addEntry.Source = source
 				addEntry.RawContent = rawContent
 				addEntry.Crawler = true
 
@@ -105,7 +105,7 @@ func fetchRawContnt(url string) string {
 func doCrawlerTask() {
 	sources := loadSources()
 	startTimestamp := int64(time.Now().UTC().Unix())
-	workNum := common.ParseInt(os.Getenv("CRAWLER_WORKER_POOL"), 5)
+	workNum := common.ParseInt(os.Getenv("CRAWLER_WORKER_POOL"), 3)
 	for _, source := range sources {
 		lastPrerankTimeStr, _ := api.GetRedisConfig(source, "last_prerank_time").(string)
 		lastPrerankTime, _ := strconv.ParseInt(lastPrerankTimeStr, 10, 64)
@@ -115,14 +115,14 @@ func doCrawlerTask() {
 		if lastPrerankTimeStr != "" && (lastCrawlerTimeStr == "" || lastPrerankTime > lastCrawlerTime) {
 			limit := 100
 			offset := 0
-			crawlerList := make([]model.EntryAddModel, 0)
-			crawlerData := api.GetUncrawleredList(offset, limit, source)
-			crawlerList = append(crawlerList, crawlerData.Items...)
-			sum := crawlerData.Count
+			crawlerList := make([]model.EntryCrawlerModel, 0)
+			sum, crawlerData := api.GetUncrawleredList(offset, limit, source)
+			crawlerList = append(crawlerList, crawlerData...)
+			//sum := crawlerData.Count
 			for i := 1; i*limit < sum; i++ {
 				common.Logger.Info("get crawler data ", zap.String("source:", source), zap.Int("page", i))
-				crawlerData := api.GetUncrawleredList(limit*i, limit, source)
-				crawlerList = append(crawlerList, crawlerData.Items...)
+				_, crawlerData := api.GetUncrawleredList(limit*i, limit, source)
+				crawlerList = append(crawlerList, crawlerData...)
 			}
 
 			if len(crawlerList) > limit {
@@ -138,7 +138,7 @@ func doCrawlerTask() {
 					go func() {
 						common.Logger.Info(fmt.Sprintf("start:%d,end:%d", start, end))
 						list := crawlerList[start:end]
-						doCrawler(list)
+						doCrawler(source, list)
 						//time.Sleep(time.Second * 1)
 						wg.Done()
 					}()
@@ -146,7 +146,7 @@ func doCrawlerTask() {
 				wg.Wait()
 
 			} else {
-				doCrawler(crawlerList)
+				doCrawler(source, crawlerList)
 			}
 			api.SetRedisConfig(source, "last_crawler_time", startTimestamp)
 			common.Logger.Info("crawler  end ", zap.String("source:", source), zap.Int("rank len:", len(crawlerList)), zap.Int64("change last_crawler_time time:", startTimestamp))
