@@ -11,14 +11,14 @@ import (
 	"go.uber.org/zap"
 )
 
-func SaveFeedSync(rdb *redis.Client, provider, feedName string, data model.FeedSyncData) error {
+func SaveFeedSync(rdb *redis.Client, provider, feedName, source string, data model.FeedSyncData) error {
 	jsonFeedSyncSetting, err := json.Marshal(data)
 	if err != nil {
 		common.Logger.Error("marshal entrySyncSetting fail", zap.Error(err))
 		return err
 	}
 
-	err = rdb.HSet(common.RedisCtx, fmt.Sprintf("feed_sync_%s", provider), feedName, jsonFeedSyncSetting).Err()
+	err = rdb.HSet(common.RedisCtx, "feed_sync_"+provider+"_"+feedName, source, jsonFeedSyncSetting).Err()
 
 	if err != nil {
 		common.Logger.Error("set feed sync setting fail", zap.Error(err))
@@ -26,14 +26,14 @@ func SaveFeedSync(rdb *redis.Client, provider, feedName string, data model.FeedS
 	}
 	return nil
 }
-func GetFeedSync(rdb *redis.Client, provider, feedName string) (*model.FeedSyncData, error) {
+func GetFeedSync(rdb *redis.Client, provider, feedName, source string) (*model.FeedSyncData, error) {
 
-	exists, _ := rdb.HExists(common.RedisCtx, fmt.Sprintf("feed_sync_%s", provider), feedName).Result()
+	exists, _ := rdb.HExists(common.RedisCtx, "feed_sync_"+provider+"_"+feedName, source).Result()
 	if !exists {
 		return nil, nil
 	}
 
-	jsonData, err := rdb.HGet(common.RedisCtx, fmt.Sprintf("feed_sync_%s", provider), feedName).Result()
+	jsonData, err := rdb.HGet(common.RedisCtx, "feed_sync_"+provider+"_"+feedName, source).Result()
 	if err != nil {
 		common.Logger.Error("get feed sync setting fail", zap.Error(err))
 		return nil, err

@@ -24,6 +24,10 @@ type EntryAddModel struct {
 	FullContent string `json:"full_content,omitempty"`
 }
 
+type EntryCrawlerModel struct {
+	Url string `json:"url,omitempty"`
+}
+
 type EntryAddResponseModel struct {
 	ID     string `json:"_id,omitempty" `
 	Source string `json:"source"`

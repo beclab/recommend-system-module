@@ -79,9 +79,16 @@ func getAllEntries(reqParam string) *model.EntryApiDataResponseModel {
 	return &resObj.Data
 }
 
-func GetUncrawleredList(offset, limit int, source string) *model.EntryApiDataResponseModel {
+func GetUncrawleredList(offset, limit int, source string) (int, []model.EntryCrawlerModel) {
 	param := "offset=" + fmt.Sprintf("%d", offset) + "&limit=" + fmt.Sprintf("%d", limit) + "&crawler=false&source=" + source
-	return getAllEntries(param)
+	queryData := getAllEntries(param)
+	crawlerList := make([]model.EntryCrawlerModel, 0)
+	for _, entry := range queryData.Items {
+		var crawlerEntry model.EntryCrawlerModel
+		crawlerEntry.Url = entry.Url
+		crawlerList = append(crawlerList, crawlerEntry)
+	}
+	return queryData.Count, crawlerList
 }
 
 func UpdateEntriesInMongo(addList []*model.EntryAddModel) {
