@@ -30,7 +30,7 @@ func GetTermiusUserName() string {
 }
 
 func GeSyncFrequency() string {
-	defaultFeq := "5"
+	defaultFeq := "4"
 	frequency := os.Getenv("SYNC_TASK_FREQUENCY")
 	if frequency == "" {
 		return defaultFeq
@@ -39,7 +39,7 @@ func GeSyncFrequency() string {
 }
 
 func GetCrawlerFrequency() string {
-	defaultFeq := "5"
+	defaultFeq := "3"
 	frequency := os.Getenv("CRAWLER_TASK_FREQUENCY")
 	if frequency == "" {
 		return defaultFeq
