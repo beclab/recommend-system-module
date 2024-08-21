@@ -61,7 +61,7 @@ func doCrawler(source string, list []model.EntryCrawlerModel) {
 				addEntry.Crawler = true
 
 				addList = append(addList, &addEntry)
-				if len(addList) >= 50 {
+				if len(addList) >= 10 {
 					api.UpdateEntriesInMongo(addList)
 					addList = make([]*model.EntryAddModel, 0)
 				}
@@ -105,7 +105,7 @@ func fetchRawContnt(url string) string {
 func doCrawlerTask() {
 	sources := loadSources()
 	startTimestamp := int64(time.Now().UTC().Unix())
-	workNum := common.ParseInt(os.Getenv("CRAWLER_WORKER_POOL"), 3)
+	workNum := common.ParseInt(os.Getenv("CRAWLER_WORKER_POOL"), 6)
 	for _, source := range sources {
 		lastPrerankTimeStr, _ := api.GetRedisConfig(source, "last_prerank_time").(string)
 		lastPrerankTime, _ := strconv.ParseInt(lastPrerankTimeStr, 10, 64)
