@@ -105,7 +105,7 @@ func fetchRawContnt(url string) string {
 func doCrawlerTask() {
 	sources := loadSources()
 	startTimestamp := int64(time.Now().UTC().Unix())
-	workNum := common.ParseInt(os.Getenv("CRAWLER_WORKER_POOL"), 1)
+	workNum := common.ParseInt(os.Getenv("CRAWLER_WORKER_POOL"), 5)
 	for _, source := range sources {
 		lastPrerankTimeStr, _ := api.GetRedisConfig(source, "last_prerank_time").(string)
 		lastPrerankTime, _ := strconv.ParseInt(lastPrerankTimeStr, 10, 64)
@@ -139,7 +139,7 @@ func doCrawlerTask() {
 						common.Logger.Info(fmt.Sprintf("start:%d,end:%d", start, end))
 						list := crawlerList[start:end]
 						doCrawler(list)
-						time.Sleep(time.Second * 1)
+						//time.Sleep(time.Second * 1)
 						wg.Done()
 					}()
 				}
@@ -159,7 +159,8 @@ func doCrawlerTask() {
 
 func main() {
 	common.Logger.Info("crawler task start ...")
-	c := cron.New()
+	c := cron.New(cron.WithChain(cron.SkipIfStillRunning(cron.DefaultLogger)))
+
 	argoCheckCr := "@every " + common.GetCrawlerFrequency() + "m"
 	c.AddFunc(argoCheckCr, func() {
 		common.Logger.Info("do crawler task  ...")

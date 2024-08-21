@@ -576,7 +576,8 @@ func doSyncTask() {
 
 func main() {
 	common.Logger.Info("crawler task start ...")
-	c := cron.New()
+	//c := cron.New()
+	c := cron.New(cron.WithChain(cron.SkipIfStillRunning(cron.DefaultLogger)))
 	argoCheckCr := "@every " + common.GeSyncFrequency() + "m"
 	c.AddFunc(argoCheckCr, func() {
 		common.Logger.Info("do crawler task  ...")
