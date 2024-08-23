@@ -344,7 +344,7 @@ func syncEntry(redisClient *redis.Client, provider *model.SyncProvider, lastSync
 			saveData.ModelName = currentEntryPackage.ModelName
 			saveData.UpdateTime = int64(time.Now().UTC().Unix())
 			storge.SaveEntrySyncPackageData(redisClient, provider.Provider, saveData)
-			time.Sleep(time.Second * 1)
+			time.Sleep(time.Second * 10)
 		}
 
 	}
