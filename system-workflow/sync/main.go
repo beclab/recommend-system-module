@@ -576,7 +576,7 @@ func doSyncTask() {
 	common.Logger.Info("package sync  end")
 }
 
-func main2() {
+func main() {
 	common.Logger.Info("crawler task start ...")
 	//c := cron.New()
 	c := cron.New(cron.WithChain(cron.SkipIfStillRunning(cron.DefaultLogger)))
@@ -594,7 +594,7 @@ func main2() {
 	common.Logger.Info("crawler task end...")
 }
 
-func main() {
+func main1() {
 	common.Logger.Info("crawler task start ...")
 	//time.Sleep(time.Second * 20)
 	//doSyncTask()
