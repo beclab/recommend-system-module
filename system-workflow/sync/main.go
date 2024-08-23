@@ -344,7 +344,7 @@ func syncEntry(redisClient *redis.Client, provider *model.SyncProvider, lastSync
 			saveData.ModelName = currentEntryPackage.ModelName
 			saveData.UpdateTime = int64(time.Now().UTC().Unix())
 			storge.SaveEntrySyncPackageData(redisClient, provider.Provider, saveData)
-			time.Sleep(time.Second * 10)
+			time.Sleep(time.Second * 1)
 		}
 
 	}
@@ -576,7 +576,7 @@ func doSyncTask() {
 	common.Logger.Info("package sync  end")
 }
 
-func main() {
+func main2() {
 	common.Logger.Info("crawler task start ...")
 	//c := cron.New()
 	c := cron.New(cron.WithChain(cron.SkipIfStillRunning(cron.DefaultLogger)))
@@ -591,5 +591,11 @@ func main() {
 	signal.Notify(stop, os.Interrupt)
 	signal.Notify(stop, syscall.SIGTERM)
 	<-stop
+	common.Logger.Info("crawler task end...")
+}
+
+func main() {
+	common.Logger.Info("crawler task start ...")
+	doSyncTask()
 	common.Logger.Info("crawler task end...")
 }
