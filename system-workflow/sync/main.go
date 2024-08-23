@@ -596,7 +596,17 @@ func main2() {
 
 func main() {
 	common.Logger.Info("crawler task start ...")
-	time.Sleep(time.Second * 20)
-	doSyncTask()
+	//time.Sleep(time.Second * 20)
+	//doSyncTask()
+
+	go func() {
+		time.Sleep(time.Second * 20)
+		doSyncTask()
+	}()
+
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, os.Interrupt)
+	signal.Notify(stop, syscall.SIGTERM)
+	<-stop
 	common.Logger.Info("crawler task end...")
 }
