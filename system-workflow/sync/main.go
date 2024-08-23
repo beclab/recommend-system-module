@@ -241,6 +241,7 @@ func syncFeed(postgresClient *sql.DB, redisClient *redis.Client, provider model.
 }
 
 func fileToSave(path string, fileBytes []byte) {
+	common.Logger.Info(("save file"), zap.String("path", path))
 	tempFile, createTempFileErr := os.Create(path)
 	if createTempFileErr != nil {
 		common.Logger.Error("create temp file err", zap.String("currentFeedFilePath", path), zap.Error(createTempFileErr))
@@ -342,7 +343,7 @@ func syncEntry(redisClient *redis.Client, provider *model.SyncProvider, lastSync
 			saveData.FeedName = currentEntryPackage.FeedName
 			saveData.ModelName = currentEntryPackage.ModelName
 			saveData.UpdateTime = int64(time.Now().UTC().Unix())
-			storge.SaveEntrySyncPackageData(redisClient, common.GetEntrySyncPackageDataRedisKey(), saveData)
+			storge.SaveEntrySyncPackageData(redisClient, provider.Provider, saveData)
 		}
 
 	}
@@ -576,8 +577,8 @@ func doSyncTask() {
 
 func main() {
 	common.Logger.Info("crawler task start ...")
-	c := cron.New()
-	//c := cron.New(cron.WithChain(cron.SkipIfStillRunning(cron.DefaultLogger)))
+	//c := cron.New()
+	c := cron.New(cron.WithChain(cron.SkipIfStillRunning(cron.DefaultLogger)))
 	argoCheckCr := "@every " + common.GeSyncFrequency() + "m"
 	c.AddFunc(argoCheckCr, func() {
 		common.Logger.Info("do crawler task  ...")
