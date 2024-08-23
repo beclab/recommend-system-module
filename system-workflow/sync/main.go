@@ -530,7 +530,7 @@ func doSyncTask() {
 			entryProviderUrl := provider.EntryProvider.Url
 			modelName := fetchModelNameFromUrl(entryProviderUrl)
 			key := provider.Provider + provider.FeedName + "_" + modelName
-			common.Logger.Error("generate sync provider", zap.String("entry url", entryProviderUrl), zap.String("key", key))
+			common.Logger.Info("generate sync provider", zap.String("entry url", entryProviderUrl), zap.String("key", key))
 			p, exist := providerList[key]
 			if exist {
 				/*if !common.IsInStringArray(p.Source, source) {
@@ -576,8 +576,8 @@ func doSyncTask() {
 
 func main() {
 	common.Logger.Info("crawler task start ...")
-	//c := cron.New()
-	c := cron.New(cron.WithChain(cron.SkipIfStillRunning(cron.DefaultLogger)))
+	c := cron.New()
+	//c := cron.New(cron.WithChain(cron.SkipIfStillRunning(cron.DefaultLogger)))
 	argoCheckCr := "@every " + common.GeSyncFrequency() + "m"
 	c.AddFunc(argoCheckCr, func() {
 		common.Logger.Info("do crawler task  ...")
