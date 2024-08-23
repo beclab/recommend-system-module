@@ -596,6 +596,7 @@ func main2() {
 
 func main() {
 	common.Logger.Info("crawler task start ...")
+	time.Sleep(time.Second * 20)
 	doSyncTask()
 	common.Logger.Info("crawler task end...")
 }
