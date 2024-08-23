@@ -600,7 +600,7 @@ func main() {
 	//doSyncTask()
 
 	go func() {
-		time.Sleep(time.Second * 20)
+		time.Sleep(time.Second * 60)
 		doSyncTask()
 	}()
 
