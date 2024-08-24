@@ -241,6 +241,7 @@ func syncFeed(postgresClient *sql.DB, redisClient *redis.Client, provider model.
 }
 
 func fileToSave(path string, fileBytes []byte) {
+	common.Logger.Info(("save file"), zap.String("path", path))
 	tempFile, createTempFileErr := os.Create(path)
 	if createTempFileErr != nil {
 		common.Logger.Error("create temp file err", zap.String("currentFeedFilePath", path), zap.Error(createTempFileErr))
@@ -342,7 +343,8 @@ func syncEntry(redisClient *redis.Client, provider *model.SyncProvider, lastSync
 			saveData.FeedName = currentEntryPackage.FeedName
 			saveData.ModelName = currentEntryPackage.ModelName
 			saveData.UpdateTime = int64(time.Now().UTC().Unix())
-			storge.SaveEntrySyncPackageData(redisClient, common.GetEntrySyncPackageDataRedisKey(), saveData)
+			storge.SaveEntrySyncPackageData(redisClient, provider.Provider, saveData)
+			time.Sleep(time.Second * 1)
 		}
 
 	}
@@ -530,7 +532,7 @@ func doSyncTask() {
 			entryProviderUrl := provider.EntryProvider.Url
 			modelName := fetchModelNameFromUrl(entryProviderUrl)
 			key := provider.Provider + provider.FeedName + "_" + modelName
-			common.Logger.Error("generate sync provider", zap.String("entry url", entryProviderUrl), zap.String("key", key))
+			common.Logger.Info("generate sync provider", zap.String("entry url", entryProviderUrl), zap.String("key", key))
 			p, exist := providerList[key]
 			if exist {
 				/*if !common.IsInStringArray(p.Source, source) {
@@ -584,6 +586,23 @@ func main() {
 		doSyncTask()
 	})
 	c.Start()
+
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, os.Interrupt)
+	signal.Notify(stop, syscall.SIGTERM)
+	<-stop
+	common.Logger.Info("crawler task end...")
+}
+
+func main1() {
+	common.Logger.Info("crawler task start ...")
+	//time.Sleep(time.Second * 20)
+	//doSyncTask()
+
+	go func() {
+		time.Sleep(time.Second * 60)
+		doSyncTask()
+	}()
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)

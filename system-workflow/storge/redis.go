@@ -92,9 +92,10 @@ func SaveEntrySyncPackageData(rdb *redis.Client, provider string, data model.Ent
 		common.Logger.Error("marshal entrySyncSetting fail", zap.Error(err))
 		return err
 	}
-
+	key := common.GetEntrySyncPackageDataRedisKey() + "_" + provider
 	subkey := fmt.Sprintf("%s_%s_%d", data.FeedName, data.ModelName, data.StartTime)
-	err = rdb.HSet(common.RedisCtx, provider, subkey, jsonEntrySyncSetting).Err()
+
+	err = rdb.HSet(common.RedisCtx, key, subkey, jsonEntrySyncSetting).Err()
 
 	if err != nil {
 		common.Logger.Error("set entry sync setting fail", zap.Error(err))
@@ -107,12 +108,12 @@ func GetEntrySyncPackageData(rdb *redis.Client, provider, feedName, modelName st
 
 	subkey := fmt.Sprintf("%s_%s_%d", feedName, modelName, startTime)
 
-	exists, _ := rdb.HExists(common.RedisCtx, provider, subkey).Result()
+	exists, _ := rdb.HExists(common.RedisCtx, common.GetEntrySyncPackageDataRedisKey()+"_"+provider, subkey).Result()
 	if !exists {
 		return nil, nil
 	}
 
-	jsonData, err := rdb.HGet(common.RedisCtx, provider, subkey).Result()
+	jsonData, err := rdb.HGet(common.RedisCtx, common.GetEntrySyncPackageDataRedisKey()+"_"+provider, subkey).Result()
 	if err != nil {
 		common.Logger.Error("get entry sync setting fail", zap.Error(err))
 		return nil, err

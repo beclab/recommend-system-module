@@ -22,7 +22,7 @@ func GetFeedSyncPackageDataRedisKey() string {
 }
 
 func GetEntrySyncPackageDataRedisKey() string {
-	return "entry_sync_data"
+	return "entrysync"
 }
 
 func GetTermiusUserName() string {
