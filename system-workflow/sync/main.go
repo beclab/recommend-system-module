@@ -578,6 +578,12 @@ func doSyncTask() {
 
 func main() {
 	common.Logger.Info("crawler task start 10...")
+	doSyncTask()
+	common.Logger.Info("crawler task end...")
+}
+
+func main1() {
+	common.Logger.Info("crawler task start 10...")
 	//c := cron.New()
 	c := cron.New(cron.WithChain(cron.SkipIfStillRunning(cron.DefaultLogger)))
 	argoCheckCr := "@every " + common.GeSyncFrequency() + "m"
@@ -586,23 +592,6 @@ func main() {
 		doSyncTask()
 	})
 	c.Start()
-
-	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, os.Interrupt)
-	signal.Notify(stop, syscall.SIGTERM)
-	<-stop
-	common.Logger.Info("crawler task end...")
-}
-
-func main1() {
-	common.Logger.Info("crawler task start ...")
-	//time.Sleep(time.Second * 20)
-	//doSyncTask()
-
-	go func() {
-		time.Sleep(time.Second * 60)
-		doSyncTask()
-	}()
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
