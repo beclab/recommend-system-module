@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -9,8 +10,10 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"bytetrade.io/web3os/argo-task/common"
+	"bytetrade.io/web3os/argo-task/model"
 	"github.com/robfig/cron/v3"
 )
 
@@ -102,15 +105,44 @@ func argoCrawlerTaskCheck() {
 
 }
 
+func getIsInstallRecommend() bool {
+	url := "http://app-service.os-system:6755/app-service/v1/recommenddev/" + common.GetTermiusUserName() + "/status"
+	client := &http.Client{Timeout: time.Second * 5}
+	res, err := client.Get(url)
+	if err != nil {
+		log.Print("get appservice  fail", err)
+		return true
+	}
+	defer res.Body.Close()
+	body, _ := io.ReadAll(res.Body)
+
+	jsonStr := string(body)
+	log.Print("get recommend service response: ", url, jsonStr)
+	var response model.RecommendServiceResponseModel
+	if err := json.Unmarshal(body, &response); err != nil {
+		log.Print("json decode failed ", err)
+		return true
+	}
+	if len(response.Data) == 0 {
+		return false
+	}
+	return true
+}
+
 func main() {
 	log.Print("argo task start ...")
 
 	c := cron.New()
 	argoCheckCr := "@every " + common.GetTaskFrequency() + "m"
 	c.AddFunc(argoCheckCr, func() {
-		log.Print("do check task...")
-		argoSyncTaskCheck()
-		argoCrawlerTaskCheck()
+
+		isInstallRecommended := getIsInstallRecommend()
+		log.Print("do check task...is install", isInstallRecommended)
+		if isInstallRecommended {
+			argoSyncTaskCheck()
+			argoCrawlerTaskCheck()
+		}
+
 	})
 	c.Start()
 
