@@ -15,7 +15,6 @@ import (
 	"bytetrade.io/web3os/argo-task/common"
 	"bytetrade.io/web3os/argo-task/model"
 	"github.com/robfig/cron/v3"
-	"go.uber.org/zap"
 )
 
 func newArgoSyncTask() {
@@ -121,7 +120,7 @@ func getIsInstallRecommend() bool {
 	log.Print("get recommend service response: ", url, jsonStr)
 	var response model.RecommendServiceResponseModel
 	if err := json.Unmarshal(body, &response); err != nil {
-		log.Print("json decode failed ", zap.Error(err))
+		log.Print("json decode failed ", err)
 		return true
 	}
 	if len(response.Data) == 0 {
