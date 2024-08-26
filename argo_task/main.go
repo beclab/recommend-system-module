@@ -137,7 +137,7 @@ func main() {
 	c.AddFunc(argoCheckCr, func() {
 
 		isInstallRecommended := getIsInstallRecommend()
-		log.Print("do check task...is install", isInstallRecommended)
+		log.Print("do check task...is installed: ", isInstallRecommended)
 		if isInstallRecommended {
 			argoSyncTaskCheck()
 			argoCrawlerTaskCheck()
