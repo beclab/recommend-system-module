@@ -152,7 +152,24 @@ func (c *Client) Get() (*Response, error) {
 	if err != nil {
 		return nil, err
 	}
+	domain, _ := GetPrimaryDomain(c.inputURL)
+	if domain != "" {
+		if CheckCookRequired(domain) {
+			domainList := LoadCookieInfo(domain)
+			for _, domain := range domainList {
+				for _, record := range domain.Records {
+					cookie := &http.Cookie{
+						Name:   record.Name,
+						Value:  record.Value,
+						Path:   record.Path,
+						Domain: record.Domain,
+					}
+					request.AddCookie(cookie)
+				}
+			}
 
+		}
+	}
 	return c.executeRequest(request)
 }
 

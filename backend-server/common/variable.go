@@ -55,6 +55,14 @@ func EntryMonogoUpdateApiUrl() string {
 	return env
 }
 
+func SettingApiUrl() string {
+	env := os.Getenv("SETTING_API_URL")
+	if env == "" {
+		return "https://settings.mmchong2021.myterminus.com/api/cookie/retrieve"
+	}
+	return env
+}
+
 func DownloadApiUrl() string {
 	env := os.Getenv("DOWNLOAD_API_URL")
 	if env == "" {
