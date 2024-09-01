@@ -5,15 +5,15 @@ type SettingReqModel struct {
 }
 
 type SettingRecordRespModel struct {
-	Domain   string `json:"domain" `
-	Name     string `json:"name"`
-	Value    string `json:"value" `
-	Expires  string `json:"expires"`
-	Path     string `json:"path"`
-	Secure   string `json:"secure"`
-	HttpOnly string `json:"httpOnly"`
-	SameSite string `json:"sameSite"`
-	Other    string `json:"other"`
+	Domain   string  `json:"domain" `
+	Name     string  `json:"name"`
+	Value    string  `json:"value" `
+	Expires  float32 `json:"expirationDate"`
+	Path     string  `json:"path"`
+	Secure   bool    `json:"secure"`
+	HttpOnly bool    `json:"httpOnly"`
+	SameSite string  `json:"sameSite"`
+	Other    string  `json:"other"`
 }
 
 type SettingDomainRespModel struct {
