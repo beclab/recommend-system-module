@@ -159,10 +159,11 @@ func (c *Client) Get() (*Response, error) {
 			for _, domain := range domainList {
 				for _, record := range domain.Records {
 					cookie := &http.Cookie{
-						Name:   record.Name,
-						Value:  record.Value,
-						Path:   record.Path,
-						Domain: record.Domain,
+						Name:    record.Name,
+						Value:   url.QueryEscape(record.Value),
+						Path:    record.Path,
+						Domain:  record.Domain,
+						Expires: time.Unix(int64(record.Expires), 0),
 					}
 					request.AddCookie(cookie)
 				}

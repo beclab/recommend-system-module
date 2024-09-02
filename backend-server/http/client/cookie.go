@@ -18,6 +18,7 @@ import (
 var COOKIE_RULES = map[string]string{
 	"bilibili.com": "recommend",
 	"spotify.com":  "required",
+	"reuters.com":  "required",
 }
 
 func GetPrimaryDomain(u string) (string, error) {
@@ -37,6 +38,7 @@ func GetPrimaryDomain(u string) (string, error) {
 func CheckCookRequired(host string) bool {
 
 	if _, ok := COOKIE_RULES[host]; ok {
+		log.Print("check cookie true :", host)
 		return true
 	}
 	return false
@@ -52,7 +54,7 @@ func LoadCookieInfo(host string) []model.SettingDomainRespModel {
 	common.Logger.Info("start load cookie info ", zap.String("host", host))
 	request, _ := http.NewRequest("POST", settingUrl, bytes.NewBuffer(reqJsonByte))
 	request.Header.Set("Content-Type", "application/json")
-	//request.Header.Set("Cookie", "auth_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MjY0MTEzMzUsImlhdCI6MTcyNTIwMTczNSwiaXNzIjoia3ViZXNwaGVyZSIsInN1YiI6Im1tY2hvbmcyMDIxIiwidG9rZW5fdHlwZSI6ImFjY2Vzc190b2tlbiIsInVzZXJuYW1lIjoibW1jaG9uZzIwMjEiLCJleHRyYSI6eyJ1bmluaXRpYWxpemVkIjpbInRydWUiXX19.QGJlE9oghdi0dAlSwNS0shTRDJMUkjbrfVjjkFWV-mc; authelia_session=mGf!afoZkpgEhFk$2GrHVB2mjBaP0rmf")
+	//request.Header.Set("Cookie", "auth_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MjY0ODg5MjQsImlhdCI6MTcyNTI3OTMyNCwiaXNzIjoia3ViZXNwaGVyZSIsInN1YiI6Im1tY2hvbmcyMDIxIiwidG9rZW5fdHlwZSI6ImFjY2Vzc190b2tlbiIsInVzZXJuYW1lIjoibW1jaG9uZzIwMjEiLCJleHRyYSI6eyJ1bmluaXRpYWxpemVkIjpbInRydWUiXX19.ZB4eMgKE_UYR0-iX7UBHaa_etsE4vUGbzZlUs_BsHGQ; authelia_session=!60*K-bP%SFXg4YGs4b#m6moBUQj3-Z7")
 
 	client := &http.Client{Timeout: time.Second * 5}
 	response, err := client.Do(request)
@@ -62,6 +64,7 @@ func LoadCookieInfo(host string) []model.SettingDomainRespModel {
 	}
 	defer response.Body.Close()
 	responseBody, _ := io.ReadAll(response.Body)
+	log.Print("get cookid result url :", settingUrl, string(responseBody))
 	var resObj model.SettingResponseModel
 	if err := json.Unmarshal(responseBody, &resObj); err != nil {
 		log.Print("json decode failed, err", err)
