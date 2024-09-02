@@ -18,6 +18,7 @@ import (
 var COOKIE_RULES = map[string]string{
 	"bilibili.com": "recommend",
 	"spotify.com":  "required",
+	"reuters.com":  "required",
 }
 
 func GetPrimaryDomain(u string) (string, error) {
@@ -62,6 +63,7 @@ func LoadCookieInfo(host string) []model.SettingDomainRespModel {
 	}
 	defer response.Body.Close()
 	responseBody, _ := io.ReadAll(response.Body)
+	log.Print("get cookid result:", string(responseBody))
 	var resObj model.SettingResponseModel
 	if err := json.Unmarshal(responseBody, &resObj); err != nil {
 		log.Print("json decode failed, err", err)
