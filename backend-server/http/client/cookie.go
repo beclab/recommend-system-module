@@ -38,6 +38,7 @@ func GetPrimaryDomain(u string) (string, error) {
 func CheckCookRequired(host string) bool {
 
 	if _, ok := COOKIE_RULES[host]; ok {
+		log.Print("check cookie true :", host)
 		return true
 	}
 	return false
@@ -63,7 +64,7 @@ func LoadCookieInfo(host string) []model.SettingDomainRespModel {
 	}
 	defer response.Body.Close()
 	responseBody, _ := io.ReadAll(response.Body)
-	log.Print("get cookid result:", string(responseBody))
+	log.Print("get cookid result url :", settingUrl, string(responseBody))
 	var resObj model.SettingResponseModel
 	if err := json.Unmarshal(responseBody, &resObj); err != nil {
 		log.Print("json decode failed, err", err)
