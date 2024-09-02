@@ -19,6 +19,7 @@ var COOKIE_RULES = map[string]string{
 	"bilibili.com": "recommend",
 	"spotify.com":  "required",
 	"reuters.com":  "required",
+	"wsj.com":      "required",
 }
 
 func GetPrimaryDomain(u string) (string, error) {
