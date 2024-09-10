@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"bytetrade.io/web3os/backend-server/storage"
 	"bytetrade.io/web3os/fs-lib/jfsnotify"
 
 	"github.com/rs/zerolog/log"
@@ -16,7 +17,7 @@ import (
 
 var watcher *jfsnotify.Watcher = nil
 
-func WatchPath(deletePaths []string) {
+func WatchPath(store *storage.Storage, deletePaths []string) {
 	fmt.Println("Begin watching path...", deletePaths)
 	var err error
 	if watcher == nil {
@@ -25,7 +26,7 @@ func WatchPath(deletePaths []string) {
 			log.Error().Msgf("new watch error %s", err.Error())
 			return
 		}
-		go dedupLoop(watcher)
+		go dedupLoop(store, watcher)
 		log.Info().Msgf("watching path %s", strings.Join(deletePaths, ","))
 	}
 	for _, path := range deletePaths {
@@ -50,7 +51,7 @@ func WatchPath(deletePaths []string) {
 	}
 }
 
-func dedupLoop(w *jfsnotify.Watcher) {
+func dedupLoop(store *storage.Storage, w *jfsnotify.Watcher) {
 	var (
 		// Wait 1000ms for new events; each new event resets the timer.
 		waitFor = 1000 * time.Millisecond
@@ -89,7 +90,7 @@ func dedupLoop(w *jfsnotify.Watcher) {
 			if e.Has(jfsnotify.Chmod) {
 				continue
 			}
-			log.Debug().Msgf("pending event %v", e)
+			//log.Debug().Msgf("pending event %v", e)
 			// Get timer.
 			mu.Lock()
 			pendingEvent[e.Name] = e
@@ -103,7 +104,7 @@ func dedupLoop(w *jfsnotify.Watcher) {
 					ev := pendingEvent[e.Name]
 					mu.Unlock()
 					printEvent(ev)
-					err := handleEvent(ev)
+					err := handleEvent(store, ev)
 					if err != nil {
 						log.Error().Msgf("handle watch file event error %s", err.Error())
 					}
@@ -120,10 +121,23 @@ func dedupLoop(w *jfsnotify.Watcher) {
 	}
 }
 
-func handleEvent(e jfsnotify.Event) error {
-	fmt.Println("handler event...")
+func handleEvent(store *storage.Storage, e jfsnotify.Event) error {
 	if e.Has(jfsnotify.Remove) || e.Has(jfsnotify.Rename) {
 		log.Info().Msgf("push indexer task delete %s", e.Name)
+		fileName := e.Name
+		entries := store.GetEntryByLocalFileName(fileName)
+		log.Info().Msgf("file match entry num %d", len(entries))
+		if len(entries) > 0 {
+			for _, entry := range entries {
+				store.UpdateEntryFileRemove(entry.ID)
+			}
+		} else {
+			enclosureIDs := store.GetEnclosureByLocalFileName(fileName)
+			log.Info().Msgf("file match enclosure num %d", len(enclosureIDs))
+			for _, enclosureID := range enclosureIDs {
+				store.UpdateEnclosureFileRemove(enclosureID)
+			}
+		}
 
 	}
 
