@@ -93,7 +93,7 @@ func (s *Storage) CreateEnclosure(entry *model.Entry) (string, error) {
 
 func (s *Storage) GetEntryByLocalFileName(fileName string) []model.Entry {
 	var entries []model.Entry
-	query := `SELECT id FROM entries WHERE where '{"library"}' && sources and file_type!='article' and local_file_name=$1`
+	query := `SELECT id FROM entries WHERE  '{"library"}' && sources and file_type!='article' and local_file_name=$1`
 
 	rows, err := s.db.Query(query, fileName)
 	if err != nil {
