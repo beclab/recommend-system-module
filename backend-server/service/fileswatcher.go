@@ -5,6 +5,7 @@ import (
 	"io/fs"
 	"math"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -25,6 +26,7 @@ func WatchPath(deletePaths []string) {
 			return
 		}
 		go dedupLoop(watcher)
+		log.Info().Msgf("watching path %s", strings.Join(deletePaths, ","))
 	}
 	for _, path := range deletePaths {
 		err = filepath.Walk(path, func(path string, info fs.FileInfo, err error) error {
@@ -32,7 +34,7 @@ func WatchPath(deletePaths []string) {
 				return err
 			}
 			if info.IsDir() {
-				fmt.Println("add path...", path)
+				fmt.Println("add path...", info.Name())
 				err = watcher.Add(path)
 				if err != nil {
 					fmt.Println("watcher add error:", err)
@@ -119,7 +121,7 @@ func dedupLoop(w *jfsnotify.Watcher) {
 }
 
 func handleEvent(e jfsnotify.Event) error {
-
+	fmt.Println("handler event...")
 	if e.Has(jfsnotify.Remove) || e.Has(jfsnotify.Rename) {
 		log.Info().Msgf("push indexer task delete %s", e.Name)
 
