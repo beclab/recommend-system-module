@@ -124,9 +124,9 @@ func dedupLoop(store *storage.Storage, w *jfsnotify.Watcher) {
 func handleEvent(store *storage.Storage, e jfsnotify.Event) error {
 	if e.Has(jfsnotify.Remove) || e.Has(jfsnotify.Rename) {
 		log.Info().Msgf("push indexer task delete %s", e.Name)
-		fileName := e.Name
+		fileName := filepath.Base(e.Name)
 		entries := store.GetEntryByLocalFileName(fileName)
-		log.Info().Msgf("file match entry num %d", len(entries))
+		log.Info().Msgf("file match entry num filename %s, %d", fileName, len(entries))
 		if len(entries) > 0 {
 			for _, entry := range entries {
 				store.UpdateEntryFileRemove(entry.ID)
