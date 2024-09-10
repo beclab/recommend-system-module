@@ -38,7 +38,7 @@ func StartDaemon(store *storage.Storage) {
 		watchDirs[i] = strings.TrimSpace(dir)
 	}
 	if len(watchDirs) > 0 {
-		service.WatchPath(watchDirs)
+		service.WatchPath(store, watchDirs)
 	}
 
 	<-stop
