@@ -16,7 +16,7 @@ import (
 var watcher *jfsnotify.Watcher = nil
 
 func WatchPath(deletePaths []string) {
-	fmt.Println("Begin watching path...")
+	fmt.Println("Begin watching path...", deletePaths)
 	var err error
 	if watcher == nil {
 		watcher, err = jfsnotify.NewWatcher("filesWatcher")
