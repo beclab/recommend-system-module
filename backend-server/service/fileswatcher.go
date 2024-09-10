@@ -32,7 +32,7 @@ func WatchPath(deletePaths []string) {
 				return err
 			}
 			if info.IsDir() {
-				err = watcher.Remove(path)
+				err = watcher.Add(path)
 				if err != nil {
 					fmt.Println("watcher add error:", err)
 					return err
