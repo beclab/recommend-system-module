@@ -10,6 +10,8 @@ import (
 
 func main() {
 
+	redisdb := database.NewRedisConnection()
+
 	db, err := database.NewConnectionPool(
 		common.DatabaseURL(),
 		common.DatabaseMinConns(),
@@ -32,6 +34,6 @@ func main() {
 		}
 	}()*/
 
-	store := storage.NewStorage(db)
+	store := storage.NewStorage(db, redisdb)
 	cli.StartDaemon(store)
 }
