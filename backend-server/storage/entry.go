@@ -90,3 +90,57 @@ func (s *Storage) CreateEnclosure(entry *model.Entry) (string, error) {
 
 	return enclosureID, nil
 }
+
+func (s *Storage) GetEntryByLocalFileName(fileName string) []model.Entry {
+	var entries []model.Entry
+	query := `SELECT id FROM entries WHERE  '{"library"}' && sources and file_type!='article' and local_file_name=$1`
+
+	rows, err := s.db.Query(query, fileName)
+	if err != nil {
+		return entries
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var entry model.Entry
+		if err := rows.Scan(&entry.ID); err != nil {
+			return entries
+		}
+		entries = append(entries, entry)
+	}
+	return entries
+}
+
+func (s *Storage) UpdateEntryFileRemove(entryID string) {
+	_, err := s.db.Exec(`UPDATE entries SET crawler=false where id=$1`, entryID)
+	if err != nil {
+		common.Logger.Error("update entry when file remove error", zap.Error(err))
+	}
+}
+
+func (s *Storage) GetEnclosureByLocalFileName(fileName string) []string {
+	var enclosuredIDs []string
+	query := `SELECT id FROM enclosures WHERE  name=$1`
+
+	rows, err := s.db.Query(query, fileName)
+	if err != nil {
+		return enclosuredIDs
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var id string
+		if err := rows.Scan(&id); err != nil {
+			return enclosuredIDs
+		}
+		enclosuredIDs = append(enclosuredIDs, id)
+	}
+	return enclosuredIDs
+}
+
+func (s *Storage) UpdateEnclosureFileRemove(enclosureID string) {
+	_, err := s.db.Exec(`UPDATE enclosures SET download_status='remove' where id=$1`, enclosureID)
+	if err != nil {
+		common.Logger.Error("update entry when file remove error", zap.Error(err))
+	}
+}
