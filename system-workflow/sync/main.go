@@ -572,7 +572,7 @@ func doSyncTask() {
 	common.Logger.Info("feed and entry packages sync  end")
 
 	syncTemplatePlugins(redisClient)
-	syncDiscoveryFeedPackage(postgresClient, redisClient)
+	//syncDiscoveryFeedPackage(postgresClient, redisClient)
 	common.Logger.Info("package sync  end")
 }
 

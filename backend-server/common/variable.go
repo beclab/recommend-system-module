@@ -225,3 +225,19 @@ func GetWeChatEntryContentUrl() string {
 func GetRSSHubUrl() string {
 	return ParseString(os.Getenv("RSS_HUB_URL"), "http://127.0.0.1:3000/rss")
 }
+
+func GetSyncDiscoveryFeedPackageUrl() string {
+	envDir := os.Getenv("SYNC_DISCOVERY_FEEDPACKAGE_URL")
+	if envDir == "" {
+		return "https://recommend-provider-prd.bttcdn.com/api/provider/discoveryFeedPackages"
+	}
+	return envDir
+}
+
+func GetRedisAddr() string {
+	return ParseString(os.Getenv("REDIS_ADDR"), "127.0.0.1:6379")
+}
+
+func GetRedisPassword() string {
+	return ParseString(os.Getenv("REDIS_PASSWORD"), "")
+}

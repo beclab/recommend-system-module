@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"bytetrade.io/web3os/backend-server/common"
+	"bytetrade.io/web3os/backend-server/service"
 	"bytetrade.io/web3os/backend-server/storage"
 	"bytetrade.io/web3os/backend-server/worker"
 	"go.uber.org/zap"
@@ -19,6 +20,10 @@ func Serve(store *storage.Storage, pool *worker.Pool) {
 		common.DefaultBatchSize,
 	)
 
+	go discoveryFeedSyncScheduler(
+		store,
+	)
+
 }
 
 func feedScheduler(store *storage.Storage, pool *worker.Pool, frequency, batchSize int) {
@@ -30,5 +35,12 @@ func feedScheduler(store *storage.Storage, pool *worker.Pool, frequency, batchSi
 			pool.Push(jobs)
 		}
 		common.Logger.Info("feedScheduler...")
+	}
+}
+
+func discoveryFeedSyncScheduler(store *storage.Storage) {
+	for range time.Tick(time.Duration(10) * time.Minute) {
+		service.SyncDiscoveryFeedPackage(store)
+		common.Logger.Info("discovery feed sync ...")
 	}
 }
