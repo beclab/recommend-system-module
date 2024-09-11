@@ -112,9 +112,13 @@ func (s *Storage) GetEntryByLocalFileName(fileName string) []model.Entry {
 }
 
 func (s *Storage) UpdateEntryFileRemove(entryID string) {
-	_, err := s.db.Exec(`UPDATE entries SET crawler=false where id=$1`, entryID)
+	_, err := s.db.Exec(`UPDATE entries SET local_file_path='' where id=$1`, entryID)
 	if err != nil {
 		common.Logger.Error("update entry when file remove error", zap.Error(err))
+	}
+	_, err = s.db.Exec(`UPDATE task SET status='loss' where entry_id=$1`, entryID)
+	if err != nil {
+		common.Logger.Error("update entry task when file remove error", zap.Error(err))
 	}
 }
 
@@ -139,8 +143,13 @@ func (s *Storage) GetEnclosureByLocalFileName(fileName string) []string {
 }
 
 func (s *Storage) UpdateEnclosureFileRemove(enclosureID string) {
-	_, err := s.db.Exec(`UPDATE enclosures SET download_status='remove' where id=$1`, enclosureID)
+	_, err := s.db.Exec(`UPDATE enclosures SET download_status='loss' where id=$1`, enclosureID)
 	if err != nil {
-		common.Logger.Error("update entry when file remove error", zap.Error(err))
+		common.Logger.Error("update enclouse when file remove error", zap.Error(err))
+	}
+
+	_, err = s.db.Exec(`UPDATE task SET status='loss' where enclosure_id=$1`, enclosureID)
+	if err != nil {
+		common.Logger.Error("update enclosure task when file remove error", zap.Error(err))
 	}
 }
