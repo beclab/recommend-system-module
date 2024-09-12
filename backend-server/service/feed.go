@@ -113,7 +113,9 @@ func RefreshFeed(store *storage.Storage, feedID string) {
 	} else {
 		feedURL := originalFeed.FeedURL
 		if strings.HasPrefix(feedUrl, "rsshub://") {
-			feedURL = common.GetRSSHubUrl() + "?path=/" + feedUrl[9:]
+			//feedURL = common.GetRSSHubUrl() + "?path=/" + feedUrl[9:]
+			common.Logger.Info(" rsshub feed refresh ", zap.String("feedpath", feedUrl[9:]))
+			feedURL = common.GetRSSHubUrl() + feedUrl[9:]
 		}
 		updatedFeed = rssRrefresh(store, originalFeed, feedURL)
 		//updatedFeed = rssRrefresh(store, originalFeed)
