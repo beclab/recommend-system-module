@@ -160,10 +160,12 @@ func (c *Client) Get() (*Response, error) {
 			for _, record := range domain.Records {
 				if strings.HasPrefix(record.Domain, ".") {
 					if len(record.Domain)-len(urlDomain) > 1 {
+						print("skip cookie domain:", record.Domain)
 						continue
 					}
 				} else {
 					if record.Domain != urlDomain {
+						print("skip cookie domain2:", record.Domain)
 						continue
 					}
 				}
