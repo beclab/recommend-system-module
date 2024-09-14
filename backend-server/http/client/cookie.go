@@ -23,18 +23,18 @@ var COOKIE_RULES = map[string]string{
 	"ft.com":       "required",
 }
 
-func GetPrimaryDomain(u string) (string, error) {
+func GetPrimaryDomain(u string) (string, string) {
 	parsedURL, err := url.Parse(u)
 	if err != nil {
-		return "", err
+		return "", ""
 	}
 	host := parsedURL.Hostname()
 
 	parts := strings.Split(host, ".")
 	if len(parts) >= 2 {
-		return strings.Join(parts[len(parts)-2:], "."), nil
+		return host, strings.Join(parts[len(parts)-2:], ".")
 	}
-	return host, nil
+	return host, host
 }
 
 func CheckCookRequired(host string) bool {

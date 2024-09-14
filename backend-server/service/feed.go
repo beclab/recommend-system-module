@@ -58,7 +58,7 @@ func rssRrefresh(store *storage.Storage, feed *model.Feed, feedURL string) *mode
 	if requestErr != nil {
 		feed.ParsingErrorCount++
 		store.UpdateFeedError(feed.ID, feed)
-		common.Logger.Error("refresh feed load from db error id", zap.String("feedId", feed.ID), zap.Error(requestErr))
+		common.Logger.Error("refresh feed  browser request", zap.String("feedId", feed.ID), zap.Error(requestErr))
 		return nil
 	}
 

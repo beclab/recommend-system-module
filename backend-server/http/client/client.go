@@ -152,12 +152,21 @@ func (c *Client) Get() (*Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	domain, _ := GetPrimaryDomain(c.inputURL)
-	if domain != "" {
+	urlDomain, urlPrimaryDomain := GetPrimaryDomain(c.inputURL)
+	if urlPrimaryDomain != "" {
 		//if CheckCookRequired(domain) {
-		domainList := LoadCookieInfo(domain)
+		domainList := LoadCookieInfo(urlPrimaryDomain)
 		for _, domain := range domainList {
 			for _, record := range domain.Records {
+				if strings.HasPrefix(record.Domain, ".") {
+					if len(record.Domain)-len(urlDomain) > 1 {
+						continue
+					}
+				} else {
+					if record.Domain != urlDomain {
+						continue
+					}
+				}
 				cookie := &http.Cookie{
 					Name:    record.Name,
 					Value:   url.QueryEscape(record.Value),
