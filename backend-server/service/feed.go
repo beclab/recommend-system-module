@@ -107,6 +107,8 @@ func RefreshFeed(store *storage.Storage, feedID string) {
 			if icon != nil {
 				originalFeed.IconMimeType = icon.MimeType
 				originalFeed.IconContent = fmt.Sprintf("%s;base64,%s", icon.MimeType, base64.StdEncoding.EncodeToString(icon.Content))
+			} else {
+				common.Logger.Error("feed icon get null!!!", zap.String("siteurl", originalFeed.SiteURL))
 			}
 		}
 
@@ -133,6 +135,8 @@ func RefreshFeed(store *storage.Storage, feedID string) {
 			if icon != nil {
 				originalFeed.IconMimeType = icon.MimeType
 				originalFeed.IconContent = fmt.Sprintf("%s;base64,%s", icon.MimeType, base64.StdEncoding.EncodeToString(icon.Content))
+			} else {
+				common.Logger.Error("feed icon get null!!!", zap.String("siteurl", originalFeed.SiteURL))
 			}
 		}
 	}
