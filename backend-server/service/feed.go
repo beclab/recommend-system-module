@@ -58,7 +58,7 @@ func rssRrefresh(store *storage.Storage, feed *model.Feed, feedURL string) *mode
 	if requestErr != nil {
 		feed.ParsingErrorCount++
 		store.UpdateFeedError(feed.ID, feed)
-		common.Logger.Error("refresh feed load from db error id", zap.String("feedId", feed.ID), zap.Error(requestErr))
+		common.Logger.Error("refresh feed  browser request", zap.String("feedId", feed.ID), zap.Error(requestErr))
 		return nil
 	}
 
@@ -107,13 +107,19 @@ func RefreshFeed(store *storage.Storage, feedID string) {
 			if icon != nil {
 				originalFeed.IconMimeType = icon.MimeType
 				originalFeed.IconContent = fmt.Sprintf("%s;base64,%s", icon.MimeType, base64.StdEncoding.EncodeToString(icon.Content))
+			} else {
+				common.Logger.Error("feed icon get null!!!", zap.String("siteurl", originalFeed.SiteURL))
 			}
 		}
 
 	} else {
 		feedURL := originalFeed.FeedURL
 		if strings.HasPrefix(feedUrl, "rsshub://") {
-			feedURL = common.GetRSSHubUrl() + "?path=/" + feedUrl[9:]
+			//rsshub sdk:
+			//feedURL = common.GetRSSHubUrl() + "?path=/" + feedUrl[9:]
+			//deploy rsshub
+			common.Logger.Info(" rsshub feed refresh ", zap.String("feedpath", feedUrl[9:]))
+			feedURL = common.GetRSSHubUrl() + feedUrl[9:]
 		}
 		updatedFeed = rssRrefresh(store, originalFeed, feedURL)
 		//updatedFeed = rssRrefresh(store, originalFeed)
@@ -129,6 +135,8 @@ func RefreshFeed(store *storage.Storage, feedID string) {
 			if icon != nil {
 				originalFeed.IconMimeType = icon.MimeType
 				originalFeed.IconContent = fmt.Sprintf("%s;base64,%s", icon.MimeType, base64.StdEncoding.EncodeToString(icon.Content))
+			} else {
+				common.Logger.Error("feed icon get null!!!", zap.String("siteurl", originalFeed.SiteURL))
 			}
 		}
 	}
