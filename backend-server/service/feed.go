@@ -104,7 +104,7 @@ func RefreshFeed(store *storage.Storage, feedID string) {
 		updatedFeed, avatar = RefreshWeChatFeed(wechatAcc)
 		if avatar != "" {
 			icon, _ := icon.DownloadIcon(avatar, originalFeed.UserAgent, originalFeed.FetchViaProxy, originalFeed.AllowSelfSignedCertificates)
-			if icon != nil {
+			if icon != nil && icon.MimeType != "" {
 				originalFeed.IconMimeType = icon.MimeType
 				originalFeed.IconContent = fmt.Sprintf("%s;base64,%s", icon.MimeType, base64.StdEncoding.EncodeToString(icon.Content))
 			} else {
@@ -132,7 +132,7 @@ func RefreshFeed(store *storage.Storage, feedID string) {
 				originalFeed.SiteURL = originalFeed.FeedURL
 			}
 			icon := CheckFeedIcon(originalFeed.SiteURL, originalFeed.UserAgent, originalFeed.FetchViaProxy, originalFeed.AllowSelfSignedCertificates)
-			if icon != nil {
+			if icon != nil && icon.MimeType != "" {
 				originalFeed.IconMimeType = icon.MimeType
 				originalFeed.IconContent = fmt.Sprintf("%s;base64,%s", icon.MimeType, base64.StdEncoding.EncodeToString(icon.Content))
 			} else {

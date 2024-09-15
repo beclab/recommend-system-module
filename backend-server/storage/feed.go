@@ -19,7 +19,8 @@ func (s *Storage) FeedExists(feedID string) bool {
 func (s *Storage) GetFeedById(feedID string) (*model.Feed, error) {
 	var feed model.Feed
 	query := `SELECT id, feed_url, site_url, title,etag_header,last_modified_header,checked_at,parsing_error_count,
-				parsing_error_message,user_agent,cookie,username,password,ignore_http_cache,allow_self_signed_certificates,fetch_via_proxy 
+				parsing_error_message,user_agent,cookie,username,password,ignore_http_cache,allow_self_signed_certificates,fetch_via_proxy,
+				icon_type,icon_content 
 			  FROM feeds WHERE id=$1`
 	err := s.db.QueryRow(query, feedID).Scan(&feed.ID,
 		&feed.FeedURL,
@@ -37,6 +38,8 @@ func (s *Storage) GetFeedById(feedID string) (*model.Feed, error) {
 		&feed.IgnoreHTTPCache,
 		&feed.AllowSelfSignedCertificates,
 		&feed.FetchViaProxy,
+		&feed.IconMimeType,
+		&feed.IconContent,
 	)
 	if err == sql.ErrNoRows {
 		return nil, nil
