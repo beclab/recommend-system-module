@@ -32,7 +32,7 @@ func StartDaemon(store *storage.Storage) {
 
 	httpServer := HttpdServe(store, pool)
 
-	watchDirStr := os.Getenv("WATCH_DIR")
+	watchDirStr := common.GetWatchDir()
 	watchDirs := strings.Split(watchDirStr, ",")
 	for i, dir := range watchDirs {
 		watchDirs[i] = strings.TrimSpace(dir)
