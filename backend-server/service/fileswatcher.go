@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"bytetrade.io/web3os/backend-server/common"
 	"bytetrade.io/web3os/backend-server/storage"
 	"bytetrade.io/web3os/fs-lib/jfsnotify"
 
@@ -124,7 +125,8 @@ func dedupLoop(store *storage.Storage, w *jfsnotify.Watcher) {
 func handleEvent(store *storage.Storage, e jfsnotify.Event) error {
 	if e.Has(jfsnotify.Remove) || e.Has(jfsnotify.Rename) {
 		log.Info().Msgf("push indexer task delete %s", e.Name)
-		fileName := filepath.Base(e.Name)
+		//fileName := filepath.Base(e.Name)
+		fileName := strings.Replace(e.Name, common.GetWatchDir()+"/", "", 1)
 		entries := store.GetEntryByLocalFileName(fileName)
 		log.Info().Msgf("file match entry num filename %s, %d", fileName, len(entries))
 		if len(entries) > 0 {
@@ -142,6 +144,21 @@ func handleEvent(store *storage.Storage, e jfsnotify.Event) error {
 	}
 
 	if e.Has(jfsnotify.Create) { // || e.Has(jfsnotify.Write) || e.Has(jfsnotify.Chmod) {
+		err := filepath.Walk(e.Name, func(docPath string, info fs.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+			if info.IsDir() {
+				err = watcher.Add(docPath)
+				if err != nil {
+					log.Error().Msgf("watcher add error:%v", err)
+				}
+			}
+			return nil
+		})
+		if err != nil {
+			log.Error().Msgf("handle create file error %v", err)
+		}
 		return nil
 	}
 

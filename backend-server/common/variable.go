@@ -241,3 +241,7 @@ func GetRedisAddr() string {
 func GetRedisPassword() string {
 	return ParseString(os.Getenv("REDIS_PASSWORD"), "")
 }
+
+func GetWatchDir() string {
+	return ParseString(os.Getenv("WATCH_DIR"), "/data/Home/Downloads")
+}

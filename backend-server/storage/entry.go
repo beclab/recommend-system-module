@@ -93,7 +93,7 @@ func (s *Storage) CreateEnclosure(entry *model.Entry) (string, error) {
 
 func (s *Storage) GetEntryByLocalFileName(fileName string) []model.Entry {
 	var entries []model.Entry
-	query := `SELECT id FROM entries WHERE  '{"library"}' && sources and file_type!='article' and local_file_name=$1`
+	query := `SELECT id FROM entries WHERE  '{"library"}' && sources and file_type!='article' and local_file_path=$1`
 
 	rows, err := s.db.Query(query, fileName)
 	if err != nil {
@@ -124,7 +124,7 @@ func (s *Storage) UpdateEntryFileRemove(entryID string) {
 
 func (s *Storage) GetEnclosureByLocalFileName(fileName string) []string {
 	var enclosuredIDs []string
-	query := `SELECT id FROM enclosures WHERE  name=$1`
+	query := `SELECT id FROM enclosures WHERE  local_file_path=$1`
 
 	rows, err := s.db.Query(query, fileName)
 	if err != nil {
