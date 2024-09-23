@@ -155,8 +155,8 @@ func (c *Client) Get() (*Response, error) {
 	urlDomain, urlPrimaryDomain := GetPrimaryDomain(c.inputURL)
 	if urlDomain != "" {
 		//if CheckCookRequired(domain) {
-		//domainList := LoadCookieInfoManager(urlDomain, urlPrimaryDomain)
-		domainList := LoadCookieInfo(urlPrimaryDomain)
+		domainList := LoadCookieInfoManager(urlDomain, urlPrimaryDomain)
+		//domainList := LoadCookieInfo(urlPrimaryDomain)
 		for _, domain := range domainList {
 			for _, record := range domain.Records {
 				if strings.HasPrefix(record.Domain, ".") {

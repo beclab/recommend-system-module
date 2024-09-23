@@ -40,7 +40,7 @@ func GetPrimaryDomain(u string) (string, string) {
 func getParentDomain(domain string) string {
 
 	parts := strings.Split(domain, ".")
-	if len(parts) >= 2 {
+	if len(parts) > 2 {
 		return strings.Join(parts[1:], ".")
 	}
 	return ""
@@ -65,7 +65,11 @@ func LoadCookieInfoManager(domain, primaryDomain string) []model.SettingDomainRe
 		if domain == primaryDomain {
 			break
 		}
-		domain = getParentDomain(domain)
+		parentDomain := getParentDomain(domain)
+		if domain == parentDomain {
+			break
+		}
+		domain = parentDomain
 	}
 	return cookieList
 }
@@ -79,7 +83,7 @@ func LoadCookieInfo(host string) []model.SettingDomainRespModel {
 	common.Logger.Info("start load cookie info ", zap.String("host", host))
 	request, _ := http.NewRequest("POST", settingUrl, bytes.NewBuffer(reqJsonByte))
 	request.Header.Set("Content-Type", "application/json")
-	//request.Header.Set("Cookie", "auth_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MjczMTg0MTgsImlhdCI6MTcyNjEwODgxOCwiaXNzIjoia3ViZXNwaGVyZSIsInN1YiI6Im1tY2hvbmcyMDIxIiwidG9rZW5fdHlwZSI6ImFjY2Vzc190b2tlbiIsInVzZXJuYW1lIjoibW1jaG9uZzIwMjEiLCJleHRyYSI6eyJ1bmluaXRpYWxpemVkIjpbInRydWUiXX19.Pcfwnmg2wMaDZxftO7MKJlQXiCXp6GVJ-KXSuPUdLRI; authelia_session=5pXjCNxfk%jcS2NIrYqyb8hJZRyC!kUN")
+	//request.Header.Set("Cookie", "auth_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MjgzMDQ5MTYsImlhdCI6MTcyNzA5NTMxNiwiaXNzIjoia3ViZXNwaGVyZSIsInN1YiI6Im1tY2hvbmcyMDIxIiwidG9rZW5fdHlwZSI6ImFjY2Vzc190b2tlbiIsInVzZXJuYW1lIjoibW1jaG9uZzIwMjEiLCJleHRyYSI6eyJ1bmluaXRpYWxpemVkIjpbInRydWUiXX19.Namzne2m9ZwChnFygILh18XUv-3wh6_4vnACykquOVc; authelia_session=F9im*hFguSW5CwTkXA9-7N!6zIgMcSTq")
 
 	client := &http.Client{Timeout: time.Second * 5}
 	response, err := client.Do(request)
