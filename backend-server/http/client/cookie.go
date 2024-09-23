@@ -37,6 +37,15 @@ func GetPrimaryDomain(u string) (string, string) {
 	return host, host
 }
 
+func getParentDomain(domain string) string {
+
+	parts := strings.Split(domain, ".")
+	if len(parts) >= 2 {
+		return strings.Join(parts[1:], ".")
+	}
+	return ""
+}
+
 func CheckCookRequired(host string) bool {
 
 	if _, ok := COOKIE_RULES[host]; ok {
@@ -46,6 +55,20 @@ func CheckCookRequired(host string) bool {
 	return false
 }
 
+func LoadCookieInfoManager(domain, primaryDomain string) []model.SettingDomainRespModel {
+	cookieList := make([]model.SettingDomainRespModel, 0)
+	for {
+		list := LoadCookieInfo(domain)
+		if len(list) > 0 {
+			cookieList = append(cookieList, list...)
+		}
+		if domain == primaryDomain {
+			break
+		}
+		domain = getParentDomain(domain)
+	}
+	return cookieList
+}
 func LoadCookieInfo(host string) []model.SettingDomainRespModel {
 	reqData := model.SettingReqModel{Domain: host}
 	reqJsonByte, err := json.Marshal(reqData)
