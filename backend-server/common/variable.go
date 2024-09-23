@@ -19,17 +19,17 @@ const (
 	defaultMongoEntryColl      = "entries"
 	defaultMongoAlgorithmsColl = "algorithms"
 
-	//defaultDatabaseURL = "host=127.0.0.1  user=postgres password=postgres dbname=rss sslmode=disable"
-	defaultDatabaseURL = "host=124.222.40.95  user=postgres password=liujx123 dbname=rss_v4 sslmode=disable"
-	//defaultPGHost      = "127.0.0.1"
-	//defaultPGUser      = "postgres"
-	//defaultPGPass      = "postgres"
-	//defaultPGPDBName   = "rss"
-	defaultPGHost    = "124.222.40.95"
+	defaultDatabaseURL = "host=127.0.0.1  user=postgres password=postgres dbname=rss sslmode=disable"
+	//defaultDatabaseURL = "host=124.222.40.95  user=postgres password=liujx123 dbname=rss_v4 sslmode=disable"
+	defaultPGHost    = "127.0.0.1"
 	defaultPGUser    = "postgres"
-	defaultPGPass    = "liujx123"
-	defaultPGPDBName = "rss_v4"
-	defaultPGPort    = 5432
+	defaultPGPass    = "postgres"
+	defaultPGPDBName = "rss"
+	//defaultPGHost    = "124.222.40.95"
+	//defaultPGUser    = "postgres"
+	//defaultPGPass    = "liujx123"
+	//defaultPGPDBName = "rss_v4"
+	defaultPGPort = 5432
 
 	defaultDatabaseMaxConns           = 20
 	defaultDatabaseMinConns           = 1

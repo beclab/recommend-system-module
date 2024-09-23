@@ -153,8 +153,9 @@ func (c *Client) Get() (*Response, error) {
 		return nil, err
 	}
 	urlDomain, urlPrimaryDomain := GetPrimaryDomain(c.inputURL)
-	if urlPrimaryDomain != "" {
+	if urlDomain != "" {
 		//if CheckCookRequired(domain) {
+		//domainList := LoadCookieInfoManager(urlDomain, urlPrimaryDomain)
 		domainList := LoadCookieInfo(urlPrimaryDomain)
 		for _, domain := range domainList {
 			for _, record := range domain.Records {
