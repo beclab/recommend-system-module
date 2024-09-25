@@ -157,13 +157,13 @@ func doCrawlerTask() {
 
 }
 
-func main() {
+func main1() {
 	common.Logger.Info("crawler task start ...")
 	doCrawlerTask()
 	common.Logger.Info("crawler task end...")
 }
 
-func main2() {
+func main() {
 	common.Logger.Info("crawler task start ...")
 	c := cron.New(cron.WithChain(cron.SkipIfStillRunning(cron.DefaultLogger)))
 

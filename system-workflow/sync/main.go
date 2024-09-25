@@ -576,13 +576,13 @@ func doSyncTask() {
 	common.Logger.Info("package sync  end")
 }
 
-func main() {
+func main1() {
 	common.Logger.Info("crawler task start 10...")
 	doSyncTask()
 	common.Logger.Info("crawler task end...")
 }
 
-func main1() {
+func main() {
 	common.Logger.Info("crawler task start 10...")
 	//c := cron.New()
 	c := cron.New(cron.WithChain(cron.SkipIfStillRunning(cron.DefaultLogger)))
