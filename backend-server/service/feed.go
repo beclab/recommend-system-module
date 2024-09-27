@@ -3,7 +3,6 @@ package service
 import (
 	"encoding/base64"
 	"fmt"
-	"net/url"
 	"strings"
 	"time"
 
@@ -96,7 +95,7 @@ func generateRssHubCookie(domain string) string {
 	cookies := ""
 	for _, domain := range domainList {
 		for _, record := range domain.Records {
-			cookies = cookies + record.Name + "=" + url.QueryEscape(record.Value) + ";"
+			cookies = cookies + record.Name + "=" + record.Value + ";"
 		}
 	}
 	return cookies
