@@ -41,6 +41,7 @@ type Client struct {
 	requestPassword            string
 	requestUserAgent           string
 	requestCookie              string
+	requestRssHubCookie        string
 
 	useProxy             bool
 	doNotFollowRedirects bool
@@ -142,6 +143,13 @@ func (c *Client) WithUserAgent(userAgent string) *Client {
 func (c *Client) WithCookie(cookie string) *Client {
 	if cookie != "" {
 		c.requestCookie = cookie
+	}
+	return c
+}
+
+func (c *Client) WithRssHubCookie(rsshubCookie string) *Client {
+	if rsshubCookie != "" {
+		c.requestRssHubCookie = rsshubCookie
 	}
 	return c
 }
@@ -351,6 +359,9 @@ func (c *Client) buildHeaders() http.Header {
 
 	if c.requestCookie != "" {
 		headers.Add("Cookie", c.requestCookie)
+	}
+	if c.requestRssHubCookie != "" {
+		headers.Add("rsshub_cookie", c.requestRssHubCookie)
 	}
 
 	headers.Add("Connection", "close")

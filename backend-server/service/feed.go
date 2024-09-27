@@ -39,12 +39,13 @@ func RssParseFromURL(feedURL string) *model.Feed {
 	return updatedFeed
 }
 
-func rssRrefresh(store *storage.Storage, feed *model.Feed, feedURL string) *model.Feed {
+func rssRrefresh(store *storage.Storage, feed *model.Feed, feedURL string, rsshubCookie string) *model.Feed {
 	common.Logger.Info("start refresh feed ", zap.String("feedId", feed.ID), zap.String("feed url:", feedURL))
 	request := client.NewClientWithConfig(feedURL)
 	request.WithCredentials(feed.Username, feed.Password)
 	request.WithUserAgent(feed.UserAgent)
 	request.WithCookie(feed.Cookie)
+	request.WithRssHubCookie(rsshubCookie)
 	request.AllowSelfSignedCertificates = feed.AllowSelfSignedCertificates
 
 	if !feed.IgnoreHTTPCache {
@@ -131,6 +132,7 @@ func RefreshFeed(store *storage.Storage, feedID string) {
 		}
 
 	} else {
+		rsshubCookie := ""
 		feedURL := originalFeed.FeedURL
 		if strings.HasPrefix(feedUrl, "rsshub://") {
 			//rsshub sdk:
@@ -142,13 +144,13 @@ func RefreshFeed(store *storage.Storage, feedID string) {
 				cookie := generateRssHubCookie(cookieDomain)
 				common.Logger.Info(" rsshub feed cookie ", zap.String("domain", cookieDomain), zap.String("cookie", cookie))
 				if len(cookie) > 0 {
-					originalFeed.Cookie = cookie
+					rsshubCookie = cookie
 				}
 			}
 			feedURL = common.GetRSSHubUrl() + feedUrl[9:]
 
 		}
-		updatedFeed = rssRrefresh(store, originalFeed, feedURL)
+		updatedFeed = rssRrefresh(store, originalFeed, feedURL, rsshubCookie)
 		//updatedFeed = rssRrefresh(store, originalFeed)
 		if updatedFeed != nil {
 			originalFeed.EtagHeader = updatedFeed.EtagHeader
