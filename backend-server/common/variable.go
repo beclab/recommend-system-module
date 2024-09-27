@@ -223,7 +223,7 @@ func GetWeChatEntryContentUrl() string {
 }
 
 func GetRSSHubUrl() string {
-	return ParseString(os.Getenv("RSS_HUB_URL"), "http://127.0.0.1:3000/rss")
+	return ParseString(os.Getenv("RSS_HUB_URL"), "http://127.0.0.1:1200/")
 }
 
 func GetSyncDiscoveryFeedPackageUrl() string {

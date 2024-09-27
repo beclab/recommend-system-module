@@ -86,7 +86,7 @@ func rssRrefresh(store *storage.Storage, feed *model.Feed, feedURL string) *mode
 
 func getRssHubCookieDomain(domain string) string {
 	if strings.HasPrefix(domain, "bilibili") {
-		return "bilibili"
+		return "bilibili.com"
 	}
 	return ""
 }
