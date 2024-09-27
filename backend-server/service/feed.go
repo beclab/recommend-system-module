@@ -3,6 +3,7 @@ package service
 import (
 	"encoding/base64"
 	"fmt"
+	"net/url"
 	"strings"
 	"time"
 
@@ -83,6 +84,23 @@ func rssRrefresh(store *storage.Storage, feed *model.Feed, feedURL string) *mode
 	return nil
 }
 
+func getRssHubCookieDomain(domain string) string {
+	if strings.HasPrefix(domain, "bilibili") {
+		return "bilibili"
+	}
+	return ""
+}
+func generateRssHubCookie(domain string) string {
+	domainList := client.LoadCookieInfoManager(domain, domain)
+	cookies := ""
+	for _, domain := range domainList {
+		for _, record := range domain.Records {
+			cookies = cookies + record.Name + "=" + url.QueryEscape(record.Value) + ";"
+		}
+	}
+	return cookies
+}
+
 // RefreshFeed refreshes a feed.
 // func RefreshFeed(store *storage.Storage, contentPool *contentworker.ContentPool, feedID string) {
 func RefreshFeed(store *storage.Storage, feedID string) {
@@ -119,7 +137,16 @@ func RefreshFeed(store *storage.Storage, feedID string) {
 			//feedURL = common.GetRSSHubUrl() + "?path=/" + feedUrl[9:]
 			//deploy rsshub
 			common.Logger.Info(" rsshub feed refresh ", zap.String("feedpath", feedUrl[9:]))
+			cookieDomain := getRssHubCookieDomain(feedUrl[9:])
+			if cookieDomain != "" {
+				cookie := generateRssHubCookie(cookieDomain)
+				common.Logger.Info(" rsshub feed cookie ", zap.String("domain", cookieDomain), zap.String("cookie", cookie))
+				if len(cookie) > 0 {
+					originalFeed.Cookie = cookie
+				}
+			}
 			feedURL = common.GetRSSHubUrl() + feedUrl[9:]
+
 		}
 		updatedFeed = rssRrefresh(store, originalFeed, feedURL)
 		//updatedFeed = rssRrefresh(store, originalFeed)
