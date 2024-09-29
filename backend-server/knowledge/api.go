@@ -54,6 +54,11 @@ func doDownloadReq(download model.EntryDownloadModel) {
 	common.Logger.Info("update download finish ", zap.String("download url", download.DataSource))
 }
 func NewEnclosure(entry *model.Entry, store *storage.Storage) {
+	exist := store.GetEnclosureNumByEntry(entry.ID)
+	if exist > 0 {
+		common.Logger.Info("new enclosure exit where entry's enclosure exist ", zap.String("entry id:", entry.ID))
+		return
+	}
 	enclosureID, _ := store.CreateEnclosure(entry)
 	if entry.MediaUrl != "" {
 		var download model.EntryDownloadModel
