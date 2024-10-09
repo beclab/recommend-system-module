@@ -42,7 +42,9 @@ func doDownloadReq(download model.EntryDownloadModel) {
 	algoClient := &http.Client{Timeout: time.Second * 5}
 	_, err = algoClient.Do(algoReq)
 
-	defer algoReq.Body.Close()
+	if algoReq != nil {
+		defer algoReq.Body.Close()
+	}
 	body, _ := io.ReadAll(algoReq.Body)
 	jsonStr := string(body)
 	common.Logger.Info("new download response: ", zap.String("body", jsonStr))
@@ -86,7 +88,9 @@ func doReq(list []*model.EntryAddModel, entries model.Entries, store *storage.St
 		common.Logger.Error("add entry in knowledg  fail", zap.Error(err))
 		return
 	}
-	defer response.Body.Close()
+	if response != nil {
+		defer response.Body.Close()
+	}
 	responseBody, _ := io.ReadAll(response.Body)
 	var resObj model.MongoEntryApiResponseModel
 	if err := json.Unmarshal(responseBody, &resObj); err != nil {
@@ -152,7 +156,9 @@ func UpdateLibraryEntryContent(entry *model.Entry) {
 		common.Logger.Error("add entry in knowledg  fail", zap.Error(err))
 		return
 	}
-	defer response.Body.Close()
+	if response != nil {
+		defer response.Body.Close()
+	}
 	responseBody, _ := io.ReadAll(response.Body)
 	jsonStr := string(responseBody)
 	common.Logger.Info("update content response: ", zap.String("body", jsonStr))
@@ -171,7 +177,9 @@ func LoadMetaFromYtdlp(entryUrl string) *model.Entry {
 		common.Logger.Error("load ytdlp meta error")
 		return nil
 	}
-	defer res.Body.Close()
+	if res != nil {
+		defer res.Body.Close()
+	}
 	body, _ := io.ReadAll(res.Body)
 
 	var resObj model.EntryFetchResponseModel

@@ -22,7 +22,9 @@ func RefreshWeChatFeed(wechatAcc string) (*model.Feed, string) {
 	if err != nil {
 		common.Logger.Error("wechat feed refresh error", zap.Error(err))
 	}
-	defer res.Body.Close()
+	if res != nil {
+		defer res.Body.Close()
+	}
 	body, _ := io.ReadAll(res.Body)
 
 	var wechatEntries model.WeChatEntries
@@ -54,7 +56,9 @@ func GetWeChatContent(entryUrl string) string {
 		common.Logger.Error("wechat entry get error: %v", zap.Error(err))
 		return ""
 	}
-	defer res.Body.Close()
+	if res != nil {
+		defer res.Body.Close()
+	}
 	body, _ := io.ReadAll(res.Body)
 
 	var response model.WechatEntryResponse
