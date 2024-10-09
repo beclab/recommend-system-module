@@ -91,7 +91,9 @@ func LoadCookieInfo(host string) []model.SettingDomainRespModel {
 		common.Logger.Error("load cookie info  fail", zap.Error(err))
 		return []model.SettingDomainRespModel{}
 	}
-	defer response.Body.Close()
+	if response != nil {
+		defer response.Body.Close()
+	}
 	responseBody, _ := io.ReadAll(response.Body)
 	log.Print("get cookid result url :", settingUrl, string(responseBody))
 	var resObj model.SettingResponseModel

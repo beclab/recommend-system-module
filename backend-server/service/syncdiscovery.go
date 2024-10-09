@@ -21,7 +21,9 @@ func syncDiscoveryFeedloadPackage(store *storage.Storage, newPackage *model.Disc
 	if err != nil {
 		common.Logger.Error("get discovery feed package  fail", zap.Error(err))
 	}
-	defer res.Body.Close()
+	if res != nil {
+		defer res.Body.Close()
+	}
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		common.Logger.Error("discovery feed fail to get response", zap.Error(err))
@@ -49,7 +51,9 @@ func SyncDiscoveryFeedPackage(store *storage.Storage) {
 		common.Logger.Error("sync discovery feedPackage error", zap.Error(err))
 		return
 	}
-	defer res.Body.Close()
+	if res != nil {
+		defer res.Body.Close()
+	}
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		common.Logger.Error("read discovery feedPackage  fail", zap.Error(err))
