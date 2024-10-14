@@ -33,6 +33,7 @@ type Feed struct {
 	IgnoreHTTPCache             bool      `json:"ignore_http_cache"`
 	EtagHeader                  string    `json:"etag_header"`
 	LastModifiedHeader          string    `json:"last_modified_header"`
+	AutoDownload                bool      `json:"auto_download"`
 	Entries                     Entries
 }
 
