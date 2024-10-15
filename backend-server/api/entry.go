@@ -62,7 +62,7 @@ func (h *handler) newFetchContent(entry *model.Entry) string {
 	knowledge.UpdateLibraryEntryContent(updateEntry)
 
 	if entry.MediaContent != "" || entry.MediaUrl != "" {
-		knowledge.NewEnclosure(entry, h.store)
+		knowledge.NewEnclosure(entry, nil, h.store)
 	}
 	return entry.FullContent
 }

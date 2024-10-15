@@ -25,7 +25,7 @@ func SaveFeedEntries(store *storage.Storage, entries model.Entries, feed *model.
 		reqModel := model.GetEntryAddModel(entryModel, feed.FeedURL)
 		addList = append(addList, reqModel)
 	}
-	doReq(addList, entries, store, true)
+	doReq(addList, entries, feed, store, true)
 
 }
 
@@ -55,7 +55,7 @@ func doDownloadReq(download model.EntryDownloadModel) {
 
 	common.Logger.Info("update download finish ", zap.String("download url", download.DataSource))
 }
-func NewEnclosure(entry *model.Entry, store *storage.Storage) {
+func NewEnclosure(entry *model.Entry, feed *model.Feed, store *storage.Storage) {
 	exist := store.GetEnclosureNumByEntry(entry.ID)
 	if exist > 0 {
 		common.Logger.Info("new enclosure exit where entry's enclosure exist ", zap.String("entry id:", entry.ID))
@@ -71,13 +71,15 @@ func NewEnclosure(entry *model.Entry, store *storage.Storage) {
 		download.FileName = ""
 		download.FileType = entry.MediaType
 
-		doDownloadReq(download)
+		if feed == nil || feed.AutoDownload {
+			doDownloadReq(download)
+		}
 	} else {
 		common.Logger.Error("entry mediaUrl is null")
 	}
 }
 
-func doReq(list []*model.EntryAddModel, entries model.Entries, store *storage.Storage, isNew bool) {
+func doReq(list []*model.EntryAddModel, entries model.Entries, feed *model.Feed, store *storage.Storage, isNew bool) {
 	jsonByte, _ := json.Marshal(list)
 	url := common.EntryMonogoUpdateApiUrl()
 	request, _ := http.NewRequest("POST", url, bytes.NewBuffer(jsonByte))
@@ -108,7 +110,7 @@ func doReq(list []*model.EntryAddModel, entries model.Entries, store *storage.St
 				if ok {
 					entry.ID = entryID
 					if entry.MediaContent != "" || entry.MediaUrl != "" {
-						NewEnclosure(entry, store)
+						NewEnclosure(entry, feed, store)
 					}
 				}
 			}
@@ -129,7 +131,7 @@ func UpdateFeedEntries(store *storage.Storage, entries model.Entries, feed *mode
 		reqModel := model.GetEntryUpdateSourceModel(entryModel, feed.FeedURL)
 		addList = append(addList, reqModel)
 	}
-	doReq(addList, entries, store, false)
+	doReq(addList, entries, feed, store, false)
 }
 
 func UpdateLibraryEntryContent(entry *model.Entry) {
