@@ -26,12 +26,11 @@ func EntryCrawler(entry *model.Entry, feedUrl, userAgent, cookie string, certifi
 	)
 
 	if entry.RawContent != "" {
-		if strings.TrimSpace(entry.Title) == "" {
-			entry.Title = extractTitleByHtml(entry.RawContent)
-		}
 		common.Logger.Info("crawler entry start to extract", zap.String("url", entry.URL))
-		fullContent, pureContent, dateInArticle, imageUrlFromContent, templateAuthor, publishedAtTimestamp, mediaContent, mediaUrl, mediaType := processor.ArticleReadabilityExtractor(entry.RawContent, entry.URL, feedUrl, "", true)
-
+		fullContent, pureContent, dateInArticle, imageUrlFromContent, title, templateAuthor, publishedAtTimestamp, mediaContent, mediaUrl, mediaType := processor.ArticleReadabilityExtractor(entry.RawContent, entry.URL, feedUrl, "", true)
+		if strings.TrimSpace(entry.Title) == "" {
+			entry.Title = title
+		}
 		entry.FullContent = fullContent
 		entry.MediaContent = mediaContent
 		entry.MediaUrl = mediaUrl
