@@ -169,8 +169,8 @@ func RefreshFeed(store *storage.Storage, feedID string) {
 		}
 	}
 	if updatedFeed != nil {
-		ProcessFeedEntries(store, originalFeed, updatedFeed.Entries)
 		originalFeed.Title = updatedFeed.Title
+		ProcessFeedEntries(store, originalFeed, updatedFeed.Entries)
 	}
 
 	originalFeed.CheckedAt = time.Now()
