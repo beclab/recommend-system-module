@@ -160,4 +160,5 @@ type EntryDownloadModel struct {
 	EnclosureId string `json:"enclosure_id"`
 	FileName    string `json:"file_name"`
 	FileType    string `json:"file_type"`
+	Path        string `json:"path"`
 }
