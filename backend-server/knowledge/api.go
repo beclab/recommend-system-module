@@ -68,8 +68,13 @@ func NewEnclosure(entry *model.Entry, feed *model.Feed, store *storage.Storage) 
 		download.TaskUser = common.CurrentUser()
 		download.DownloadAPP = "wise"
 		download.EnclosureId = enclosureID
-		download.FileName = ""
+		download.FileName = entry.Title
 		download.FileType = entry.MediaType
+		download.Path = "Downloads/Wise/Article"
+
+		if feed != nil {
+			download.Path = "Downloads/Wise/Feed/" + feed.Title
+		}
 
 		if feed == nil || feed.AutoDownload {
 			doDownloadReq(download)
