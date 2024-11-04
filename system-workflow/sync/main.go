@@ -305,7 +305,7 @@ func syncEntryDownloadPackage(provider string, newPackage *model.EntryPackage) {
 
 }
 
-func syncEntry(redisClient *redis.Client, provider *model.SyncProvider, lastSyncTime int64) {
+func syncEntry(redisClient *redis.Client, provider *model.SyncProvider, lastSyncTime int64) error {
 	if lastSyncTime == 0 {
 		currentUtcTime := time.Now().UTC()
 		checkUtcTime := currentUtcTime.AddDate(0, 0, -int(provider.EntrySyncDate))
@@ -321,6 +321,7 @@ func syncEntry(redisClient *redis.Client, provider *model.SyncProvider, lastSync
 	//res, err := http.Get(url)
 	if err != nil {
 		common.Logger.Error("get entry data  fail", zap.Error(err))
+		return err
 	}
 	if res.StatusCode != 200 {
 		common.Logger.Error("get entry data fail code")
@@ -331,6 +332,7 @@ func syncEntry(redisClient *redis.Client, provider *model.SyncProvider, lastSync
 	errJson := json.Unmarshal(body, &entryPackages)
 	if errJson != nil {
 		common.Logger.Error("get entry data  fail", zap.Error(errJson))
+		return errJson
 	}
 	for _, currentEntryPackage := range entryPackages {
 		saveData, _ := storge.GetEntrySyncPackageData(redisClient, provider.Provider, currentEntryPackage.FeedName, currentEntryPackage.ModelName, currentEntryPackage.StartTime)
@@ -348,6 +350,7 @@ func syncEntry(redisClient *redis.Client, provider *model.SyncProvider, lastSync
 		}
 
 	}
+	return nil
 
 }
 
@@ -564,14 +567,16 @@ func doSyncTask() {
 		if lastSyncTimeStr == "" || startTimestamp > lastSyncTime+10*60 {
 
 			//syncFeed(postgresClient, redisClient, provider)
-			syncEntry(redisClient, provider, lastSyncTime)
-			api.SetRedisConfig(key, "last_sync_time", startTimestamp)
+			syncErr := syncEntry(redisClient, provider, lastSyncTime)
+			if syncErr != nil {
+				api.SetRedisConfig(key, "last_sync_time", startTimestamp)
+			}
 		}
 
 	}
 	common.Logger.Info("feed and entry packages sync  end")
 
-	syncTemplatePlugins(redisClient)
+	//syncTemplatePlugins(redisClient)
 	//syncDiscoveryFeedPackage(postgresClient, redisClient)
 	common.Logger.Info("package sync  end")
 }
