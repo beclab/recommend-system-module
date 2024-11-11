@@ -117,7 +117,7 @@ func notionFetchByheadless(websiteURL string) string {
 	//ctx, cancel := chromedp.NewContext(context.Background())
 	defer cancel()
 	htmlContent := ""
-	common.Logger.Info("notion headless fetch ")
+	common.Logger.Info("notion headless fetch 1 ")
 	err := chromedp.Run(ctx,
 		chromedp.Navigate(websiteURL),
 		chromedp.WaitVisible(`.notion-page-content`),
