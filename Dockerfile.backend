@@ -10,10 +10,10 @@ RUN go mod download
 RUN cd /backendBuild/backend-server/ && \
     go build -o backend_cmd  -ldflags="-s -w " main.go 
 
-#FROM alpine:latest
-FROM docker.io/chromedp/headless-shell:latest
-RUN apt-get update; apt install dumb-init -y; apt install ca-certificates -y
-ENTRYPOINT ["dumb-init", "--"]
+FROM alpine:latest
+#FROM docker.io/chromedp/headless-shell:latest
+#RUN apt-get update; apt install dumb-init -y; apt install ca-certificates -y
+#ENTRYPOINT ["dumb-init", "--"]
 
 COPY --from=build /backendBuild/backend-server/backend_cmd /usr/bin/backend_cmd
 

@@ -2,7 +2,6 @@ module bytetrade.io/web3os/backend-server
 
 go 1.23
 
-
 require (
 	bytetrade.io/web3os/fs-lib v0.0.0-00010101000000-000000000000
 	github.com/andybalholm/cascadia v1.3.2 // indirect
@@ -29,7 +28,8 @@ require (
 
 require (
 	github.com/PuerkitoBio/goquery v1.9.1
-	github.com/beclab/article-extractor v0.0.21
+	github.com/beclab/article-extractor v0.0.22
+	github.com/chromedp/chromedp v0.11.1
 	github.com/gorilla/mux v1.8.1
 	github.com/lib/pq v1.10.9
 	github.com/pemistahl/lingua-go v1.4.0
@@ -43,7 +43,6 @@ require (
 require (
 	github.com/Microsoft/go-winio v0.4.16 // indirect
 	github.com/chromedp/cdproto v0.0.0-20241110205750-a72e6703cd9b // indirect
-	github.com/chromedp/chromedp v0.11.1 // indirect
 	github.com/chromedp/sysutil v1.1.0 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
