@@ -98,6 +98,7 @@ func EntryCrawler(entry *model.Entry, feedUrl, userAgent, cookie string, certifi
 
 func notionFetchByheadless(websiteURL string) string {
 	var ctx context.Context
+	var cancel context.CancelFunc
 	allocOpts := chromedp.DefaultExecAllocatorOptions[:]
 	allocOpts = append(allocOpts,
 		chromedp.DisableGPU,
@@ -108,12 +109,12 @@ func notionFetchByheadless(websiteURL string) string {
 	headlessSer := os.Getenv("HEADLESS_SERVER_URL")
 	if headlessSer != "" {
 		c, _ := chromedp.NewRemoteAllocator(context.Background(), headlessSer)
-		ctx, _ = chromedp.NewContext(c)
+		ctx, cancel = chromedp.NewContext(c)
 	} else {
 		c, _ := chromedp.NewExecAllocator(context.Background(), allocOpts...)
-		ctx, _ = chromedp.NewContext(c)
+		ctx, cancel = chromedp.NewContext(c)
 	}
-	ctx, cancel := chromedp.NewContext(context.Background())
+	//ctx, cancel := chromedp.NewContext(context.Background())
 	defer cancel()
 	htmlContent := ""
 	common.Logger.Info("notion headless fetch ")
