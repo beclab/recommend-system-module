@@ -1,7 +1,10 @@
 package crawler
 
 import (
+	"context"
 	"io"
+	"net/url"
+	"os"
 	"strings"
 
 	"bytetrade.io/web3os/backend-server/common"
@@ -10,6 +13,7 @@ import (
 	"bytetrade.io/web3os/backend-server/model"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/beclab/article-extractor/processor"
+	"github.com/chromedp/chromedp"
 	"go.uber.org/zap"
 )
 
@@ -92,7 +96,45 @@ func EntryCrawler(entry *model.Entry, feedUrl, userAgent, cookie string, certifi
 	//return rawContent, rtContent, entryPublishedAt
 }
 
+func notionFetchByheadless(websiteURL string) string {
+	var ctx context.Context
+	allocOpts := chromedp.DefaultExecAllocatorOptions[:]
+	allocOpts = append(allocOpts,
+		chromedp.DisableGPU,
+		chromedp.Flag("blink-settings", "imagesEnabled=false"),
+		chromedp.UserAgent(`Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.55 Safari/537.36`),
+		//chromedp.Flag("accept-language", `zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7,zh-TW;q=0.6`),
+	)
+	headlessSer := os.Getenv("HEADLESS_SERVER_URL")
+	if headlessSer != "" {
+		c, _ := chromedp.NewRemoteAllocator(context.Background(), headlessSer)
+		ctx, _ = chromedp.NewContext(c)
+	} else {
+		c, _ := chromedp.NewExecAllocator(context.Background(), allocOpts...)
+		ctx, _ = chromedp.NewContext(c)
+	}
+	ctx, cancel := chromedp.NewContext(context.Background())
+	defer cancel()
+	htmlContent := ""
+
+	err := chromedp.Run(ctx,
+		chromedp.Navigate("https://pmthinking.notion.site/A-Brief-History-of-Netflix-Personalization-by-Gibson-Biddle-Jun-2021-Marker-6019fb0658b645209be1641575443270"),
+		chromedp.WaitVisible(`.layout-content`),
+		chromedp.OuterHTML("html", &htmlContent),
+	)
+	if err != nil {
+		common.Logger.Error("notion headless fetch error", zap.String("url", websiteURL), zap.Error(err))
+	}
+	return htmlContent
+}
+
 func FetchRawContnt(websiteURL, title, userAgent string, cookie string, allowSelfSignedCertificates, useProxy bool) string {
+	urlDomain := domain(websiteURL)
+
+	if strings.Contains(urlDomain, "notion.site") {
+		return notionFetchByheadless(websiteURL)
+	}
+
 	clt := client.NewClientWithConfig(websiteURL)
 	clt.WithUserAgent(userAgent)
 	clt.WithCookie(cookie)
@@ -153,4 +195,13 @@ func isAllowedContentType(contentType string) bool {
 	contentType = strings.ToLower(contentType)
 	return strings.HasPrefix(contentType, "text/html") ||
 		strings.HasPrefix(contentType, "application/xhtml+xml")
+}
+
+func domain(websiteURL string) string {
+	parsedURL, err := url.Parse(websiteURL)
+	if err != nil {
+		return websiteURL
+	}
+
+	return parsedURL.Host
 }
