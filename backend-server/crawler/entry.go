@@ -116,9 +116,9 @@ func notionFetchByheadless(websiteURL string) string {
 	ctx, cancel := chromedp.NewContext(context.Background())
 	defer cancel()
 	htmlContent := ""
-
+	common.Logger.Info("notion headless fetch ")
 	err := chromedp.Run(ctx,
-		chromedp.Navigate("https://pmthinking.notion.site/A-Brief-History-of-Netflix-Personalization-by-Gibson-Biddle-Jun-2021-Marker-6019fb0658b645209be1641575443270"),
+		chromedp.Navigate(websiteURL),
 		chromedp.WaitVisible(`.layout-content`),
 		chromedp.OuterHTML("html", &htmlContent),
 	)
@@ -130,7 +130,7 @@ func notionFetchByheadless(websiteURL string) string {
 
 func FetchRawContnt(websiteURL, title, userAgent string, cookie string, allowSelfSignedCertificates, useProxy bool) string {
 	urlDomain := domain(websiteURL)
-
+	common.Logger.Info("fatch raw contnet", zap.String("domain", websiteURL))
 	if strings.Contains(urlDomain, "notion.site") {
 		return notionFetchByheadless(websiteURL)
 	}
