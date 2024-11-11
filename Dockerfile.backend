@@ -12,10 +12,7 @@ RUN cd /backendBuild/backend-server/ && \
 
 #FROM alpine:latest
 FROM docker.io/chromedp/headless-shell:latest
-#RUN apt-get update; apt install dumb-init -y
-RUN apt-get update \
-    && apt install dumb-init -y
-    && apt install ca-certificates -y
+RUN apt-get update; apt install dumb-init -y; apt install ca-certificates -y
 ENTRYPOINT ["dumb-init", "--"]
 
 COPY --from=build /backendBuild/backend-server/backend_cmd /usr/bin/backend_cmd
