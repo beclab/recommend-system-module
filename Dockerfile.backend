@@ -14,7 +14,7 @@ RUN cd /backendBuild/backend-server/ && \
 FROM docker.io/chromedp/headless-shell:latest
 #RUN apt-get update; apt install dumb-init -y
 RUN apt-get update
-apt install dumb-init \
+apt add dumb-init \
      ca-certificates
 ENTRYPOINT ["dumb-init", "--"]
 
