@@ -120,12 +120,13 @@ func notionFetchByheadless(websiteURL string) string {
 	common.Logger.Info("notion headless fetch ")
 	err := chromedp.Run(ctx,
 		chromedp.Navigate(websiteURL),
-		chromedp.WaitVisible(`.layout-content`),
+		chromedp.WaitVisible(`.notion-page-content`),
 		chromedp.OuterHTML("html", &htmlContent),
 	)
 	if err != nil {
 		common.Logger.Error("notion headless fetch error", zap.String("url", websiteURL), zap.Error(err))
 	}
+	common.Logger.Info("notion headless fetch end...", zap.Int("content len", len(htmlContent)))
 	return htmlContent
 }
 
