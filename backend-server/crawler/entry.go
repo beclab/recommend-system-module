@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"time"
 
 	"bytetrade.io/web3os/backend-server/common"
 	"bytetrade.io/web3os/backend-server/http/client"
@@ -97,8 +98,8 @@ func EntryCrawler(entry *model.Entry, feedUrl, userAgent, cookie string, certifi
 }
 
 func notionFetchByheadless(websiteURL string) string {
-	var ctx context.Context
-	var cancel context.CancelFunc
+	var allocCtx context.Context
+	var cancelCtx context.CancelFunc
 	allocOpts := chromedp.DefaultExecAllocatorOptions[:]
 	allocOpts = append(allocOpts,
 		chromedp.DisableGPU,
@@ -107,18 +108,24 @@ func notionFetchByheadless(websiteURL string) string {
 		//chromedp.Flag("accept-language", `zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7,zh-TW;q=0.6`),
 	)
 	headlessSer := os.Getenv("HEADLESS_SERVER_URL")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
 	if headlessSer != "" {
-		c, _ := chromedp.NewRemoteAllocator(context.Background(), headlessSer)
-		ctx, cancel = chromedp.NewContext(c)
+		c, cancelAlloc := chromedp.NewRemoteAllocator(ctx, headlessSer)
+		defer cancelAlloc()
+		allocCtx, cancelCtx = chromedp.NewContext(c)
 	} else {
-		c, _ := chromedp.NewExecAllocator(context.Background(), allocOpts...)
-		ctx, cancel = chromedp.NewContext(c)
+		c, cancelAlloc := chromedp.NewExecAllocator(ctx, allocOpts...)
+		defer cancelAlloc()
+
+		allocCtx, cancelCtx = chromedp.NewContext(c)
 	}
 	//ctx, cancel := chromedp.NewContext(context.Background())
-	defer cancel()
+	defer cancelCtx()
 	htmlContent := ""
 	common.Logger.Info("notion headless fetch 1 ")
-	err := chromedp.Run(ctx,
+	err := chromedp.Run(allocCtx,
 		chromedp.Navigate(websiteURL),
 		chromedp.WaitVisible(`.notion-page-content`),
 		chromedp.OuterHTML("html", &htmlContent),
