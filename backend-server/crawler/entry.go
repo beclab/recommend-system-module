@@ -3,6 +3,7 @@ package crawler
 import (
 	"context"
 	"io"
+	"log"
 	"net/url"
 	"os"
 	"strings"
@@ -101,14 +102,23 @@ func notionFetchByheadless(websiteURL string) string {
 	var allocCtx context.Context
 	var cancelCtx context.CancelFunc
 	allocOpts := chromedp.DefaultExecAllocatorOptions[:]
+
 	allocOpts = append(allocOpts,
 		chromedp.DisableGPU,
 		chromedp.Flag("blink-settings", "imagesEnabled=false"),
 		chromedp.UserAgent(`Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.55 Safari/537.36`),
 		//chromedp.Flag("accept-language", `zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7,zh-TW;q=0.6`),
 	)
+
+	ctx, cancel := chromedp.NewContext(
+		context.Background(),
+		chromedp.WithLogf(log.Printf),
+		chromedp.WithErrorf(log.Printf),
+	)
+	defer cancel()
+
 	headlessSer := os.Getenv("HEADLESS_SERVER_URL")
-	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
+	ctx, cancel = context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 
 	if headlessSer != "" {
