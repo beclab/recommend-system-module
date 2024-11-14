@@ -41,19 +41,16 @@ func doDownloadReq(download model.EntryDownloadModel) {
 	algoReq.Header.Set("Content-Type", "application/json")
 	algoClient := &http.Client{Timeout: time.Second * 5}
 	_, err = algoClient.Do(algoReq)
-
+	if err != nil {
+		common.Logger.Error("new download   fail", zap.Error(err))
+		return
+	}
 	if algoReq != nil {
 		defer algoReq.Body.Close()
 	}
 	body, _ := io.ReadAll(algoReq.Body)
 	jsonStr := string(body)
-	common.Logger.Info("new download response: ", zap.String("body", jsonStr))
-
-	if err != nil {
-		common.Logger.Error("new download   fail", zap.Error(err))
-	}
-
-	common.Logger.Info("update download finish ", zap.String("download url", download.DataSource))
+	common.Logger.Info("new download response: ", zap.String("download url", download.DataSource), zap.String("body", jsonStr))
 }
 func NewEnclosure(entry *model.Entry, feed *model.Feed, store *storage.Storage) {
 	exist := store.GetEnclosureNumByEntry(entry.ID)

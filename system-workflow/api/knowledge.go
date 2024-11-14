@@ -28,6 +28,7 @@ func AddFeedInMongo(source string, list []*model.FeedAddModel) {
 		response, err := client.Do(request)
 		if err != nil {
 			common.Logger.Error("add feed in mongo  fail", zap.Error(err))
+			return
 		}
 		defer response.Body.Close()
 		responseBody, _ := io.ReadAll(response.Body)
@@ -48,6 +49,7 @@ func DelFeedInMongo(source string, list []string) {
 		response, err := client.Do(request)
 		if err != nil {
 			common.Logger.Error("del feed in mongo  fail", zap.Error(err))
+			return
 		}
 		defer response.Body.Close()
 		responseBody, _ := io.ReadAll(response.Body)
@@ -163,6 +165,7 @@ func SetRedisConfig(provider, key string, val interface{}) {
 	_, err = algoClient.Do(algoReq)
 	if err != nil {
 		common.Logger.Error("set redis configjson req  fail", zap.Error(err))
+		return
 	}
 
 	defer algoReq.Body.Close()

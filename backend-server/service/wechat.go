@@ -14,13 +14,15 @@ import (
 )
 
 func RefreshWeChatFeed(wechatAcc string) (*model.Feed, string) {
-
+	var feed model.Feed
+	avatar := ""
 	url := common.GetWeChatFeedRefrshUrl() + "?wechatAccount=" + wechatAcc //+ "&lasttime=" + fmt.Sprintf("%d", checkAt.Unix())
 	client := &http.Client{Timeout: time.Second * 5}
 	res, err := client.Get(url)
 	//res, err := http.Get(url)
 	if err != nil {
 		common.Logger.Error("wechat feed refresh error", zap.Error(err))
+		return &feed, avatar
 	}
 	if res != nil {
 		defer res.Body.Close()
@@ -31,9 +33,6 @@ func RefreshWeChatFeed(wechatAcc string) (*model.Feed, string) {
 	if err := json.Unmarshal(body, &wechatEntries); err != nil {
 		log.Print("json decode failed, err", err)
 	}
-
-	var feed model.Feed
-	var avatar string
 	if len(wechatEntries) > 0 {
 		entries := make([]*model.Entry, 0)
 		for _, wechatEntry := range wechatEntries {

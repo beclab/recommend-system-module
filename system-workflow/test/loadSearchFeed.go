@@ -33,6 +33,7 @@ func syncDiscoveryFeedloadPackage(postgresClient *sql.DB, newPackage *model.Disc
 	unmarshalErr := proto.Unmarshal(uncompressByte, &allPackageList)
 	if unmarshalErr != nil {
 		common.Logger.Error("unmarshal all discovery feed object  error", zap.Error(unmarshalErr))
+		return
 	}
 	storge.RemoveDiscoveryFeed(postgresClient)
 	for _, discoveryFeed := range allPackageList.DiscoveryFeeds {

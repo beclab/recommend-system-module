@@ -14,12 +14,13 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func syncDiscoveryFeedloadPackage(store *storage.Storage, newPackage *model.DiscoveryFeedPackagInfo) {
+func syncDiscoveryFeedloadPackage(store *storage.Storage, newPackage *model.DiscoveryFeedPackagInfo) error {
 
 	client := &http.Client{Timeout: time.Second * 5}
 	res, err := client.Get(newPackage.Url)
 	if err != nil {
 		common.Logger.Error("get discovery feed package  fail", zap.Error(err))
+		return err
 	}
 	if res != nil {
 		defer res.Body.Close()
@@ -34,12 +35,13 @@ func syncDiscoveryFeedloadPackage(store *storage.Storage, newPackage *model.Disc
 	unmarshalErr := proto.Unmarshal(uncompressByte, &allPackageList)
 	if unmarshalErr != nil {
 		common.Logger.Error("unmarshal all discovery feed object  error", zap.Error(unmarshalErr))
+		return unmarshalErr
 	}
 	store.RemoveDiscoveryFeed()
 	for _, discoveryFeed := range allPackageList.DiscoveryFeeds {
 		store.CreateDiscoveryFeed(model.GetDiscoveryModel(discoveryFeed))
 	}
-
+	return nil
 }
 
 func SyncDiscoveryFeedPackage(store *storage.Storage) {
@@ -68,8 +70,11 @@ func SyncDiscoveryFeedPackage(store *storage.Storage) {
 	if len(packages) > 0 {
 		saveData, _ := store.GetDiscoveryFeedPackage()
 		if saveData == nil || saveData.MD5 != packages[0].MD5 {
-			syncDiscoveryFeedloadPackage(store, packages[0])
-			store.SaveDiscoveryFeedPackage(*packages[0])
+			loadErr := syncDiscoveryFeedloadPackage(store, packages[0])
+			if loadErr != nil {
+				store.SaveDiscoveryFeedPackage(*packages[0])
+			}
+
 		}
 	}
 

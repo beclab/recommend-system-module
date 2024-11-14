@@ -24,12 +24,14 @@ import (
 
 func loadSources() []string {
 	//url := "http://recommend-service.os-system:6755/recommend-service/v1/status/recommenddev/" + common.GetTermiusUserName()
+	sourceArr := make([]string, 0)
 	url := "http://app-service.os-system:6755/app-service/v1/recommenddev/" + common.GetTermiusUserName() + "/status"
 	client := &http.Client{Timeout: time.Second * 5}
 	res, err := client.Get(url)
 	//res, err := http.Get(url)
 	if err != nil {
 		common.Logger.Error("get recommend service error", zap.String("url", url), zap.Error(err))
+		return sourceArr
 	}
 	defer res.Body.Close()
 	body, _ := io.ReadAll(res.Body)
@@ -41,7 +43,7 @@ func loadSources() []string {
 	if err := json.Unmarshal(body, &response); err != nil {
 		common.Logger.Error("json decode failed ", zap.String("url", url), zap.Error(err))
 	}
-	sourceArr := make([]string, 0)
+
 	for _, argo := range response.Data {
 		sourceArr = append(sourceArr, argo.Metadata.Name)
 	}
@@ -96,7 +98,6 @@ func fetchRawContnt(url string) string {
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		common.Logger.Error("scraper fail to get response", zap.String("url", url), zap.Error(err))
-
 		return ""
 	}
 	return string(body)
