@@ -108,7 +108,7 @@ func notionFetchByheadless(websiteURL string) string {
 		//chromedp.Flag("accept-language", `zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7,zh-TW;q=0.6`),
 	)
 	headlessSer := os.Getenv("HEADLESS_SERVER_URL")
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
 	defer cancel()
 
 	if headlessSer != "" {
