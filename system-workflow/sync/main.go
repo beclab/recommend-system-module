@@ -55,11 +55,14 @@ func delFeedInMongo(source string, feedMap map[string]*protobuf_entity.Feed) {
 
 func syncFeedDownloadPackage(packageUrl string, whetherAll bool) (*protobuf_entity.FeedAllPackage, *protobuf_entity.FeedIncremntPackage) {
 
-	//feedRes, err := http.Get(packageUrl)
+	var allPackageData protobuf_entity.FeedAllPackage
+	var increasePackageData protobuf_entity.FeedIncremntPackage
+
 	client := &http.Client{Timeout: time.Second * 5}
 	feedRes, err := client.Get(packageUrl)
 	if err != nil {
 		common.Logger.Error("get feed data  fail", zap.Error(err))
+		return &allPackageData, &increasePackageData
 	}
 	defer feedRes.Body.Close()
 
@@ -68,8 +71,7 @@ func syncFeedDownloadPackage(packageUrl string, whetherAll bool) (*protobuf_enti
 		common.Logger.Error("feed fail to get response", zap.Error(err))
 	}
 	uncompressByte := common.DoZlibUnCompress(body)
-	var allPackageData protobuf_entity.FeedAllPackage
-	var increasePackageData protobuf_entity.FeedIncremntPackage
+
 	if whetherAll {
 		unmarshalErr := proto.Unmarshal(uncompressByte, &allPackageData)
 		if unmarshalErr != nil {
@@ -114,7 +116,9 @@ func syncFeedGetPackage(feedUrl string, whetherAll bool) ([]*protobuf_entity.Fee
 		}
 		for _, currentPackage := range feedPackages {
 			allPackage, _ := syncFeedDownloadPackage(currentPackage.Url, whetherAll)
-			allPackageData = append(allPackageData, allPackage)
+			if allPackage != nil {
+				allPackageData = append(allPackageData, allPackage)
+			}
 			if allPackagePackTime < currentPackage.PackageTime {
 				allPackagePackTime = currentPackage.PackageTime
 			}
@@ -128,7 +132,9 @@ func syncFeedGetPackage(feedUrl string, whetherAll bool) ([]*protobuf_entity.Fee
 		for _, currentPackage := range feedPackages {
 			if currentPackage.FeedOperationSize > 0 || currentPackage.FeedNameOperationSize > 0 {
 				_, increasePackage := syncFeedDownloadPackage(currentPackage.Url, whetherAll)
-				increasePackageData = append(increasePackageData, increasePackage)
+				if increasePackage != nil {
+					increasePackageData = append(increasePackageData, increasePackage)
+				}
 			}
 		}
 	}
@@ -273,6 +279,7 @@ func syncEntryDownloadPackage(provider string, newPackage *model.EntryPackage) {
 	entryRes, err := client.Get(newPackage.URL)
 	if err != nil {
 		common.Logger.Error("get entry data  fail", zap.Error(err))
+		return
 	}
 	defer entryRes.Body.Close()
 
@@ -286,6 +293,7 @@ func syncEntryDownloadPackage(provider string, newPackage *model.EntryPackage) {
 	unmarshalErr := proto.Unmarshal(uncompressByte, &allPackageData)
 	if unmarshalErr != nil {
 		common.Logger.Error("unmarshal all feed object  error", zap.Error(unmarshalErr))
+		return
 	}
 	for _, entry := range allPackageData.Entries {
 		entryTrans := model.GetProtoEntryTransModel(newPackage.ModelName, entry)
@@ -298,6 +306,7 @@ func syncEntryDownloadPackage(provider string, newPackage *model.EntryPackage) {
 	currentProtoByte, marshalErr := proto.Marshal(&transProtobuf)
 	if marshalErr != nil {
 		common.Logger.Error("save to file marshal Err ", zap.Error(marshalErr))
+		return
 	}
 
 	fileName := fmt.Sprintf("%d.zlib", newPackage.StartTime)
@@ -325,6 +334,7 @@ func syncEntry(redisClient *redis.Client, provider *model.SyncProvider, lastSync
 	}
 	if res.StatusCode != 200 {
 		common.Logger.Error("get entry data fail code")
+		return err
 	}
 	defer res.Body.Close()
 	body, _ := io.ReadAll(res.Body)
@@ -366,7 +376,7 @@ func checkExistAlgorithmInFirstRun(resp model.RecommendServiceResponseModel) (bo
 
 }
 
-func syncTemplatePluginsloadPackage(newPackage *model.TemplatePluginsPackagInfo) error {
+/*func syncTemplatePluginsloadPackage(newPackage *model.TemplatePluginsPackagInfo) error {
 
 	path := filepath.Join(common.JUICEFSRootDirectory(), "template_plugins")
 	common.CreateNotExistDirectory(path, "template_plugins")
@@ -479,7 +489,7 @@ func syncDiscoveryFeedPackage(postgresClient *sql.DB, redisClient *redis.Client)
 		}
 	}
 
-}
+}*/
 
 func fetchModelNameFromUrl(url string) string {
 	modelName := ""
@@ -507,6 +517,7 @@ func doSyncTask() {
 	res, err := client.Get(url)
 	if err != nil {
 		common.Logger.Error("get recommend service error", zap.String("url", url), zap.Error(err))
+		return
 	}
 	defer res.Body.Close()
 	body, _ := io.ReadAll(res.Body)
