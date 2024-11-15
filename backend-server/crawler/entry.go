@@ -1,14 +1,11 @@
 package crawler
 
 import (
-	"bytes"
 	"context"
-	"fmt"
 	"io"
 	"net/url"
 	"os"
 	"strings"
-	"sync"
 	"time"
 
 	"bytetrade.io/web3os/backend-server/common"
@@ -116,25 +113,8 @@ func notionFetchByheadless(websiteURL string) string {
 		//chromedp.Flag("accept-language", `zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7,zh-TW;q=0.6`),
 	)
 
-	var bufMu sync.Mutex
-	var buf bytes.Buffer
-	fn := func(format string, a ...interface{}) {
-		bufMu.Lock()
-		fmt.Fprintf(&buf, format, a...)
-		fmt.Fprintln(&buf)
-		bufMu.Unlock()
-	}
-
-	ctx, cancel := chromedp.NewContext(
-		context.Background(),
-		chromedp.WithErrorf(fn),
-		chromedp.WithLogf(fn),
-		chromedp.WithDebugf(fn),
-	)
-	defer cancel()
-
 	headlessSer := os.Getenv("HEADLESS_SERVER_URL")
-	ctx, cancel = context.WithTimeout(ctx, 90*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
 	defer cancel()
 
 	if headlessSer != "" {
