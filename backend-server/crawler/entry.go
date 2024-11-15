@@ -1,12 +1,14 @@
 package crawler
 
 import (
+	"bytes"
 	"context"
+	"fmt"
 	"io"
-	"log"
 	"net/url"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"bytetrade.io/web3os/backend-server/common"
@@ -106,15 +108,28 @@ func notionFetchByheadless(websiteURL string) string {
 	allocOpts = append(allocOpts,
 		chromedp.DisableGPU,
 		chromedp.Flag("blink-settings", "imagesEnabled=false"),
+		chromedp.Flag("no-first-run", true),
+		chromedp.Flag("headless", true),
+		chromedp.Flag("disable-gpu", true),
+		chromedp.Flag("ignore-certificate-errors", true),
 		chromedp.UserAgent(`Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.55 Safari/537.36`),
 		//chromedp.Flag("accept-language", `zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7,zh-TW;q=0.6`),
 	)
 
+	var bufMu sync.Mutex
+	var buf bytes.Buffer
+	fn := func(format string, a ...interface{}) {
+		bufMu.Lock()
+		fmt.Fprintf(&buf, format, a...)
+		fmt.Fprintln(&buf)
+		bufMu.Unlock()
+	}
+
 	ctx, cancel := chromedp.NewContext(
 		context.Background(),
-		chromedp.WithDebugf(log.Printf),
-		chromedp.WithLogf(log.Printf),
-		chromedp.WithErrorf(log.Printf),
+		chromedp.WithErrorf(fn),
+		chromedp.WithLogf(fn),
+		chromedp.WithDebugf(fn),
 	)
 	defer cancel()
 
