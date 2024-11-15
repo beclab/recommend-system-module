@@ -71,7 +71,7 @@ func SyncDiscoveryFeedPackage(store *storage.Storage) {
 		saveData, _ := store.GetDiscoveryFeedPackage()
 		if saveData == nil || saveData.MD5 != packages[0].MD5 {
 			loadErr := syncDiscoveryFeedloadPackage(store, packages[0])
-			if loadErr != nil {
+			if loadErr == nil {
 				store.SaveDiscoveryFeedPackage(*packages[0])
 			}
 

@@ -579,7 +579,7 @@ func doSyncTask() {
 
 			//syncFeed(postgresClient, redisClient, provider)
 			syncErr := syncEntry(redisClient, provider, lastSyncTime)
-			if syncErr != nil {
+			if syncErr == nil {
 				api.SetRedisConfig(key, "last_sync_time", startTimestamp)
 			}
 		}
