@@ -112,13 +112,14 @@ func notionFetchByheadless(websiteURL string) string {
 
 	ctx, cancel := chromedp.NewContext(
 		context.Background(),
+		chromedp.WithDebugf(log.Printf),
 		chromedp.WithLogf(log.Printf),
 		chromedp.WithErrorf(log.Printf),
 	)
 	defer cancel()
 
 	headlessSer := os.Getenv("HEADLESS_SERVER_URL")
-	ctx, cancel = context.WithTimeout(ctx, 60*time.Second)
+	ctx, cancel = context.WithTimeout(ctx, 90*time.Second)
 	defer cancel()
 
 	if headlessSer != "" {
