@@ -106,7 +106,7 @@ func notionFetchByheadless(websiteURL string) string {
 		chromedp.DisableGPU,
 		chromedp.Flag("blink-settings", "imagesEnabled=false"),
 		chromedp.Flag("no-first-run", true),
-		chromedp.Flag("headless", true),
+		//chromedp.Flag("headless", true),
 		chromedp.Flag("disable-gpu", true),
 		chromedp.Flag("ignore-certificate-errors", true),
 		chromedp.UserAgent(`Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.55 Safari/537.36`),
@@ -133,7 +133,7 @@ func notionFetchByheadless(websiteURL string) string {
 	common.Logger.Info("notion headless fetch 1 ")
 	err := chromedp.Run(allocCtx,
 		chromedp.Navigate(websiteURL),
-		chromedp.WaitVisible(`.notion-page-content`),
+		//chromedp.WaitVisible(`.notion-page-content`),
 		chromedp.OuterHTML("html", &htmlContent),
 	)
 	if err != nil {
