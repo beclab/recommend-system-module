@@ -1,20 +1,18 @@
 package crawler
 
 import (
-	"context"
 	"io"
 	"net/url"
-	"os"
 	"strings"
-	"time"
 
 	"bytetrade.io/web3os/backend-server/common"
+	notionClient "bytetrade.io/web3os/backend-server/crawler/notionapi"
+	"bytetrade.io/web3os/backend-server/crawler/notionapi/tohtml"
 	"bytetrade.io/web3os/backend-server/http/client"
 	"bytetrade.io/web3os/backend-server/knowledge"
 	"bytetrade.io/web3os/backend-server/model"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/beclab/article-extractor/processor"
-	"github.com/chromedp/chromedp"
 	"go.uber.org/zap"
 )
 
@@ -97,7 +95,7 @@ func EntryCrawler(entry *model.Entry, feedUrl, userAgent, cookie string, certifi
 	//return rawContent, rtContent, entryPublishedAt
 }
 
-func notionFetchByheadless(websiteURL string) string {
+/*func notionFetchByheadless(websiteURL string) string {
 	var allocCtx context.Context
 	var cancelCtx context.CancelFunc
 	allocOpts := chromedp.DefaultExecAllocatorOptions[:]
@@ -106,7 +104,7 @@ func notionFetchByheadless(websiteURL string) string {
 		chromedp.DisableGPU,
 		chromedp.Flag("blink-settings", "imagesEnabled=false"),
 		chromedp.Flag("no-first-run", true),
-		chromedp.Flag("headless", true),
+		//chromedp.Flag("headless", true),
 		chromedp.Flag("disable-gpu", true),
 		chromedp.Flag("ignore-certificate-errors", true),
 		chromedp.UserAgent(`Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.55 Safari/537.36`),
@@ -133,7 +131,7 @@ func notionFetchByheadless(websiteURL string) string {
 	common.Logger.Info("notion headless fetch 1 ")
 	err := chromedp.Run(allocCtx,
 		chromedp.Navigate(websiteURL),
-		chromedp.WaitVisible(`.notion-page-content`),
+		//chromedp.WaitVisible(`.notion-page-content`),
 		chromedp.OuterHTML("html", &htmlContent),
 	)
 	if err != nil {
@@ -141,13 +139,25 @@ func notionFetchByheadless(websiteURL string) string {
 	}
 	common.Logger.Info("notion headless fetch end...", zap.Int("content len", len(htmlContent)))
 	return htmlContent
+}*/
+
+func notionFetchByApi(websiteURL string) string {
+	client := notionClient.Client{}
+	notionID := notionClient.ExtractNoDashIDFromNotionURL(websiteURL)
+	common.Logger.Info("notion fetch", zap.String("id", notionID))
+	if notionID != "" {
+		page, _ := client.DownloadPage(notionID)
+		bytes := tohtml.ToHTML(page)
+		return string(bytes)
+	}
+	return ""
 }
 
 func FetchRawContnt(websiteURL, title, userAgent string, cookie string, allowSelfSignedCertificates, useProxy bool) string {
 	urlDomain := domain(websiteURL)
 	common.Logger.Info("fatch raw contnet", zap.String("domain", websiteURL))
 	if strings.Contains(urlDomain, "notion.site") {
-		return notionFetchByheadless(websiteURL)
+		return notionFetchByApi(websiteURL)
 	}
 
 	clt := client.NewClientWithConfig(websiteURL)
