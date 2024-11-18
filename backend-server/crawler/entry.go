@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"bytetrade.io/web3os/backend-server/common"
+	notionClient "bytetrade.io/web3os/backend-server/crawler/notionapi"
+	"bytetrade.io/web3os/backend-server/crawler/notionapi/tohtml"
 	"bytetrade.io/web3os/backend-server/http/client"
 	"bytetrade.io/web3os/backend-server/knowledge"
 	"bytetrade.io/web3os/backend-server/model"
@@ -143,11 +145,22 @@ func notionFetchByheadless(websiteURL string) string {
 	return htmlContent
 }
 
+func notionFetchByApi(websiteURL string) string {
+	client := notionClient.Client{}
+	notionID := notionClient.ExtractNoDashIDFromNotionURL(websiteURL)
+	if notionID != "" {
+		page, _ := client.DownloadPage(notionID)
+		bytes := tohtml.ToHTML(page)
+		return string(bytes)
+	}
+	return ""
+}
+
 func FetchRawContnt(websiteURL, title, userAgent string, cookie string, allowSelfSignedCertificates, useProxy bool) string {
 	urlDomain := domain(websiteURL)
 	common.Logger.Info("fatch raw contnet", zap.String("domain", websiteURL))
 	if strings.Contains(urlDomain, "notion.site") {
-		return notionFetchByheadless(websiteURL)
+		return notionFetchByApi(websiteURL)
 	}
 
 	clt := client.NewClientWithConfig(websiteURL)
