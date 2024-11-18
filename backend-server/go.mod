@@ -28,12 +28,13 @@ require (
 
 require (
 	github.com/PuerkitoBio/goquery v1.9.1
-	github.com/beclab/article-extractor v0.0.24
-	github.com/chromedp/chromedp v0.11.1
+	github.com/beclab/article-extractor v0.0.25
 	github.com/gorilla/mux v1.8.1
+	github.com/json-iterator/go v1.1.12
 	github.com/lib/pq v1.10.9
 	github.com/pemistahl/lingua-go v1.4.0
 	github.com/rs/zerolog v1.31.0
+	github.com/tidwall/pretty v1.2.1
 	go.mongodb.org/mongo-driver v1.15.0
 	go.uber.org/zap v1.26.0
 	golang.org/x/net v0.28.0
@@ -42,24 +43,15 @@ require (
 
 require (
 	github.com/Microsoft/go-winio v0.4.16 // indirect
-	github.com/chromedp/cdproto v0.0.0-20241110205750-a72e6703cd9b // indirect
-	github.com/chromedp/sysutil v1.1.0 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
-	github.com/gobwas/httphead v0.1.0 // indirect
-	github.com/gobwas/pool v0.2.1 // indirect
-	github.com/gobwas/ws v1.4.0 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/james-barrow/golang-ipc v1.0.0 // indirect
-	github.com/josharian/intern v1.0.0 // indirect
-	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/onsi/ginkgo v1.16.5 // indirect
 	github.com/onsi/gomega v1.34.2 // indirect
 	github.com/smallnest/goframe v1.0.0 // indirect
-	github.com/tidwall/pretty v1.2.1 // indirect
 	k8s.io/klog/v2 v2.90.1 // indirect
 )
 

@@ -576,7 +576,7 @@ func (c *Converter) renderPageHeader(block *notionapi.Block) {
 			c.Printf(`</div>`)
 		}
 
-		c.Printf(`<h1 class="title">`)
+		c.Printf(`<h1 class="page-title">`)
 		{
 			c.indent++
 			c.RenderInlines(block.InlineContent)
@@ -584,6 +584,7 @@ func (c *Converter) renderPageHeader(block *notionapi.Block) {
 		}
 		c.Printf(`</h1>`)
 	}
+	c.Printf(`<title>%s</title>`, block.Title)
 	c.Printf(`</header>`)
 }
 
