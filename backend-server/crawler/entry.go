@@ -1,12 +1,9 @@
 package crawler
 
 import (
-	"context"
 	"io"
 	"net/url"
-	"os"
 	"strings"
-	"time"
 
 	"bytetrade.io/web3os/backend-server/common"
 	notionClient "bytetrade.io/web3os/backend-server/crawler/notionapi"
@@ -16,7 +13,6 @@ import (
 	"bytetrade.io/web3os/backend-server/model"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/beclab/article-extractor/processor"
-	"github.com/chromedp/chromedp"
 	"go.uber.org/zap"
 )
 
@@ -99,7 +95,7 @@ func EntryCrawler(entry *model.Entry, feedUrl, userAgent, cookie string, certifi
 	//return rawContent, rtContent, entryPublishedAt
 }
 
-func notionFetchByheadless(websiteURL string) string {
+/*func notionFetchByheadless(websiteURL string) string {
 	var allocCtx context.Context
 	var cancelCtx context.CancelFunc
 	allocOpts := chromedp.DefaultExecAllocatorOptions[:]
@@ -143,11 +139,12 @@ func notionFetchByheadless(websiteURL string) string {
 	}
 	common.Logger.Info("notion headless fetch end...", zap.Int("content len", len(htmlContent)))
 	return htmlContent
-}
+}*/
 
 func notionFetchByApi(websiteURL string) string {
 	client := notionClient.Client{}
 	notionID := notionClient.ExtractNoDashIDFromNotionURL(websiteURL)
+	common.Logger.Info("notion fetch", zap.String("id", notionID))
 	if notionID != "" {
 		page, _ := client.DownloadPage(notionID)
 		bytes := tohtml.ToHTML(page)
