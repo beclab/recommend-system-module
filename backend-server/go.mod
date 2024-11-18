@@ -28,7 +28,7 @@ require (
 
 require (
 	github.com/PuerkitoBio/goquery v1.9.1
-	github.com/beclab/article-extractor v0.0.25
+	github.com/beclab/article-extractor v0.0.26
 	github.com/gorilla/mux v1.8.1
 	github.com/json-iterator/go v1.1.12
 	github.com/lib/pq v1.10.9
