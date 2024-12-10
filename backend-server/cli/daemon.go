@@ -19,7 +19,7 @@ import (
 const DefaultPort = "6317"
 
 func StartDaemon(store *storage.Storage) {
-	common.Logger.Info("Starting Service...")
+	common.Logger.Info("Starting Service v0.0.25...")
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
