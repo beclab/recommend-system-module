@@ -169,7 +169,9 @@ func RefreshFeed(store *storage.Storage, feedID string) {
 		}
 	}
 	if updatedFeed != nil {
-		originalFeed.Title = updatedFeed.Title
+		if originalFeed.Title == "" {
+			originalFeed.Title = updatedFeed.Title
+		}
 		ProcessFeedEntries(store, originalFeed, updatedFeed.Entries)
 	}
 
