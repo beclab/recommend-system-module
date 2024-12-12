@@ -77,15 +77,7 @@ func EntryCrawler(entry *model.Entry, feedUrl, userAgent, cookie string, certifi
 		entry.Language = common.GetLanguage(pureContent[:languageLen])
 
 		if entry.ImageUrl == "" && fullContent != "" {
-			doc, err := goquery.NewDocumentFromReader(strings.NewReader(fullContent))
-			if err == nil {
-				doc.Find("img").Each(func(i int, s *goquery.Selection) {
-					img, _ := s.Attr("src")
-					if strings.HasPrefix(img, "http") {
-						entry.ImageUrl = img
-					}
-				})
-			}
+			entry.ImageUrl = common.GetImageUrlFromContent(fullContent)
 		}
 
 	} else {

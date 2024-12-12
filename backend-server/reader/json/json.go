@@ -90,6 +90,9 @@ func (j *jsonFeed) Transform(baseURL string) *model.Feed {
 		if entry.Author == "" {
 			entry.Author = j.GetAuthor()
 		}
+		if entry.ImageUrl == "" {
+			entry.ImageUrl = common.GetImageUrlFromContent(item.Text)
+		}
 
 		feed.Entries = append(feed.Entries, entry)
 	}
