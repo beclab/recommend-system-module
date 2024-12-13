@@ -76,3 +76,17 @@ func Domain(websiteURL string) string {
 
 	return parsedURL.Host
 }
+
+func GetPrimaryDomain(u string) string {
+	parsedURL, err := url.Parse(u)
+	if err != nil {
+		return ""
+	}
+	host := parsedURL.Hostname()
+
+	parts := strings.Split(host, ".")
+	if len(parts) >= 2 {
+		return strings.Join(parts[len(parts)-2:], ".")
+	}
+	return host
+}
