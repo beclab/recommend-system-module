@@ -19,6 +19,14 @@ import (
 func EntryCrawler(entry *model.Entry, feedUrl, userAgent, cookie string, certificates, fetchViaProxy bool) {
 	//entryID, entryUrl, entryTitle, imageUrl, author string, entryPublishedAt int64, feed *model.Feed) (string, string, int64) {
 	common.Logger.Info("crawler entry start", zap.String("url", entry.URL))
+	if common.Domain(entry.URL) == "t.bilibili.com" {
+		entry.FullContent = entry.Content
+		entry.Language = "zh-cn"
+		if entry.ImageUrl == "" && entry.Content != "" {
+			entry.ImageUrl = common.GetImageUrlFromContent(entry.Content)
+		}
+		return
+	}
 	entry.RawContent = FetchRawContnt(
 		entry.URL,
 		entry.Title,
