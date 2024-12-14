@@ -18,7 +18,21 @@ import (
 
 func EntryCrawler(entry *model.Entry, feedUrl, userAgent, cookie string, certificates, fetchViaProxy bool) {
 	//entryID, entryUrl, entryTitle, imageUrl, author string, entryPublishedAt int64, feed *model.Feed) (string, string, int64) {
-	common.Logger.Info("crawler entry start", zap.String("url", entry.URL))
+	primaryDomain := common.GetPrimaryDomain(entry.URL)
+	common.Logger.Info("crawler entry start", zap.String("url", entry.URL), zap.String("primary domain:", primaryDomain))
+	if primaryDomain == "bilibili.com" {
+		entry.FullContent = entry.Content
+		entry.Language = "zh-cn"
+
+		domain := common.Domain(entry.URL)
+		if domain == "t.bilibili.com" {
+			if entry.ImageUrl == "" && entry.Content != "" {
+				entry.ImageUrl = common.GetImageUrlFromContent(entry.Content)
+			}
+			return
+		}
+	}
+
 	entry.RawContent = FetchRawContnt(
 		entry.URL,
 		entry.Title,
@@ -77,15 +91,7 @@ func EntryCrawler(entry *model.Entry, feedUrl, userAgent, cookie string, certifi
 		entry.Language = common.GetLanguage(pureContent[:languageLen])
 
 		if entry.ImageUrl == "" && fullContent != "" {
-			doc, err := goquery.NewDocumentFromReader(strings.NewReader(fullContent))
-			if err == nil {
-				doc.Find("img").Each(func(i int, s *goquery.Selection) {
-					img, _ := s.Attr("src")
-					if strings.HasPrefix(img, "http") {
-						entry.ImageUrl = img
-					}
-				})
-			}
+			entry.ImageUrl = common.GetImageUrlFromContent(fullContent)
 		}
 
 	} else {

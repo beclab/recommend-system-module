@@ -76,7 +76,9 @@ func (r *rssFeed) Transform(baseURL string) *model.Feed {
 		if entry.Title == "" {
 			entry.Title = entry.URL
 		}
-
+		if entry.ImageUrl == "" {
+			entry.ImageUrl = common.GetImageUrlFromContent(r.Description)
+		}
 		feed.Entries = append(feed.Entries, entry)
 	}
 

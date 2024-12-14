@@ -14,12 +14,11 @@ type Entry struct {
 	URL               string  `json:"url"`
 	CommentsURL       string  `json:"comments_url"`
 	PublishedAtParsed time.Time
-	PublishedAt       int64 `json:"published_at"`
-
-	CreatedAt  time.Time `json:"createdAt"`
-	UpdatedAt  time.Time `json:"updatedAt"`
-	Content    string    `json:"content"`
-	RawContent string    `json:"raw_content"`
+	PublishedAt       int64     `json:"published_at"`
+	CreatedAt         time.Time `json:"createdAt"`
+	UpdatedAt         time.Time `json:"updatedAt"`
+	Content           string    `json:"content"`
+	RawContent        string    `json:"raw_content"`
 	//PureContent string             `bson:"pure_content"`
 	FullContent string `json:"full_content"`
 	//DocId       string   `json:"doc_id"`
