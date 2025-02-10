@@ -166,6 +166,7 @@ func (c *Client) Get() (*Response, error) {
 		domainList := LoadCookieInfoManager(urlDomain, urlPrimaryDomain)
 		//domainList := LoadCookieInfo(urlPrimaryDomain)
 		for _, domain := range domainList {
+			common.Logger.Info("get cookie", zap.Any("value", domain))
 			for _, record := range domain.Records {
 				if strings.HasPrefix(record.Domain, ".") {
 					if len(record.Domain)-len(urlDomain) > 1 {
