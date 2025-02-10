@@ -164,10 +164,9 @@ func (c *Client) Get() (*Response, error) {
 	if urlDomain != "" {
 		//if CheckCookRequired(domain) {
 		domainList := LoadCookieInfoManager(urlDomain, urlPrimaryDomain)
-		common.Logger.Info("load cookie", zap.Any("domain", urlDomain))
 		//domainList := LoadCookieInfo(urlPrimaryDomain)
+		addCookies := ""
 		for _, domain := range domainList {
-			common.Logger.Info("get cookie", zap.Any("value", domain))
 			for _, record := range domain.Records {
 				if strings.HasPrefix(record.Domain, ".") {
 					if len(record.Domain)-len(urlDomain) > 1 {
@@ -180,7 +179,7 @@ func (c *Client) Get() (*Response, error) {
 						continue
 					}
 				}
-				cookie := &http.Cookie{
+				/*cookie := &http.Cookie{
 					Name:    record.Name,
 					Value:   url.QueryEscape(record.Value),
 					Path:    record.Path,
@@ -188,8 +187,13 @@ func (c *Client) Get() (*Response, error) {
 					Expires: time.Unix(int64(record.Expires), 0),
 				}
 				common.Logger.Info("add cookie", zap.String("name", record.Name), zap.String("value", cookie.Value))
-				request.AddCookie(cookie)
+				request.AddCookie(cookie)*/
+				addCookies = addCookies + record.Name + "=" + url.QueryEscape(record.Value) + ";"
 			}
+		}
+		if addCookies != "" {
+			common.Logger.Info("add cookie", zap.String("cookie", addCookies))
+			request.Header.Add("Cookie", addCookies)
 		}
 
 		//}
