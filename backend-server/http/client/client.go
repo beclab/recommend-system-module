@@ -164,6 +164,7 @@ func (c *Client) Get() (*Response, error) {
 	if urlDomain != "" {
 		//if CheckCookRequired(domain) {
 		domainList := LoadCookieInfoManager(urlDomain, urlPrimaryDomain)
+		common.Logger.Info("load cookie", zap.Any("domain", urlDomain))
 		//domainList := LoadCookieInfo(urlPrimaryDomain)
 		for _, domain := range domainList {
 			common.Logger.Info("get cookie", zap.Any("value", domain))
