@@ -188,7 +188,7 @@ func (c *Client) Get() (*Response, error) {
 				}
 				common.Logger.Info("add cookie", zap.String("name", record.Name), zap.String("value", cookie.Value))
 				request.AddCookie(cookie)*/
-				addCookies = addCookies + record.Name + "=" + url.QueryEscape(record.Value) + ";"
+				addCookies = addCookies + record.Name + "=" + record.Value + ";"
 			}
 		}
 		if addCookies != "" {
