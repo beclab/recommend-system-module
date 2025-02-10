@@ -185,6 +185,7 @@ func (c *Client) Get() (*Response, error) {
 					Domain:  record.Domain,
 					Expires: time.Unix(int64(record.Expires), 0),
 				}
+				common.Logger.Info("add cookie", zap.String("name", record.Name), zap.String("value", cookie.Value))
 				request.AddCookie(cookie)
 			}
 		}
