@@ -192,7 +192,7 @@ func (c *Client) Get() (*Response, error) {
 			}
 		}
 		if addCookies != "" {
-			common.Logger.Info("add cookie", zap.String("cookie", addCookies))
+			common.Logger.Info("add cookie1", zap.String("cookie", addCookies))
 			request.Header.Add("Cookie", addCookies)
 		}
 
