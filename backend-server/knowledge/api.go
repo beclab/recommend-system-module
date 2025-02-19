@@ -30,7 +30,7 @@ func SaveFeedEntries(store *storage.Storage, entries model.Entries, feed *model.
 }
 
 func doDownloadReq(download model.EntryDownloadModel) {
-	downloadUrl := common.DownloadApiUrl()
+	downloadUrl := common.DownloadApiUrl() + "/termius/download"
 	algoJsonByte, err := json.Marshal(download)
 	if err != nil {
 		common.Logger.Error("add download json marshal  fail", zap.Error(err))
@@ -189,6 +189,33 @@ func LoadMetaFromYtdlp(entryUrl string) *model.Entry {
 	var resObj model.EntryFetchResponseModel
 	if err := json.Unmarshal(body, &resObj); err != nil {
 		common.Logger.Error("load ytdlp meta ,json decode failed, err", zap.Error(err))
+		return nil
+	}
+
+	return &resObj.Data
+
+}
+
+func FetchTwitterContent(twitterID, url string) *model.Entry {
+	apiUrl := common.DownloadApiUrl() + "/twitter/fetch-content?twitter_id=" + twitterID + "&url=" + url
+	client := &http.Client{Timeout: time.Second * 120}
+	res, err := client.Get(apiUrl)
+	if err != nil {
+		common.Logger.Error("fetch twitter content error", zap.Error(err))
+		return nil
+	}
+	if res.StatusCode != 200 {
+		common.Logger.Error("fetch twitter content error")
+		return nil
+	}
+	if res != nil {
+		defer res.Body.Close()
+	}
+	body, _ := io.ReadAll(res.Body)
+
+	var resObj model.EntryFetchResponseModel
+	if err := json.Unmarshal(body, &resObj); err != nil {
+		common.Logger.Error("fetch twitter content ,json decode failed, err", zap.Error(err))
 		return nil
 	}
 
