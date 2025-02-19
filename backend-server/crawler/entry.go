@@ -1,13 +1,16 @@
 package crawler
 
 import (
+	"fmt"
 	"io"
 	"net/url"
+	"os"
 	"strings"
 
 	"bytetrade.io/web3os/backend-server/common"
 	notionClient "bytetrade.io/web3os/backend-server/crawler/notionapi"
 	"bytetrade.io/web3os/backend-server/crawler/notionapi/tohtml"
+	wolaiapi "bytetrade.io/web3os/backend-server/crawler/wolaiapi"
 	"bytetrade.io/web3os/backend-server/http/client"
 	"bytetrade.io/web3os/backend-server/knowledge"
 	"bytetrade.io/web3os/backend-server/model"
@@ -15,6 +18,16 @@ import (
 	"github.com/beclab/article-extractor/processor"
 	"go.uber.org/zap"
 )
+
+func writeFullContent(content string) {
+	file, err := os.Create("content.html")
+	if err != nil {
+		fmt.Println("Error creating file:", err)
+		return
+	}
+	defer file.Close()
+	file.WriteString(content)
+}
 
 func EntryCrawler(entry *model.Entry, feedUrl, userAgent, cookie string, certificates, fetchViaProxy bool) {
 	//entryID, entryUrl, entryTitle, imageUrl, author string, entryPublishedAt int64, feed *model.Feed) (string, string, int64) {
@@ -31,6 +44,26 @@ func EntryCrawler(entry *model.Entry, feedUrl, userAgent, cookie string, certifi
 			}
 			return
 		}
+	}
+	if primaryDomain == "x.com" {
+		twitterID := ""
+		parts := strings.Split(entry.URL, "status/")
+		if len(parts) > 1 {
+			twitterID = strings.TrimSpace(parts[1])
+		}
+		fmt.Println("twitter ID:", twitterID)
+		twitterEntry := knowledge.FetchTwitterContent(twitterID, entry.URL)
+		if twitterEntry != nil {
+			entry.FullContent = twitterEntry.FullContent
+			entry.MediaContent = twitterEntry.MediaContent
+			entry.MediaUrl = twitterEntry.MediaUrl
+			entry.MediaType = twitterEntry.MediaType
+			entry.Author = twitterEntry.Author
+			entry.Title = twitterEntry.Title
+			entry.PublishedAt = twitterEntry.PublishedAt
+			entry.Language = "en"
+		}
+		return
 	}
 
 	entry.RawContent = FetchRawContnt(
@@ -159,11 +192,24 @@ func notionFetchByApi(websiteURL string) string {
 	return ""
 }
 
+func wolaiFetchByApi(websiteURL string) string {
+	pageID := wolaiapi.ExtractPageIDFromURL(websiteURL)
+	common.Logger.Info("wolai fetch", zap.String("id", pageID))
+	if pageID != "" {
+		page := wolaiapi.FetchPage(pageID)
+		return page
+	}
+	return ""
+}
+
 func FetchRawContnt(websiteURL, title, userAgent string, cookie string, allowSelfSignedCertificates, useProxy bool) string {
 	urlDomain := domain(websiteURL)
 	common.Logger.Info("fatch raw contnet", zap.String("domain", websiteURL))
 	if strings.Contains(urlDomain, "notion.site") {
 		return notionFetchByApi(websiteURL)
+	}
+	if strings.Contains(urlDomain, "wolai.com") {
+		return wolaiFetchByApi(websiteURL)
 	}
 
 	clt := client.NewClientWithConfig(websiteURL)
