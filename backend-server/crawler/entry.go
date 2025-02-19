@@ -61,6 +61,7 @@ func EntryCrawler(entry *model.Entry, feedUrl, userAgent, cookie string, certifi
 			entry.Author = twitterEntry.Author
 			entry.Title = twitterEntry.Title
 			entry.PublishedAt = twitterEntry.PublishedAt
+			entry.ImageUrl = common.GetImageUrlFromContent(entry.FullContent)
 			entry.Language = "en"
 		}
 		return
