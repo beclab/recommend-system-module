@@ -56,11 +56,18 @@ func CheckCookRequired(host string) bool {
 }
 
 func LoadCookieInfoManager(domain, primaryDomain string) []model.SettingDomainRespModel {
+	initDomain := domain
 	cookieList := make([]model.SettingDomainRespModel, 0)
 	primaryAddList := LoadCookieInfo("." + primaryDomain)
 	cookieList = append(cookieList, primaryAddList...)
 	for {
-		list := LoadCookieInfo(domain)
+		if initDomain == domain {
+			list := LoadCookieInfo(domain)
+			if len(list) > 0 {
+				cookieList = append(cookieList, list...)
+			}
+		}
+		list := LoadCookieInfo("." + domain)
 		if len(list) > 0 {
 			cookieList = append(cookieList, list...)
 		}
