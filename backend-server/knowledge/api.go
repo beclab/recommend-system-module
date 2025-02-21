@@ -201,11 +201,11 @@ func FetchTwitterContent(twitterID, url string) *model.Entry {
 	client := &http.Client{Timeout: time.Second * 120}
 	res, err := client.Get(apiUrl)
 	if err != nil {
-		common.Logger.Error("fetch twitter content error", zap.Error(err))
+		common.Logger.Error("fetch twitter content error", zap.String("id", twitterID), zap.String("url", url), zap.Error(err))
 		return nil
 	}
 	if res.StatusCode != 200 {
-		common.Logger.Error("fetch twitter content error")
+		common.Logger.Error("fetch twitter content error", zap.String("id", twitterID), zap.String("url", url))
 		return nil
 	}
 	if res != nil {
