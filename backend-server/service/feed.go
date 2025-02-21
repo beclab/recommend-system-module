@@ -89,7 +89,7 @@ func getRssHubCookieDomain(domain string) string {
 		return "bilibili.com"
 	}
 	if strings.HasPrefix(domain, "twitter") {
-		return "x.com"
+		return ".x.com"
 	}
 	return ""
 }
@@ -98,7 +98,7 @@ func generateRssHubCookie(domain string) string {
 	cookies := ""
 	for _, domainItem := range domainList {
 		for _, record := range domainItem.Records {
-			if domain == "x.com" {
+			if domain == ".x.com" {
 				if record.Name == "auth_token" {
 					return record.Value
 				}
