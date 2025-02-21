@@ -93,9 +93,16 @@ func getRssHubCookieDomain(domain string) string {
 func generateRssHubCookie(domain string) string {
 	domainList := client.LoadCookieInfoManager(domain, domain)
 	cookies := ""
-	for _, domain := range domainList {
-		for _, record := range domain.Records {
-			cookies = cookies + record.Name + "=" + record.Value + ";"
+	for _, domainItem := range domainList {
+		for _, record := range domainItem.Records {
+			if domain == "x.com" {
+				if record.Name == "auth_token" {
+					return record.Value
+				}
+
+			} else {
+				cookies = cookies + record.Name + "=" + record.Value + ";"
+			}
 		}
 	}
 	return cookies
