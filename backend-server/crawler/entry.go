@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"bytetrade.io/web3os/backend-server/common"
+	"bytetrade.io/web3os/backend-server/crawler/bskyapi"
 	notionClient "bytetrade.io/web3os/backend-server/crawler/notionapi"
 	"bytetrade.io/web3os/backend-server/crawler/notionapi/tohtml"
 	wolaiapi "bytetrade.io/web3os/backend-server/crawler/wolaiapi"
@@ -61,6 +62,19 @@ func EntryCrawler(entry *model.Entry, feedUrl, userAgent, cookie string, certifi
 			entry.Author = twitterEntry.Author
 			entry.Title = twitterEntry.Title
 			entry.PublishedAt = twitterEntry.PublishedAt
+			entry.ImageUrl = common.GetImageUrlFromContent(entry.FullContent)
+			entry.Language = "en"
+		}
+		return
+	}
+
+	if primaryDomain == "bsky.app" {
+		bskyEntry := bskyapi.Fetch(entry.URL)
+		if bskyEntry != nil {
+			entry.FullContent = bskyEntry.FullContent
+			entry.Author = bskyEntry.Author
+			entry.Title = bskyEntry.Title
+			entry.PublishedAt = bskyEntry.PublishedAt
 			entry.ImageUrl = common.GetImageUrlFromContent(entry.FullContent)
 			entry.Language = "en"
 		}
