@@ -43,7 +43,7 @@ func ThreadsByheadless(websiteURL string) string {
 	//ctx, cancel := chromedp.NewContext(context.Background())
 	defer cancelCtx()
 	htmlContent := ""
-	common.Logger.Info("notion headless fetch 1 ")
+	common.Logger.Info("threads headless fetch 1 ")
 	err := chromedp.Run(allocCtx,
 		chromedp.Navigate(websiteURL),
 		chromedp.WaitVisible(`[data-pressable-container=true]`, chromedp.ByQuery),

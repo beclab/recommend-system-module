@@ -61,7 +61,8 @@ func Fetch(websiteURL string) *model.Entry {
 
 func generateEntry(resp *Response) *model.Entry {
 	entry := new(model.Entry)
-	entry.FullContent = "<p>" + resp.Thread.Post.Record.Text + "</p>"
+
+	entry.FullContent = "<p>" + strings.ReplaceAll(resp.Thread.Post.Record.Text, "\n", "<br>") + "</p>"
 	if resp.Thread.Post.Embed.EmbedType == "app.bsky.embed.images#view" {
 		for _, image := range resp.Thread.Post.Embed.EmbedImages {
 			entry.FullContent = entry.FullContent + "<img src='" + image.Thumb + "' /><br>"
