@@ -140,13 +140,12 @@ func generateEntry(rawContent string) *model.Entry {
 
 	})
 
-	metaDescription := doc.Find(`meta[property="og:description"]`)
-	if metaDescription.Length() > 0 {
-		titleContent, exists := metaDescription.Attr("content")
+	doc.Find(`meta[property="og:description"]`).Each(func(i int, s *goquery.Selection) {
+		titleContent, exists := s.Attr("content")
 		if exists {
 			title = titleContent
 		}
-	}
+	})
 
 	entry.FullContent = fullContent + imageContent + videoContent
 	entry.Author = userName
