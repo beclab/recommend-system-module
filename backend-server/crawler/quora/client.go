@@ -46,7 +46,6 @@ func QuoraByheadless(websiteURL string) string {
 	htmlContent := ""
 	common.Logger.Info("notion headless fetch 1 ")
 	err := chromedp.Run(allocCtx,
-		chromedp.SetHeader("Cookie", "m-b=7WhaFYLMio-kAv38IL9v2A==; m-b_lax=7WhaFYLMio-kAv38IL9v2A==; m-b_strict=7WhaFYLMio-kAv38IL9v2A==; m-s=gNSarWSVCk3HAaIqkNLjjw==; m-theme=light; m-dynamicFontSize=regular; m-themeStrategy=auto; m-login=1; m-uid=2938460259; _fbp=fb.1.1739193699689.69139755452247159; _scid=mKY-7G-zOKoiLK5uTW7hmHq7-mhs9koQ; _scid_r=mKY-7G-zOKoiLK5uTW7hmHq7-mhs9koQ; _gcl_au=1.1.276664614.1739193700; _sctr=1%7C1739116800000; _sc_cspv=https%3A%2F%2Ftr.snapchat.com%2Fp; __stripe_mid=25c35dd5-65c7-4b50-b406-96f8547c0c7f0c18c4; m-sa=1; __gads=ID=be033e02750af23c:T=1739193714:RT=1741136934:S=ALNI_MbQBq_39LnERLLQvaD-TJTd81U5Mw; __gpi=UID=000010409a447058:T=1739193714:RT=1741136934:S=ALNI_MbhlCLrLHZeOUFIEAcp-3SP2YzlFg; __eoi=ID=bc643b054122a0a1:T=1739193714:RT=1741136934:S=AA-AfjZI10MqDPZOh3Dy9YFEk5H5; m-screen_size=756x780"),
 		chromedp.Navigate(websiteURL),
 		chromedp.WaitVisible(`div.PageWrapper`, chromedp.ByQuery),
 		/*chromedp.ActionFunc(func(ctx context.Context) error {
