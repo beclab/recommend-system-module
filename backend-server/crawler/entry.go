@@ -83,6 +83,18 @@ func EntryCrawler(entry *model.Entry, feedUrl, userAgent, cookie string, certifi
 		return
 	}
 
+	if primaryDomain == "threads.net" {
+		threadsEntry := threads.Fetch(entry.URL)
+		if threadsEntry != nil {
+			entry.FullContent = threadsEntry.FullContent
+			entry.Author = threadsEntry.Author
+			entry.Title = threadsEntry.Title
+			entry.PublishedAt = threadsEntry.PublishedAt
+			entry.ImageUrl = common.GetImageUrlFromContent(entry.FullContent)
+			entry.Language = "en"
+		}
+		return
+	}
 	entry.RawContent = FetchRawContnt(
 		entry.URL,
 		entry.Title,
@@ -228,9 +240,7 @@ func FetchRawContnt(websiteURL, title, userAgent string, cookie string, allowSel
 	if strings.Contains(urlDomain, "wolai.com") {
 		return wolaiFetchByApi(websiteURL)
 	}
-	if strings.Contains(urlDomain, "threads.net") {
-		return threads.ThreadsByheadless(websiteURL)
-	}
+
 	if strings.Contains(urlDomain, "quora.com") {
 		return quora.QuoraByheadless(websiteURL)
 	}
