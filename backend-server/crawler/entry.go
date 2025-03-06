@@ -11,6 +11,8 @@ import (
 	"bytetrade.io/web3os/backend-server/crawler/bskyapi"
 	notionClient "bytetrade.io/web3os/backend-server/crawler/notionapi"
 	"bytetrade.io/web3os/backend-server/crawler/notionapi/tohtml"
+	"bytetrade.io/web3os/backend-server/crawler/quora"
+	"bytetrade.io/web3os/backend-server/crawler/threads"
 	wolaiapi "bytetrade.io/web3os/backend-server/crawler/wolaiapi"
 	"bytetrade.io/web3os/backend-server/http/client"
 	"bytetrade.io/web3os/backend-server/knowledge"
@@ -225,6 +227,12 @@ func FetchRawContnt(websiteURL, title, userAgent string, cookie string, allowSel
 	}
 	if strings.Contains(urlDomain, "wolai.com") {
 		return wolaiFetchByApi(websiteURL)
+	}
+	if strings.Contains(urlDomain, "threads.net") {
+		return threads.ThreadsByheadless(websiteURL)
+	}
+	if strings.Contains(urlDomain, "quora.com") {
+		return quora.QuoraByheadless(websiteURL)
 	}
 
 	clt := client.NewClientWithConfig(websiteURL)
