@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"html"
+	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -74,7 +75,11 @@ func getImgageContent(image map[string]interface{}) string {
 		if firstImageOK {
 			imageUrl, imageUrlOK := firstImage["url"].(string)
 			if imageUrlOK {
-				imageContent = imageContent + "<img src='" + imageUrl + "' />"
+				decodedImage, err := url.QueryUnescape(imageUrl)
+				if err != nil {
+					common.Logger.Error("url decode error", zap.Error(err))
+				}
+				imageContent = imageContent + "<img src='" + decodedImage + "' />"
 			}
 		}
 	}
@@ -130,10 +135,6 @@ func generateEntry(url, rawContent string) *model.Entry {
 
 							}
 						}
-						imageItem, imageOK := postItem["image_versions2"].(map[string]interface{})
-						if imageOK {
-							imageContent = imageContent + getImgageContent(imageItem)
-						}
 						carousels, carouselOK := postItem["carousel_media"].([]interface{})
 						if carouselOK {
 							for _, carousel := range carousels {
@@ -141,6 +142,11 @@ func generateEntry(url, rawContent string) *model.Entry {
 								if carouselImageOK {
 									imageContent = imageContent + getImgageContent(carouselImage)
 								}
+							}
+						} else {
+							imageItem, imageOK := postItem["image_versions2"].(map[string]interface{})
+							if imageOK {
+								imageContent = imageContent + getImgageContent(imageItem)
 							}
 						}
 					}
