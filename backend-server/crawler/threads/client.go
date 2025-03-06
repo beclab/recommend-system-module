@@ -69,7 +69,7 @@ func decodeMsg(str string) []interface{} {
 func getImgageContent(image map[string]interface{}) string {
 	imageContent := ""
 	imageCandidates, candidatesOK := image["candidates"].([]interface{})
-	if candidatesOK {
+	if candidatesOK && len(imageCandidates) > 0 {
 		firstImage, firstImageOK := imageCandidates[0].(map[string]interface{})
 		if firstImageOK {
 			imageUrl, imageUrlOK := firstImage["url"].(string)
