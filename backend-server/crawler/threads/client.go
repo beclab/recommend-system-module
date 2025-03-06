@@ -80,9 +80,16 @@ func getImgageContent(image map[string]interface{}) string {
 	}
 	return imageContent
 }
-func generateEntry(rawContent string) *model.Entry {
+
+func extractPostID(url string) string {
+	url = strings.TrimSuffix(url, "/")
+	parts := strings.Split(url, "/")
+	return parts[len(parts)-1]
+}
+func generateEntry(url, rawContent string) *model.Entry {
 	entry := new(model.Entry)
 
+	postID := extractPostID(url)
 	templateRawData := strings.NewReader(string(rawContent))
 	doc, _ := goquery.NewDocumentFromReader(templateRawData)
 	userName := ""
@@ -101,36 +108,39 @@ func generateEntry(rawContent string) *model.Entry {
 			if firstOK {
 				postItem, postOK := firstItem["post"].(map[string]interface{})
 				if postOK {
-					user, userOK := postItem["user"].(map[string]interface{})
-					if userOK {
-						userName = user["username"].(string)
-					}
-					caption, captionOK := postItem["caption"].(map[string]interface{})
-					if captionOK {
-						fullContent, _ = caption["text"].(string)
-					}
-					created_at, _ = postItem["taken_at"].(float64)
-					videos, videoOK := postItem["video_versions"].([]interface{})
-					if videoOK && len(videos) > 0 {
-						firstVideo, firstVideoOK := videos[0].(map[string]interface{})
-						if firstVideoOK {
-							videoUrl, videoUrlOK := firstVideo["url"].(string)
-							if videoUrlOK {
-								videoContent = "<video  src='" + videoUrl + "' ></video>"
-							}
-
+					code := postItem["code"].(string)
+					if code == postID {
+						user, userOK := postItem["user"].(map[string]interface{})
+						if userOK {
+							userName = user["username"].(string)
 						}
-					}
-					imageItem, imageOK := postItem["image_versions2"].(map[string]interface{})
-					if imageOK {
-						imageContent = imageContent + getImgageContent(imageItem)
-					}
-					carousels, carouselOK := postItem["carousel_media"].([]interface{})
-					if carouselOK {
-						for _, carousel := range carousels {
-							carouselImage, carouselImageOK := carousel.(map[string]interface{})["image_versions2"].(map[string]interface{})
-							if carouselImageOK {
-								imageContent = imageContent + getImgageContent(carouselImage)
+						caption, captionOK := postItem["caption"].(map[string]interface{})
+						if captionOK {
+							fullContent, _ = caption["text"].(string)
+						}
+						created_at, _ = postItem["taken_at"].(float64)
+						videos, videoOK := postItem["video_versions"].([]interface{})
+						if videoOK && len(videos) > 0 {
+							firstVideo, firstVideoOK := videos[0].(map[string]interface{})
+							if firstVideoOK {
+								videoUrl, videoUrlOK := firstVideo["url"].(string)
+								if videoUrlOK {
+									videoContent = "<video  src='" + videoUrl + "' ></video>"
+								}
+
+							}
+						}
+						imageItem, imageOK := postItem["image_versions2"].(map[string]interface{})
+						if imageOK {
+							imageContent = imageContent + getImgageContent(imageItem)
+						}
+						carousels, carouselOK := postItem["carousel_media"].([]interface{})
+						if carouselOK {
+							for _, carousel := range carousels {
+								carouselImage, carouselImageOK := carousel.(map[string]interface{})["image_versions2"].(map[string]interface{})
+								if carouselImageOK {
+									imageContent = imageContent + getImgageContent(carouselImage)
+								}
 							}
 						}
 					}
@@ -158,7 +168,7 @@ func generateEntry(rawContent string) *model.Entry {
 func Fetch(websiteURL string) *model.Entry {
 	rawContent := threadsByheadless(websiteURL)
 	if rawContent != "" {
-		return generateEntry(rawContent)
+		return generateEntry(websiteURL, rawContent)
 	}
 	return nil
 
