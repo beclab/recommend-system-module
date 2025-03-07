@@ -80,7 +80,7 @@ func getImgageContent(image map[string]interface{}) string {
 					common.Logger.Error("url decode error", zap.Error(err))
 				}
 				//todo跨域问题，先加个临时代理服务器https://cors-anywhere.herokuapp.com/
-				imageContent = imageContent + "<img src='https://cors-anywhere.herokuapp.com/" + decodedImage + "' />"
+				imageContent = imageContent + "<img crossorigin='anonymous' src='https://cors-anywhere.herokuapp.com/" + decodedImage + "' />"
 			}
 		}
 	}
