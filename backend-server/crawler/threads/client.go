@@ -79,7 +79,8 @@ func getImgageContent(image map[string]interface{}) string {
 				if err != nil {
 					common.Logger.Error("url decode error", zap.Error(err))
 				}
-				imageContent = imageContent + "<img src='" + decodedImage + "' />"
+				//todo跨域问题，先加个临时代理服务器https://cors-anywhere.herokuapp.com/
+				imageContent = imageContent + "<img src='https://cors-anywhere.herokuapp.com/" + decodedImage + "' />"
 			}
 		}
 	}
@@ -130,25 +131,27 @@ func generateEntry(url, rawContent string) *model.Entry {
 							if firstVideoOK {
 								videoUrl, videoUrlOK := firstVideo["url"].(string)
 								if videoUrlOK {
-									videoContent = "<video  src='" + videoUrl + "' ></video>"
+									videoContent = " <video controls> <source src='" + videoUrl + "' />Your browser does not support the video tag.</video>"
 								}
 
 							}
-						}
-						carousels, carouselOK := postItem["carousel_media"].([]interface{})
-						if carouselOK {
-							for _, carousel := range carousels {
-								carouselImage, carouselImageOK := carousel.(map[string]interface{})["image_versions2"].(map[string]interface{})
-								if carouselImageOK {
-									imageContent = imageContent + getImgageContent(carouselImage)
+						} else {
+							carousels, carouselOK := postItem["carousel_media"].([]interface{})
+							if carouselOK {
+								for _, carousel := range carousels {
+									carouselImage, carouselImageOK := carousel.(map[string]interface{})["image_versions2"].(map[string]interface{})
+									if carouselImageOK {
+										imageContent = imageContent + getImgageContent(carouselImage)
+									}
+								}
+							} else {
+								imageItem, imageOK := postItem["image_versions2"].(map[string]interface{})
+								if imageOK {
+									imageContent = imageContent + getImgageContent(imageItem)
 								}
 							}
-						} else {
-							imageItem, imageOK := postItem["image_versions2"].(map[string]interface{})
-							if imageOK {
-								imageContent = imageContent + getImgageContent(imageItem)
-							}
 						}
+
 					}
 				}
 			}
