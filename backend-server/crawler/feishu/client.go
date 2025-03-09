@@ -1,7 +1,8 @@
-package quora
+package feishu
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"time"
 
@@ -10,7 +11,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func QuoraByheadless(websiteURL string) string {
+func FeishuByheadless(websiteURL string) string {
 	var allocCtx context.Context
 	var cancelCtx context.CancelFunc
 	allocOpts := chromedp.DefaultExecAllocatorOptions[:]
@@ -44,51 +45,20 @@ func QuoraByheadless(websiteURL string) string {
 	defer cancelCtx()
 	htmlContent := ""
 	common.Logger.Info("notion headless fetch 1 ")
-	var lh, nh int64
 	err := chromedp.Run(allocCtx,
 		chromedp.Navigate(websiteURL),
-		chromedp.Evaluate(`document.body.scrollHeight`, &lh),
-		chromedp.ActionFunc(func(ctx context.Context) error {
-			for {
-				if err := chromedp.Evaluate(`window.scrollTo(0, document.body.scrollHeight);`, nil).Do(ctx); err != nil {
-					return err
-				}
-				time.Sleep(1 * time.Second)
-				if err := chromedp.Evaluate(`document.body.scrollHeight`, &nh).Do(ctx); err != nil {
-					return err
-				}
-				if nh == lh {
-					break
-				}
-				lh = nh
-			}
-			return nil
-		}),
-		//chromedp.WaitVisible(`div.PageWrapper`, chromedp.ByQuery),
-		/*chromedp.ActionFunc(func(ctx context.Context) error {
-			for {
-				if err := chromedp.Evaluate(`document.readyState`, &readyState).Do(ctx); err != nil {
-					return err
-				}
-				if readyState == "complete" {
-					break
-				}
-				time.Sleep(500 * time.Millisecond)
-			}
-			return nil
-		}),*/
-		//chromedp.Poll(`document.readyState === 'complete'`, nil),
+		chromedp.WaitVisible(`[data-block-type=page]`, chromedp.ByQuery),
 		chromedp.OuterHTML("html", &htmlContent),
 	)
 	if err != nil {
-		common.Logger.Error("threads headless fetch error", zap.String("url", websiteURL), zap.Error(err))
+		common.Logger.Error("feishu headless fetch error", zap.String("url", websiteURL), zap.Error(err))
 	}
-	common.Logger.Info("threads headless fetch end...", zap.Int("content len", len(htmlContent)))
+	common.Logger.Info("feishu headless fetch end...", zap.Int("content len", len(htmlContent)))
 
-	/*fileWriteErr := os.WriteFile("quota.txt", []byte(htmlContent), 0644)
+	fileWriteErr := os.WriteFile("feishu.html", []byte(htmlContent), 0644)
 	if fileWriteErr != nil {
 		fmt.Println("Error writing file:", fileWriteErr)
-	}*/
+	}
 
 	return htmlContent
 }

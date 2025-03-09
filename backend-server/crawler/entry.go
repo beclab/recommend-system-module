@@ -9,6 +9,7 @@ import (
 
 	"bytetrade.io/web3os/backend-server/common"
 	"bytetrade.io/web3os/backend-server/crawler/bskyapi"
+	"bytetrade.io/web3os/backend-server/crawler/feishu"
 	notionClient "bytetrade.io/web3os/backend-server/crawler/notionapi"
 	"bytetrade.io/web3os/backend-server/crawler/notionapi/tohtml"
 	"bytetrade.io/web3os/backend-server/crawler/quora"
@@ -243,6 +244,9 @@ func FetchRawContnt(websiteURL, title, userAgent string, cookie string, allowSel
 
 	if strings.Contains(urlDomain, "quora.com") {
 		return quora.QuoraByheadless(websiteURL)
+	}
+	if strings.Contains(urlDomain, "feishu.cn") {
+		return feishu.FeishuByheadless(websiteURL)
 	}
 
 	clt := client.NewClientWithConfig(websiteURL)
