@@ -3,12 +3,9 @@ package quora
 import (
 	"context"
 	"os"
-	"strings"
 	"time"
 
 	"bytetrade.io/web3os/backend-server/common"
-	"bytetrade.io/web3os/backend-server/http/client"
-	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/chromedp"
 	"go.uber.org/zap"
 )
@@ -43,7 +40,7 @@ func QuoraByheadless(websiteURL string) string {
 		allocCtx, cancelCtx = chromedp.NewContext(c)
 	}
 
-	urlDomain, urlPrimaryDomain := client.GetPrimaryDomain(websiteURL)
+	/*urlDomain, urlPrimaryDomain := client.GetPrimaryDomain(websiteURL)
 	domainList := client.LoadCookieInfoManager(urlDomain, urlPrimaryDomain)
 	var cookies []*network.CookieParam
 	for _, domain := range domainList {
@@ -66,21 +63,21 @@ func QuoraByheadless(websiteURL string) string {
 			}
 			cookies = append(cookies, cookie)
 		}
-	}
+	}*/
 	//ctx, cancel := chromedp.NewContext(context.Background())
 	defer cancelCtx()
 	htmlContent := ""
 	common.Logger.Info("notion headless fetch 1 ")
 	var lh, nh int64
 	err := chromedp.Run(allocCtx,
-		chromedp.ActionFunc(func(ctx context.Context) error {
+		/*chromedp.ActionFunc(func(ctx context.Context) error {
 			for _, cookie := range cookies {
 				if err := network.SetCookie(cookie.Name, cookie.Value).WithDomain(cookie.Domain).WithPath(cookie.Path).Do(ctx); err != nil {
 					return err
 				}
 			}
 			return nil
-		}),
+		}),*/
 		chromedp.Navigate(websiteURL),
 		chromedp.Evaluate(`document.body.scrollHeight`, &lh),
 		chromedp.ActionFunc(func(ctx context.Context) error {
@@ -99,20 +96,6 @@ func QuoraByheadless(websiteURL string) string {
 			}
 			return nil
 		}),
-		//chromedp.WaitVisible(`div.PageWrapper`, chromedp.ByQuery),
-		/*chromedp.ActionFunc(func(ctx context.Context) error {
-			for {
-				if err := chromedp.Evaluate(`document.readyState`, &readyState).Do(ctx); err != nil {
-					return err
-				}
-				if readyState == "complete" {
-					break
-				}
-				time.Sleep(500 * time.Millisecond)
-			}
-			return nil
-		}),*/
-		//chromedp.Poll(`document.readyState === 'complete'`, nil),
 		chromedp.OuterHTML("html", &htmlContent),
 	)
 	if err != nil {
