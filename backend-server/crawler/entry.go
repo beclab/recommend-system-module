@@ -8,8 +8,12 @@ import (
 	"strings"
 
 	"bytetrade.io/web3os/backend-server/common"
+	"bytetrade.io/web3os/backend-server/crawler/bskyapi"
+	"bytetrade.io/web3os/backend-server/crawler/feishu"
 	notionClient "bytetrade.io/web3os/backend-server/crawler/notionapi"
 	"bytetrade.io/web3os/backend-server/crawler/notionapi/tohtml"
+	"bytetrade.io/web3os/backend-server/crawler/quora"
+	"bytetrade.io/web3os/backend-server/crawler/threads"
 	wolaiapi "bytetrade.io/web3os/backend-server/crawler/wolaiapi"
 	"bytetrade.io/web3os/backend-server/http/client"
 	"bytetrade.io/web3os/backend-server/knowledge"
@@ -67,6 +71,47 @@ func EntryCrawler(entry *model.Entry, feedUrl, userAgent, cookie string, certifi
 		return
 	}
 
+	if primaryDomain == "xiaohongshu.com" {
+		xshEntry := knowledge.FetchXHSContent(entry.URL)
+		if xshEntry != nil {
+			entry.FullContent = xshEntry.FullContent
+			entry.MediaContent = xshEntry.MediaContent
+			entry.MediaUrl = xshEntry.MediaUrl
+			entry.MediaType = xshEntry.MediaType
+			entry.Author = xshEntry.Author
+			entry.Title = xshEntry.Title
+			entry.PublishedAt = xshEntry.PublishedAt
+			entry.ImageUrl = common.GetImageUrlFromContent(entry.FullContent)
+			entry.Language = "zh-cn"
+		}
+		return
+	}
+
+	if primaryDomain == "bsky.app" {
+		bskyEntry := bskyapi.Fetch(entry.URL)
+		if bskyEntry != nil {
+			entry.FullContent = bskyEntry.FullContent
+			entry.Author = bskyEntry.Author
+			entry.Title = bskyEntry.Title
+			entry.PublishedAt = bskyEntry.PublishedAt
+			entry.ImageUrl = common.GetImageUrlFromContent(entry.FullContent)
+			entry.Language = "en"
+		}
+		return
+	}
+
+	if primaryDomain == "threads.net" {
+		threadsEntry := threads.Fetch(entry.URL)
+		if threadsEntry != nil {
+			entry.FullContent = threadsEntry.FullContent
+			entry.Author = threadsEntry.Author
+			entry.Title = threadsEntry.Title
+			entry.PublishedAt = threadsEntry.PublishedAt
+			entry.ImageUrl = common.GetImageUrlFromContent(entry.FullContent)
+			entry.Language = "en"
+		}
+		return
+	}
 	entry.RawContent = FetchRawContnt(
 		entry.URL,
 		entry.Title,
@@ -211,6 +256,13 @@ func FetchRawContnt(websiteURL, title, userAgent string, cookie string, allowSel
 	}
 	if strings.Contains(urlDomain, "wolai.com") {
 		return wolaiFetchByApi(websiteURL)
+	}
+
+	if strings.Contains(urlDomain, "quora.com") {
+		return quora.QuoraByheadless(websiteURL)
+	}
+	if strings.Contains(urlDomain, "feishu.cn") {
+		return feishu.FeishuByheadless(websiteURL)
 	}
 
 	clt := client.NewClientWithConfig(websiteURL)
