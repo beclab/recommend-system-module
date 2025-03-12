@@ -3,9 +3,12 @@ package quora
 import (
 	"context"
 	"os"
+	"strings"
 	"time"
 
 	"bytetrade.io/web3os/backend-server/common"
+	"bytetrade.io/web3os/backend-server/http/client"
+	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/chromedp"
 	"go.uber.org/zap"
 )
@@ -14,7 +17,6 @@ func QuoraByheadless(websiteURL string) string {
 	var allocCtx context.Context
 	var cancelCtx context.CancelFunc
 	allocOpts := chromedp.DefaultExecAllocatorOptions[:]
-
 	allocOpts = append(allocOpts,
 		chromedp.DisableGPU,
 		chromedp.Flag("blink-settings", "imagesEnabled=false"),
@@ -27,7 +29,7 @@ func QuoraByheadless(websiteURL string) string {
 	)
 
 	headlessSer := os.Getenv("HEADLESS_SERVER_URL")
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	if headlessSer != "" {
@@ -40,12 +42,45 @@ func QuoraByheadless(websiteURL string) string {
 
 		allocCtx, cancelCtx = chromedp.NewContext(c)
 	}
+
+	urlDomain, urlPrimaryDomain := client.GetPrimaryDomain(websiteURL)
+	domainList := client.LoadCookieInfoManager(urlDomain, urlPrimaryDomain)
+	var cookies []*network.CookieParam
+	for _, domain := range domainList {
+		for _, record := range domain.Records {
+			if strings.HasPrefix(record.Domain, ".") {
+				if len(record.Domain)-len(urlDomain) > 1 {
+					continue
+				}
+			} else {
+				if record.Domain != urlDomain {
+					continue
+				}
+			}
+			cookieVal := record.Value
+			cookie := &network.CookieParam{
+				Name:   record.Name,
+				Value:  cookieVal,
+				Path:   record.Path,
+				Domain: record.Domain,
+			}
+			cookies = append(cookies, cookie)
+		}
+	}
 	//ctx, cancel := chromedp.NewContext(context.Background())
 	defer cancelCtx()
 	htmlContent := ""
 	common.Logger.Info("notion headless fetch 1 ")
 	var lh, nh int64
 	err := chromedp.Run(allocCtx,
+		chromedp.ActionFunc(func(ctx context.Context) error {
+			for _, cookie := range cookies {
+				if err := network.SetCookie(cookie.Name, cookie.Value).WithDomain(cookie.Domain).WithPath(cookie.Path).Do(ctx); err != nil {
+					return err
+				}
+			}
+			return nil
+		}),
 		chromedp.Navigate(websiteURL),
 		chromedp.Evaluate(`document.body.scrollHeight`, &lh),
 		chromedp.ActionFunc(func(ctx context.Context) error {
