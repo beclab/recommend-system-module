@@ -71,6 +71,22 @@ func EntryCrawler(entry *model.Entry, feedUrl, userAgent, cookie string, certifi
 		return
 	}
 
+	if primaryDomain == "xiaohongshu.com" {
+		xshEntry := knowledge.FetchXHSContent(entry.URL)
+		if xshEntry != nil {
+			entry.FullContent = xshEntry.FullContent
+			entry.MediaContent = xshEntry.MediaContent
+			entry.MediaUrl = xshEntry.MediaUrl
+			entry.MediaType = xshEntry.MediaType
+			entry.Author = xshEntry.Author
+			entry.Title = xshEntry.Title
+			entry.PublishedAt = xshEntry.PublishedAt
+			entry.ImageUrl = common.GetImageUrlFromContent(entry.FullContent)
+			entry.Language = "zh-cn"
+		}
+		return
+	}
+
 	if primaryDomain == "bsky.app" {
 		bskyEntry := bskyapi.Fetch(entry.URL)
 		if bskyEntry != nil {

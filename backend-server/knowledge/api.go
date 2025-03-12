@@ -222,3 +222,30 @@ func FetchTwitterContent(twitterID, url string) *model.Entry {
 	return &resObj.Data
 
 }
+
+func FetchXHSContent(url string) *model.Entry {
+	apiUrl := common.DownloadApiUrl() + "/xhs/fetch-content?url=" + url
+	client := &http.Client{Timeout: time.Second * 120}
+	res, err := client.Get(apiUrl)
+	if err != nil {
+		common.Logger.Error("fetch xhs content error", zap.String("url", url), zap.Error(err))
+		return nil
+	}
+	if res.StatusCode != 200 {
+		common.Logger.Error("fetch xhs content error", zap.String("url", url))
+		return nil
+	}
+	if res != nil {
+		defer res.Body.Close()
+	}
+	body, _ := io.ReadAll(res.Body)
+
+	var resObj model.EntryFetchResponseModel
+	if err := json.Unmarshal(body, &resObj); err != nil {
+		common.Logger.Error("fetch xhs content ,json decode failed, err", zap.Error(err))
+		return nil
+	}
+
+	return &resObj.Data
+
+}

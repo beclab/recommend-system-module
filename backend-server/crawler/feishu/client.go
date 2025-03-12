@@ -28,7 +28,7 @@ func FeishuByheadless(websiteURL string) string {
 	)
 
 	headlessSer := os.Getenv("HEADLESS_SERVER_URL")
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 
 	if headlessSer != "" {
@@ -44,10 +44,22 @@ func FeishuByheadless(websiteURL string) string {
 	//ctx, cancel := chromedp.NewContext(context.Background())
 	defer cancelCtx()
 	htmlContent := ""
-	common.Logger.Info("notion headless fetch 1 ")
+	common.Logger.Info("feishu headless fetch 1 ")
+	//var isHidden bool
 	err := chromedp.Run(allocCtx,
 		chromedp.Navigate(websiteURL),
-		chromedp.WaitVisible(`[data-block-type=page]`, chromedp.ByQuery),
+		//chromedp.WaitVisible(`div.page-block`, chromedp.ByQuery),
+		chromedp.WaitNotPresent("span.grid-column-percent", chromedp.ByQuery),
+
+		/*chromedp.Evaluate(`
+			const element = document.querySelector('span.grid-column-percent');
+			if (!element) {
+				true;
+			} else {
+				const style = window.getComputedStyle(element);
+				style.display === 'none' || style.visibility === 'hidden' || element.offsetWidth === 0 || element.offsetHeight === 0;
+			}
+		`, &isHidden),*/
 		chromedp.OuterHTML("html", &htmlContent),
 	)
 	if err != nil {

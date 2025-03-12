@@ -4,8 +4,8 @@ github.com/PuerkitoBio/goquery v1.9.1 h1:mTL6XjbJTZdpfL+Gwl5U2h1l9yEkJjhmlTeV9VP
 github.com/PuerkitoBio/goquery v1.9.1/go.mod h1:cW1n6TmIMDoORQU5IU/P1T3tGFunOeXEpGP2WHRwkbY=
 github.com/andybalholm/cascadia v1.3.2 h1:3Xi6Dw5lHF15JtdcmAHD3i1+T8plmv7BQ/nsViSLyss=
 github.com/andybalholm/cascadia v1.3.2/go.mod h1:7gtRlve5FxPPgIgX36uWBX58OdBsSS6lUvCFb+h7KvU=
-github.com/beclab/article-extractor v0.0.36 h1:zTbOO/aGeoPocDxwo7yAGAVVemJ2AYxoAs78iTx3XAE=
-github.com/beclab/article-extractor v0.0.36/go.mod h1:mGT6FvsLc9xzccWLO02XPvpNBcejj8ZTz40u7bkCBgI=
+github.com/beclab/article-extractor v0.0.37 h1:CS0UKXeUrfiCPFGXSAD8k3NIM4Tu8n0gY72qMw3Zm+w=
+github.com/beclab/article-extractor v0.0.37/go.mod h1:mGT6FvsLc9xzccWLO02XPvpNBcejj8ZTz40u7bkCBgI=
 github.com/beclab/fs-lib v0.0.2 h1:NGsbNSt3wLweJgFW3gOBz9UyLoe4L8VTNKxIJOTgN2Y=
 github.com/beclab/fs-lib v0.0.2/go.mod h1:7MvnhYdMGnFiQBl96B1g5IGeZ0jM+p501ip2T+ZxR+I=
 github.com/chromedp/cdproto v0.0.0-20250222051814-50c6cb17f10a h1:EnkQjhmp/MxhDB4KOTssv6xC20aQ9rhFRCfGHTsTqmE=
