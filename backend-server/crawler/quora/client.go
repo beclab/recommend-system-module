@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"bytetrade.io/web3os/backend-server/common"
+	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/cdproto/page"
 	"github.com/chromedp/chromedp"
 	"go.uber.org/zap"
@@ -77,6 +78,9 @@ func QuoraByheadless(websiteURL string) string {
 		switch ev := ev.(type) {
 		case *page.EventFrameStartedNavigating:
 			log.Printf("start navigating: URL=%s, FrameID=%s\n", ev.URL, ev.FrameID)
+			if ev.URL != websiteURL {
+				chromedp.Run(allocCtx, network.SetBlockedURLs([]string{ev.URL}))
+			}
 		}
 	})
 	err := chromedp.Run(allocCtx,
