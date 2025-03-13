@@ -2,13 +2,11 @@ package quora
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
 	"time"
 
 	"bytetrade.io/web3os/backend-server/common"
-	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/cdproto/page"
 	"github.com/chromedp/chromedp"
 	"go.uber.org/zap"
@@ -78,9 +76,6 @@ func QuoraByheadless(websiteURL string) string {
 		switch ev := ev.(type) {
 		case *page.EventFrameStartedNavigating:
 			log.Printf("start navigating: URL=%s, FrameID=%s\n", ev.URL, ev.FrameID)
-			if ev.URL != websiteURL {
-				chromedp.Run(allocCtx, network.SetBlockedURLs([]string{ev.URL}))
-			}
 		}
 	})
 	err := chromedp.Run(allocCtx,
@@ -119,10 +114,10 @@ func QuoraByheadless(websiteURL string) string {
 	}
 	common.Logger.Info("quote headless fetch end...", zap.String("url", websiteURL), zap.Int("content len", len(htmlContent)))
 
-	fileWriteErr := os.WriteFile("quota.html", []byte(htmlContent), 0644)
+	/*fileWriteErr := os.WriteFile("quota.html", []byte(htmlContent), 0644)
 	if fileWriteErr != nil {
 		fmt.Println("Error writing file:", fileWriteErr)
-	}
+	}*/
 
 	return htmlContent
 }
