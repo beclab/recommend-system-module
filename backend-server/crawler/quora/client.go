@@ -2,12 +2,10 @@ package quora
 
 import (
 	"context"
-	"log"
 	"os"
 	"time"
 
 	"bytetrade.io/web3os/backend-server/common"
-	"github.com/chromedp/cdproto/page"
 	"github.com/chromedp/chromedp"
 	"go.uber.org/zap"
 )
@@ -71,13 +69,13 @@ func QuoraByheadless(websiteURL string) string {
 	defer cancelCtx()
 	htmlContent := ""
 	common.Logger.Info("quota headless fetch 11 ")
-	//var lh, nh int64
-	chromedp.ListenTarget(allocCtx, func(ev interface{}) {
+	var lh, nh int64
+	/*chromedp.ListenTarget(allocCtx, func(ev interface{}) {
 		switch ev := ev.(type) {
 		case *page.EventFrameStartedNavigating:
 			log.Printf("start navigating: URL=%s, FrameID=%s\n", ev.URL, ev.FrameID)
 		}
-	})
+	})*/
 	err := chromedp.Run(allocCtx,
 		/*chromedp.ActionFunc(func(ctx context.Context) error {
 			for _, cookie := range cookies {
@@ -90,7 +88,7 @@ func QuoraByheadless(websiteURL string) string {
 		chromedp.Navigate(websiteURL),
 		chromedp.Sleep(2*time.Second),
 		//chromedp.Evaluate(`window.scrollTo(0, document.body.scrollHeight);`, nil),
-		/*chromedp.Evaluate(`document.body.scrollHeight`, &lh),
+		chromedp.Evaluate(`document.body.scrollHeight`, &lh),
 		chromedp.ActionFunc(func(ctx context.Context) error {
 			for {
 				if err := chromedp.Evaluate(`window.scrollTo(0, document.body.scrollHeight);`, nil).Do(ctx); err != nil {
@@ -106,7 +104,7 @@ func QuoraByheadless(websiteURL string) string {
 				lh = nh
 			}
 			return nil
-		}),*/
+		}),
 		chromedp.OuterHTML("html", &htmlContent),
 	)
 	if err != nil {
