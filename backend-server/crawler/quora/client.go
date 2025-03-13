@@ -2,6 +2,7 @@ package quora
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"time"
 
@@ -16,13 +17,14 @@ func QuoraByheadless(websiteURL string) string {
 	allocOpts := chromedp.DefaultExecAllocatorOptions[:]
 	allocOpts = append(allocOpts,
 		chromedp.DisableGPU,
+		chromedp.Flag("enable-logging", true),
 		chromedp.Flag("blink-settings", "imagesEnabled=false"),
 		chromedp.Flag("no-first-run", true),
-		//chromedp.Flag("headless", true),
+		chromedp.Flag("headless", true),
 		chromedp.Flag("disable-gpu", true),
 		chromedp.Flag("ignore-certificate-errors", true),
 		chromedp.UserAgent(`Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.55 Safari/537.36`),
-		//chromedp.Flag("accept-language", `zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7,zh-TW;q=0.6`),
+		chromedp.Flag("accept-language", `zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7,zh-TW;q=0.6`),
 	)
 
 	headlessSer := os.Getenv("HEADLESS_SERVER_URL")
@@ -67,7 +69,7 @@ func QuoraByheadless(websiteURL string) string {
 	//ctx, cancel := chromedp.NewContext(context.Background())
 	defer cancelCtx()
 	htmlContent := ""
-	common.Logger.Info("quota headless fetch 1 ")
+	common.Logger.Info("quota headless fetch 11 ")
 	//var lh, nh int64
 	err := chromedp.Run(allocCtx,
 		/*chromedp.ActionFunc(func(ctx context.Context) error {
@@ -105,10 +107,10 @@ func QuoraByheadless(websiteURL string) string {
 	}
 	common.Logger.Info("quote headless fetch end...", zap.String("url", websiteURL), zap.Int("content len", len(htmlContent)))
 
-	/*fileWriteErr := os.WriteFile("quota.html", []byte(htmlContent), 0644)
+	fileWriteErr := os.WriteFile("quota.html", []byte(htmlContent), 0644)
 	if fileWriteErr != nil {
 		fmt.Println("Error writing file:", fileWriteErr)
-	}*/
+	}
 
 	return htmlContent
 }
