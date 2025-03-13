@@ -3,10 +3,12 @@ package quora
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"time"
 
 	"bytetrade.io/web3os/backend-server/common"
+	"github.com/chromedp/cdproto/page"
 	"github.com/chromedp/chromedp"
 	"go.uber.org/zap"
 )
@@ -71,6 +73,12 @@ func QuoraByheadless(websiteURL string) string {
 	htmlContent := ""
 	common.Logger.Info("quota headless fetch 11 ")
 	//var lh, nh int64
+	chromedp.ListenTarget(allocCtx, func(ev interface{}) {
+		switch ev := ev.(type) {
+		case *page.EventFrameStartedNavigating:
+			log.Printf("start navigating: URL=%s, FrameID=%s\n", ev.URL, ev.FrameID)
+		}
+	})
 	err := chromedp.Run(allocCtx,
 		/*chromedp.ActionFunc(func(ctx context.Context) error {
 			for _, cookie := range cookies {
