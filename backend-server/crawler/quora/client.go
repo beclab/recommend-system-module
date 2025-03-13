@@ -67,8 +67,8 @@ func QuoraByheadless(websiteURL string) string {
 	//ctx, cancel := chromedp.NewContext(context.Background())
 	defer cancelCtx()
 	htmlContent := ""
-	common.Logger.Info("notion headless fetch 1 ")
-	var lh, nh int64
+	common.Logger.Info("quota headless fetch 1 ")
+	//var lh, nh int64
 	err := chromedp.Run(allocCtx,
 		/*chromedp.ActionFunc(func(ctx context.Context) error {
 			for _, cookie := range cookies {
@@ -79,7 +79,9 @@ func QuoraByheadless(websiteURL string) string {
 			return nil
 		}),*/
 		chromedp.Navigate(websiteURL),
-		chromedp.Evaluate(`document.body.scrollHeight`, &lh),
+		chromedp.Sleep(2*time.Second),
+		//chromedp.Evaluate(`window.scrollTo(0, document.body.scrollHeight);`, nil),
+		/*chromedp.Evaluate(`document.body.scrollHeight`, &lh),
 		chromedp.ActionFunc(func(ctx context.Context) error {
 			for {
 				if err := chromedp.Evaluate(`window.scrollTo(0, document.body.scrollHeight);`, nil).Do(ctx); err != nil {
@@ -95,15 +97,15 @@ func QuoraByheadless(websiteURL string) string {
 				lh = nh
 			}
 			return nil
-		}),
+		}),*/
 		chromedp.OuterHTML("html", &htmlContent),
 	)
 	if err != nil {
-		common.Logger.Error("threads headless fetch error", zap.String("url", websiteURL), zap.Error(err))
+		common.Logger.Error("quote headless fetch error", zap.String("url", websiteURL), zap.Error(err))
 	}
-	common.Logger.Info("threads headless fetch end...", zap.Int("content len", len(htmlContent)))
+	common.Logger.Info("quote headless fetch end...", zap.String("url", websiteURL), zap.Int("content len", len(htmlContent)))
 
-	/*fileWriteErr := os.WriteFile("quota.txt", []byte(htmlContent), 0644)
+	/*fileWriteErr := os.WriteFile("quota.html", []byte(htmlContent), 0644)
 	if fileWriteErr != nil {
 		fmt.Println("Error writing file:", fileWriteErr)
 	}*/
