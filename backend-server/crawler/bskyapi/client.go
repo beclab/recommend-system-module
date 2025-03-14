@@ -41,7 +41,7 @@ type ThreadPostEmbedRecordRecordValue struct {
 type ThreadPostEmbedRecordRecord struct {
 	Author ThreadPostAuthor                 `json:"author"`
 	Value  ThreadPostEmbedRecordRecordValue `json:"value"`
-	Embeds []ThreadPostMedia                `json:"embeds"`
+	Embeds []ThreadPostEmbed                `json:"embeds"`
 }
 type ThreadPostEmbedRecord struct {
 	EmbedRecordRecord ThreadPostEmbedRecordRecord `json:"record"`
@@ -111,18 +111,6 @@ func getEmbedContent(embed ThreadPostEmbed) string {
 	return content
 }
 
-func getPostEmbedContent(embed ThreadPostMedia) string {
-	content := ""
-	if embed.EmbedType == "app.bsky.embed.images#view" {
-		for _, image := range embed.EmbedImages {
-			content = content + "<img src='" + image.Thumb + "' /><br>"
-		}
-	} else if embed.EmbedType == "app.bsky.embed.video#view" {
-		content = content + "<video controls=''><source src='" + embed.EmbedPlaylist + "' type='application/x-mpegURL'>Your browser does not support the video tag.</video>"
-	}
-	return content
-}
-
 func getReplyContent(replies []ThreadPostReply, author string) string {
 	content := ""
 	for _, reply := range replies {
@@ -160,7 +148,7 @@ func generateEntry(resp *Response) *model.Entry {
 	if len(resp.Thread.Post.Embed.EmbedRecord.EmbedRecordRecord.Embeds) > 0 {
 		quoteContent := resp.Thread.Post.Embed.EmbedRecord.EmbedRecordRecord.Author.Name + "<br>" + strings.ReplaceAll(resp.Thread.Post.Embed.EmbedRecord.EmbedRecordRecord.Value.Text, "\n", "<br>") + "<br>"
 		for _, quoteEmbed := range resp.Thread.Post.Embed.EmbedRecord.EmbedRecordRecord.Embeds {
-			quoteContent = quoteContent + getPostEmbedContent(quoteEmbed) + "<br>"
+			quoteContent = quoteContent + getEmbedContent(quoteEmbed) + "<br>"
 		}
 		entry.FullContent = entry.FullContent + "<div class='bskyQuoteClass' style='padding-left: 10ch;'>" + quoteContent + "</div>"
 	}
