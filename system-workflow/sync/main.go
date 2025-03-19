@@ -592,21 +592,26 @@ func doSyncTask() {
 	common.Logger.Info("package sync  end")
 }
 
-func main1() {
-	common.Logger.Info("crawler task start 10...")
-	doSyncTask()
-	common.Logger.Info("crawler task end...")
+func main() {
+	//common.Logger.Info("crawler task start 10...")
+	//doSyncTask()
+	//common.Logger.Info("crawler task end...")
+	common.K8sTest()
+	c := cron.New(cron.WithChain(cron.SkipIfStillRunning(cron.DefaultLogger)))
+	argoCheckCr := "@every 1m"
+	c.AddFunc(argoCheckCr, func() {
+		common.Logger.Info("do task  ...")
+		common.K8sTest()
+	})
 }
 
-func main() {
+func main1() {
 	common.Logger.Info("sync task start 10...")
-	common.K8sTest()
 	//c := cron.New()
 	c := cron.New(cron.WithChain(cron.SkipIfStillRunning(cron.DefaultLogger)))
 	argoCheckCr := "@every " + common.GeSyncFrequency() + "m"
 	c.AddFunc(argoCheckCr, func() {
 		common.Logger.Info("do crawler task  ...")
-		common.K8sTest()
 		doSyncTask()
 	})
 	c.Start()
