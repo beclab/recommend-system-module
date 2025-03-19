@@ -599,7 +599,7 @@ func main1() {
 }
 
 func main() {
-	common.Logger.Info("crawler task start 10...")
+	common.Logger.Info("sync task start 10...")
 	common.K8sTest()
 	//c := cron.New()
 	c := cron.New(cron.WithChain(cron.SkipIfStillRunning(cron.DefaultLogger)))

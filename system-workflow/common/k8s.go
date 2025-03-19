@@ -6,6 +6,7 @@ import (
 
 	"sync"
 
+	"go.uber.org/zap"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -32,18 +33,19 @@ func GetClientSet() (*kubernetes.Clientset, *rest.Config) {
 func K8sTest() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
+	Logger.Info("K8sTest start")
 	namespaces, err := k8sClient.CoreV1().Namespaces().List(ctx, metav1.ListOptions{})
 	if err != nil {
 		klog.Errorln("Failed to list namespaces: ", err)
 	}
-
+	Logger.Info("userspace", zap.Int(" len:", len(namespaces.Items)))
 	for _, ns := range namespaces.Items {
 		_, err := k8sClient.AppsV1().StatefulSets(ns.Name).List(ctx, metav1.ListOptions{})
 		if err != nil {
 			klog.Errorf("Failed to list StatefulSets in namespace %s: %v", ns.Name, err)
 			continue
 		}
-		klog.Infoln("userspace: ", ns.Name, "bfl_name: ", ns.Name[len("user-space-"):], "at time: ", time.Now().Format(time.RFC3339))
+		Logger.Info("userspace: ", zap.String("ns name:", ns.Name), zap.String("bfl_name:", ns.Name[len("user-space-"):]))
 
 	}
 
