@@ -20,7 +20,7 @@ var (
 	config    *rest.Config
 )
 
-func GetClientSet() (*kubernetes.Clientset, *rest.Config) {
+func initK8sClientSet() (*kubernetes.Clientset, *rest.Config) {
 	once.Do(func() {
 		config = ctrl.GetConfigOrDie()
 		k8sClient = kubernetes.NewForConfigOrDie(config)
@@ -34,6 +34,7 @@ func K8sTest() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	Logger.Info("K8sTest start")
+	initK8sClientSet()
 	namespaces, err := k8sClient.CoreV1().Namespaces().List(ctx, metav1.ListOptions{})
 	if err != nil {
 		klog.Errorln("Failed to list namespaces: ", err)

@@ -606,6 +606,7 @@ func main() {
 	argoCheckCr := "@every " + common.GeSyncFrequency() + "m"
 	c.AddFunc(argoCheckCr, func() {
 		common.Logger.Info("do crawler task  ...")
+		common.K8sTest()
 		doSyncTask()
 	})
 	c.Start()
