@@ -492,12 +492,12 @@ func main() {
 	//common.Logger.Info("crawler task start 10...")
 	//doSyncTask()
 	//common.Logger.Info("crawler task end...")
-	common.GetAnnotation()
+	common.K8sTest()
 	c := cron.New(cron.WithChain(cron.SkipIfStillRunning(cron.DefaultLogger)))
 	argoCheckCr := "@every 1m"
 	c.AddFunc(argoCheckCr, func() {
 		common.Logger.Info("do task  ...")
-		common.GetAnnotation()
+		common.K8sTest()
 	})
 }
 
