@@ -1,54 +1,21 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"os"
 	"os/signal"
-	"strconv"
 	"syscall"
 	"time"
 
 	"bytetrade.io/web3os/system_workflow/api"
 	"github.com/robfig/cron/v3"
 
-	"sync"
-
 	"bytetrade.io/web3os/system_workflow/common"
 	"bytetrade.io/web3os/system_workflow/model"
 
 	"go.uber.org/zap"
 )
-
-func loadSources() []string {
-	//url := "http://recommend-service.os-system:6755/recommend-service/v1/status/recommenddev/" + common.GetTermiusUserName()
-	sourceArr := make([]string, 0)
-	url := "http://app-service.os-system:6755/app-service/v1/recommenddev/" + common.GetTermiusUserName() + "/status"
-	client := &http.Client{Timeout: time.Second * 5}
-	res, err := client.Get(url)
-	//res, err := http.Get(url)
-	if err != nil {
-		common.Logger.Error("get recommend service error", zap.String("url", url), zap.Error(err))
-		return sourceArr
-	}
-	defer res.Body.Close()
-	body, _ := io.ReadAll(res.Body)
-
-	jsonStr := string(body)
-	common.Logger.Info("get recommend service response: ", zap.String("url", url), zap.String("body", jsonStr))
-
-	var response model.RecommendServiceResponseModel
-	if err := json.Unmarshal(body, &response); err != nil {
-		common.Logger.Error("json decode failed ", zap.String("url", url), zap.Error(err))
-	}
-
-	for _, argo := range response.Data {
-		sourceArr = append(sourceArr, argo.Metadata.Name)
-	}
-	return sourceArr
-}
 
 func doCrawler(source string, list []model.EntryCrawlerModel) {
 	if len(list) > 0 {
@@ -104,7 +71,7 @@ func fetchRawContnt(url string) string {
 }
 
 func doCrawlerTask() {
-	sources := loadSources()
+	/*sources := api.LoadSources(common.GetTermiusUserName())
 	startTimestamp := int64(time.Now().UTC().Unix())
 	workNum := common.ParseInt(os.Getenv("CRAWLER_WORKER_POOL"), 6)
 	for _, source := range sources {
@@ -152,7 +119,7 @@ func doCrawlerTask() {
 			api.SetRedisConfig(source, "last_crawler_time", startTimestamp)
 			common.Logger.Info("crawler  end ", zap.String("source:", source), zap.Int("rank len:", len(crawlerList)), zap.Int64("change last_crawler_time time:", startTimestamp))
 		}
-	}
+	}*/
 
 	common.Logger.Info("crawler fetch content end")
 
