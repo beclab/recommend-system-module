@@ -59,11 +59,12 @@ func (h *handler) newFetchContent(entry *model.Entry) string {
 
 	updateEntry := &model.Entry{ID: entry.ID, URL: entry.URL, ImageUrl: entry.ImageUrl, PublishedAt: entry.PublishedAt, Title: entry.Title, Language: entry.Language, Author: entry.Author, RawContent: entry.RawContent, FullContent: entry.FullContent}
 	//h.store.UpdateEntryContent(updateDocIDEntry)
-	knowledge.UpdateLibraryEntryContent(updateEntry)
-
 	if entry.MediaContent != "" || entry.MediaUrl != "" {
 		knowledge.NewEnclosure(entry, nil, h.store)
+		entry.Attachment = true
 	}
+	knowledge.UpdateLibraryEntryContent(updateEntry)
+
 	return entry.FullContent
 }
 

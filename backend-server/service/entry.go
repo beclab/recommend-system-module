@@ -24,6 +24,9 @@ func ProcessFeedEntries(store *storage.Storage, feed *model.Feed, entries model.
 			}
 
 			if entry.FullContent != "" || entry.MediaUrl != "" {
+				if entry.MediaUrl != "" {
+					entry.Attachment = true
+				}
 				newEntries = append(newEntries, entry)
 				if len(newEntries) > 20 {
 					knowledge.SaveFeedEntries(store, newEntries, feed)
