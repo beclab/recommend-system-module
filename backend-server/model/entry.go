@@ -22,20 +22,20 @@ type Entry struct {
 	//PureContent string             `bson:"pure_content"`
 	FullContent string `json:"full_content"`
 	//DocId       string   `json:"doc_id"`
-	Author       string `json:"author"`
-	ImageUrl     string `json:"image_url"`
-	Readlater    bool   `json:"readlater"`
-	Crawler      bool   `json:"crawler"`
-	Starred      bool   `json:"starred"`
-	Disabled     bool   `json:"disabled"`
-	Saved        bool   `json:"saved"`
-	Unread       bool   `json:"unread"`
-	Language     string `json:"language"`
-	MediaContent string `json:"media_content"`
-	MediaUrl     string `json:"media_url"`
-	MediaType    string `json:"media_type"`
-
-	Sources []string `json:"sources"`
+	Author       string   `json:"author"`
+	ImageUrl     string   `json:"image_url"`
+	Readlater    bool     `json:"readlater"`
+	Crawler      bool     `json:"crawler"`
+	Starred      bool     `json:"starred"`
+	Disabled     bool     `json:"disabled"`
+	Saved        bool     `json:"saved"`
+	Unread       bool     `json:"unread"`
+	Language     string   `json:"language"`
+	MediaContent string   `json:"media_content"`
+	MediaUrl     string   `json:"media_url"`
+	MediaType    string   `json:"media_type"`
+	Attachment   bool     `json:"attachment"`
+	Sources      []string `json:"sources"`
 }
 
 type EntryAddModel struct {
@@ -55,6 +55,7 @@ type EntryAddModel struct {
 	Extract     bool   `json:"extract,omitempty"`
 	Readlater   bool   `json:"readlater,omitempty"`
 	Language    string `json:"language,omitempty"`
+	Attachment  bool   `json:"attachment,omitempty"`
 	Source      string `json:"source"`
 }
 

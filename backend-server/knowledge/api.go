@@ -149,6 +149,7 @@ func UpdateLibraryEntryContent(entry *model.Entry) {
 	updateEntry.FullContent = entry.FullContent
 	updateEntry.Crawler = true
 	updateEntry.Extract = true
+	updateEntry.Attachment = entry.Attachment
 	updateList = append(updateList, &updateEntry)
 	jsonByte, _ := json.Marshal(updateList)
 	url := common.EntryMonogoUpdateApiUrl()
