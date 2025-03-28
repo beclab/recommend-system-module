@@ -169,8 +169,8 @@ func UpdateLibraryEntryContent(entry *model.Entry) {
 
 }
 
-func LoadMetaFromYtdlp(entryUrl string) *model.Entry {
-	url := common.YTDLPApiUrl() + "?url=" + entryUrl
+func LoadMetaFromYtdlp(bflName, entryUrl string) *model.Entry {
+	url := common.YTDLPApiUrl() + "?url=" + entryUrl + "&blf_name=" + bflName
 	client := &http.Client{Timeout: time.Second * 50}
 	res, err := client.Get(url)
 	if err != nil {

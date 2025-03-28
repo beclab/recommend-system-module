@@ -13,7 +13,7 @@ import (
 
 func (s *Storage) GetEntryById(entryID string) (*model.Entry, error) {
 	var entry model.Entry
-	query := `SELECT id, feed, title, url,full_content,author,sources 
+	query := `SELECT id, feed, title, url,full_content,author,sources,bfl_name 
 			  FROM entries WHERE id=$1`
 	err := s.db.QueryRow(query, entryID).Scan(&entry.ID,
 		&entry.FeedID,
@@ -22,6 +22,7 @@ func (s *Storage) GetEntryById(entryID string) (*model.Entry, error) {
 		&entry.FullContent,
 		&entry.Author,
 		pq.Array(&entry.Sources),
+		&entry.BflName,
 	)
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -34,7 +35,7 @@ func (s *Storage) GetEntryById(entryID string) (*model.Entry, error) {
 }
 func (s *Storage) GetEntryByUrl(feedID, url string) *model.Entry {
 	var entry model.Entry
-	query := `SELECT id, feed, title, url,full_content,author,sources 
+	query := `SELECT id, feed, title, url,full_content,author,sources,bfl_name 
 			  FROM entries WHERE feed=$1 and url=$2`
 	err := s.db.QueryRow(query, feedID, url).Scan(&entry.ID,
 		&entry.FeedID,
@@ -43,6 +44,7 @@ func (s *Storage) GetEntryByUrl(feedID, url string) *model.Entry {
 		&entry.FullContent,
 		&entry.Author,
 		pq.Array(&entry.Sources),
+		&entry.BflName,
 	)
 	if err == sql.ErrNoRows {
 		return nil

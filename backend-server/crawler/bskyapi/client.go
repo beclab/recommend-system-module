@@ -82,8 +82,8 @@ type Response struct {
 	Thread Thread `json:"thread"`
 }
 
-func Fetch(websiteURL string) *model.Entry {
-	resp := fetchPage(websiteURL)
+func Fetch(bflName, websiteURL string) *model.Entry {
+	resp := fetchPage(bflName, websiteURL)
 	if resp != nil {
 		return generateEntry(resp)
 	}
@@ -174,7 +174,7 @@ func generateEntry(resp *Response) *model.Entry {
 	return entry
 
 }
-func fetchPage(websiteURL string) *Response {
+func fetchPage(bflName, websiteURL string) *Response {
 	//https://bsky.app/profile/plantepigenetics.ch/post/3ljfvtgf63c24 转换成
 	//https://public.api.bsky.app/xrpc/app.bsky.feed.getPostThread?uri=at://plantepigenetics.ch/app.bsky.feed.post/3ljfvtgf63c24&depth=10
 	parsedURL, err := url.Parse(websiteURL)
@@ -197,6 +197,7 @@ func fetchPage(websiteURL string) *Response {
 	fetchUrl := fmt.Sprintf("https://public.api.bsky.app/xrpc/app.bsky.feed.getPostThread?uri=%s&depth=10", encodedURI)
 	common.Logger.Info("bsky fetch ", zap.String("url", fetchUrl))
 	clt := client.NewClientWithConfig(fetchUrl)
+	clt.WithBflName(bflName)
 	clt.WithUserAgent(userAgent)
 
 	response, err := clt.Get()
