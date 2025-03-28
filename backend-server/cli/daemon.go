@@ -4,13 +4,11 @@ import (
 	"context"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
 	"time"
 
 	"bytetrade.io/web3os/backend-server/common"
 	"bytetrade.io/web3os/backend-server/scheduler"
-	"bytetrade.io/web3os/backend-server/service"
 	"bytetrade.io/web3os/backend-server/worker"
 
 	"bytetrade.io/web3os/backend-server/storage"
@@ -32,14 +30,14 @@ func StartDaemon(store *storage.Storage) {
 
 	httpServer := HttpdServe(store, pool)
 
-	watchDirStr := common.GetWatchDir()
+	/*watchDirStr := common.GetWatchDir()
 	watchDirs := strings.Split(watchDirStr, ",")
 	for i, dir := range watchDirs {
 		watchDirs[i] = strings.TrimSpace(dir)
 	}
 	if len(watchDirs) > 0 {
 		service.WatchPath(store, watchDirs)
-	}
+	}*/
 
 	<-stop
 	common.Logger.Info("Shutting down the process...")

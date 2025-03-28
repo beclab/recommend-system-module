@@ -35,6 +35,7 @@ type Entry struct {
 	MediaUrl     string   `json:"media_url"`
 	MediaType    string   `json:"media_type"`
 	BflName      string   `json:"bfl_name"`
+	Attachment   bool     `json:"attachment"`
 	Sources      []string `json:"sources"`
 }
 
@@ -55,6 +56,7 @@ type EntryAddModel struct {
 	Extract     bool   `json:"extract,omitempty"`
 	Readlater   bool   `json:"readlater,omitempty"`
 	Language    string `json:"language,omitempty"`
+	Attachment  bool   `json:"attachment,omitempty"`
 	Source      string `json:"source"`
 }
 

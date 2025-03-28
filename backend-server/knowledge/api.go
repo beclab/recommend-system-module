@@ -136,7 +136,7 @@ func UpdateFeedEntries(store *storage.Storage, entries model.Entries, feed *mode
 	doReq(addList, entries, feed, store, false)
 }
 
-func UpdateLibraryEntryContent(entry *model.Entry) {
+func UpdateLibraryEntryContent(entry *model.Entry, isVideo bool) {
 	updateList := make([]*model.EntryAddModel, 0)
 	var updateEntry model.EntryAddModel
 	updateEntry.Url = entry.URL
@@ -147,8 +147,11 @@ func UpdateLibraryEntryContent(entry *model.Entry) {
 	updateEntry.Language = entry.Language
 	updateEntry.RawContent = entry.RawContent
 	updateEntry.FullContent = entry.FullContent
-	updateEntry.Crawler = true
-	updateEntry.Extract = true
+	if isVideo == false {
+		updateEntry.Crawler = true
+		updateEntry.Extract = true
+		updateEntry.Attachment = entry.Attachment
+	}
 	updateList = append(updateList, &updateEntry)
 	jsonByte, _ := json.Marshal(updateList)
 	url := common.EntryMonogoUpdateApiUrl()
