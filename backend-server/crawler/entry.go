@@ -88,7 +88,7 @@ func EntryCrawler(entry *model.Entry, feedUrl, userAgent, cookie string, certifi
 	}
 
 	if primaryDomain == "bsky.app" {
-		bskyEntry := bskyapi.Fetch(entry.BflName, entry.URL)
+		bskyEntry := bskyapi.Fetch(entry.BflUser, entry.URL)
 		if bskyEntry != nil {
 			entry.FullContent = bskyEntry.FullContent
 			entry.Author = bskyEntry.Author
@@ -113,7 +113,7 @@ func EntryCrawler(entry *model.Entry, feedUrl, userAgent, cookie string, certifi
 		return
 	}
 	entry.RawContent = FetchRawContnt(
-		entry.BflName,
+		entry.BflUser,
 		entry.URL,
 		entry.Title,
 		userAgent,
@@ -146,7 +146,7 @@ func EntryCrawler(entry *model.Entry, feedUrl, userAgent, cookie string, certifi
 			}
 		}
 		if isMetaFromYtdlp(entry.URL) {
-			metaEntry := knowledge.LoadMetaFromYtdlp(entry.BflName, entry.URL)
+			metaEntry := knowledge.LoadMetaFromYtdlp(entry.BflUser, entry.URL)
 			if metaEntry != nil {
 				if metaEntry.Author != "" {
 					entry.Author = metaEntry.Author
@@ -249,7 +249,7 @@ func wolaiFetchByApi(websiteURL string) string {
 	return ""
 }
 
-func FetchRawContnt(bflName, websiteURL, title, userAgent string, cookie string, allowSelfSignedCertificates, useProxy bool) string {
+func FetchRawContnt(bflUser, websiteURL, title, userAgent string, cookie string, allowSelfSignedCertificates, useProxy bool) string {
 	urlDomain := domain(websiteURL)
 	common.Logger.Info("fatch raw contnet", zap.String("domain", websiteURL))
 	if strings.Contains(urlDomain, "notion.site") {
@@ -267,7 +267,7 @@ func FetchRawContnt(bflName, websiteURL, title, userAgent string, cookie string,
 	}
 
 	clt := client.NewClientWithConfig(websiteURL)
-	clt.WithBflName(bflName)
+	clt.WithBflUser(bflUser)
 	clt.WithUserAgent(userAgent)
 	clt.WithCookie(cookie)
 	if useProxy {

@@ -20,7 +20,7 @@ func (s *Storage) GetFeedById(feedID string) (*model.Feed, error) {
 	var feed model.Feed
 	query := `SELECT id, feed_url, site_url, title,etag_header,last_modified_header,checked_at,parsing_error_count,
 				parsing_error_message,user_agent,cookie,username,password,ignore_http_cache,allow_self_signed_certificates,fetch_via_proxy,
-				icon_type,icon_content,auto_download,bfl_name
+				icon_type,icon_content,auto_download,bfl_user
 			  FROM feeds WHERE id=$1`
 	err := s.db.QueryRow(query, feedID).Scan(&feed.ID,
 		&feed.FeedURL,
@@ -41,7 +41,7 @@ func (s *Storage) GetFeedById(feedID string) (*model.Feed, error) {
 		&feed.IconMimeType,
 		&feed.IconContent,
 		&feed.AutoDownload,
-		&feed.BflName,
+		&feed.BflUser,
 	)
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -55,16 +55,16 @@ func (s *Storage) GetFeedById(feedID string) (*model.Feed, error) {
 
 func (s *Storage) FeedToUpdateList(batchSize int) (jobs model.JobList, err error) {
 	errorLimit := common.GetPollingParsingErrorLimit()
-	bflNameQuery := "select DISTINCT(bfl_user) bfl_user from feeds"
-	nameRows, nameErr := s.db.Query(bflNameQuery)
+	bflUserQuery := "select DISTINCT(bfl_user) bfl_user from feeds"
+	nameRows, nameErr := s.db.Query(bflUserQuery)
 	if nameErr != nil {
 		return nil, fmt.Errorf(`store: unable to fetch batch of jobs: %v`, err)
 	}
 	defer nameRows.Close()
 	for nameRows.Next() {
-		var bflName string
-		if err := nameRows.Scan(&bflName); err != nil {
-			return nil, fmt.Errorf(`store: unable to fetch bflName: %v`, err)
+		var bflUser string
+		if err := nameRows.Scan(&bflUser); err != nil {
+			return nil, fmt.Errorf(`store: unable to fetch bflUser: %v`, err)
 		}
 		query := `
 			SELECT
@@ -76,7 +76,7 @@ func (s *Storage) FeedToUpdateList(batchSize int) (jobs model.JobList, err error
 				CASE WHEN $2 > 0 THEN parsing_error_count < $3 ELSE parsing_error_count >= 0 END
 			ORDER BY checked_at ASC LIMIT $2
 		`
-		rows, err := s.db.Query(query, bflName, errorLimit, batchSize)
+		rows, err := s.db.Query(query, bflUser, errorLimit, batchSize)
 		if err != nil {
 			return nil, fmt.Errorf(`store: unable to fetch batch of jobs: %v`, err)
 		}

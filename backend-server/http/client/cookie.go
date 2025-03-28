@@ -55,17 +55,17 @@ func CheckCookRequired(host string) bool {
 	return false
 }
 
-func LoadCookieInfoManager(bflName, domain, primaryDomain string) []model.SettingDomainRespModel {
+func LoadCookieInfoManager(bflUser, domain, primaryDomain string) []model.SettingDomainRespModel {
 	initDomain := domain
 	cookieList := make([]model.SettingDomainRespModel, 0)
 	for {
 		if initDomain == domain {
-			list := LoadCookieInfo(bflName, domain)
+			list := LoadCookieInfo(bflUser, domain)
 			if len(list) > 0 {
 				cookieList = append(cookieList, list...)
 			}
 		}
-		list := LoadCookieInfo(bflName, "."+domain)
+		list := LoadCookieInfo(bflUser, "."+domain)
 		if len(list) > 0 {
 			cookieList = append(cookieList, list...)
 		}
@@ -80,13 +80,13 @@ func LoadCookieInfoManager(bflName, domain, primaryDomain string) []model.Settin
 	}
 	return cookieList
 }
-func LoadCookieInfo(bflName string, host string) []model.SettingDomainRespModel {
+func LoadCookieInfo(bflUser string, host string) []model.SettingDomainRespModel {
 	reqData := model.SettingReqModel{Domain: host}
 	reqJsonByte, err := json.Marshal(reqData)
 	if err != nil {
 		common.Logger.Error("add cookie json marshal  fail", zap.Error(err))
 	}
-	settingUrl := "http://system-server.user-system-" + bflName + "/legacy/v1alpha1/service.settings/v1/api/cookie/retrieve"
+	settingUrl := "http://system-server.user-system-" + bflUser + "/legacy/v1alpha1/service.settings/v1/api/cookie/retrieve"
 	common.Logger.Info("start load cookie info ", zap.String("host", host))
 	request, _ := http.NewRequest("POST", settingUrl, bytes.NewBuffer(reqJsonByte))
 	request.Header.Set("Content-Type", "application/json")

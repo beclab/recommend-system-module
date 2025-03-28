@@ -34,7 +34,7 @@ type Entry struct {
 	MediaContent string   `json:"media_content"`
 	MediaUrl     string   `json:"media_url"`
 	MediaType    string   `json:"media_type"`
-	BflName      string   `json:"bfl_name"`
+	BflUser      string   `json:"bfl_user"`
 	Attachment   bool     `json:"attachment"`
 	Sources      []string `json:"sources"`
 }
