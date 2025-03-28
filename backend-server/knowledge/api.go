@@ -199,8 +199,8 @@ func LoadMetaFromYtdlp(bflUser, entryUrl string) *model.Entry {
 
 }
 
-func FetchTwitterContent(twitterID, url string) *model.Entry {
-	apiUrl := common.DownloadApiUrl() + "/twitter/fetch-content?twitter_id=" + twitterID + "&url=" + url
+func FetchTwitterContent(bfl_user, twitterID, url string) *model.Entry {
+	apiUrl := common.DownloadApiUrl() + "/twitter/fetch-content?twitter_id=" + twitterID + "&url=" + url + "&bfl_user=" + bfl_user
 	client := &http.Client{Timeout: time.Second * 120}
 	res, err := client.Get(apiUrl)
 	if err != nil {

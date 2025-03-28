@@ -56,7 +56,7 @@ func EntryCrawler(entry *model.Entry, feedUrl, userAgent, cookie string, certifi
 			twitterID = strings.TrimSpace(parts[1])
 		}
 		fmt.Println("twitter ID:", twitterID)
-		twitterEntry := knowledge.FetchTwitterContent(twitterID, entry.URL)
+		twitterEntry := knowledge.FetchTwitterContent(entry.BflUser, twitterID, entry.URL)
 		if twitterEntry != nil {
 			entry.FullContent = twitterEntry.FullContent
 			entry.MediaContent = twitterEntry.MediaContent
