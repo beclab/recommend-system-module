@@ -7,5 +7,6 @@ type SyncProvider struct {
 	FeedUrl       string `json:"feed_url"`
 	EntrySyncDate int    `json:"entry_sync_date"`
 	EntryUrl      string `json:"entry_url"`
+	BflUsers      []string
 }
 type SyncProviders []*SyncProvider

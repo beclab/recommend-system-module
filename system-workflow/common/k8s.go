@@ -51,13 +51,12 @@ func K8sTest() {
 	}
 }
 
-func GetAnnotation() (string, error) {
+func GetPvcAnnotation(bflUser string) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	Logger.Info("K8sTest start")
 	initK8sClientSet()
 	key := "userspace_pvc"
-	bflUser := "mmchong2021"
 	namespace := "user-space-" + bflUser
 
 	bfl, err := k8sClient.AppsV1().StatefulSets(namespace).Get(ctx, "bfl", metav1.GetOptions{})
@@ -74,23 +73,25 @@ func GetAnnotation() (string, error) {
 func GetUserList() []string {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	Logger.Info("K8sTest start")
+	Logger.Info("K8s get userlist start")
 	initK8sClientSet()
 	namespaces, err := k8sClient.CoreV1().Namespaces().List(ctx, metav1.ListOptions{})
 	if err != nil {
 		klog.Errorln("Failed to list namespaces: ", err)
 	}
 	Logger.Info("userspace", zap.Int(" len:", len(namespaces.Items)))
+	userList := make([]string, 3)
 	for _, ns := range namespaces.Items {
 		_, err := k8sClient.AppsV1().StatefulSets(ns.Name).List(ctx, metav1.ListOptions{})
 		if err != nil {
 			klog.Errorf("Failed to list StatefulSets in namespace %s: %v", ns.Name, err)
 			continue
 		}
-		Logger.Info("userspace: ", zap.String("ns name:", ns.Name), zap.String("bfl_user:", ns.Name[len("user-space-"):]))
+		user := ns.Name[len("user-space-"):]
+		userList = append(userList, user)
+		Logger.Info("userspace: ", zap.String("ns name:", ns.Name), zap.String("bfl_user:", user))
 
 	}
-	userList := make([]string, 3)
 
 	return userList
 }

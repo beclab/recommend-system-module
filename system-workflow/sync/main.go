@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -27,25 +26,33 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func addFeedInMongo(source string, feedMap map[string]*protobuf_entity.Feed) {
+func addFeedInMongo(bflUserList []string, source string, feedMap map[string]*protobuf_entity.Feed) {
 	addList := make([]*model.FeedAddModel, 0)
 	for _, currentFeed := range feedMap {
 		reqModel := model.GetFeedAddModel(currentFeed)
 		addList = append(addList, reqModel)
 		if len(addList) >= 100 {
-			api.AddFeedInMongo(source, addList)
+			for _, bflUser := range bflUserList {
+				api.AddFeedInKnowledge(bflUser, source, addList)
+			}
+
 			addList = make([]*model.FeedAddModel, 0)
 		}
 	}
-	api.AddFeedInMongo(source, addList)
+	for _, bflUser := range bflUserList {
+		api.AddFeedInKnowledge(bflUser, source, addList)
+	}
 }
 
-func delFeedInMongo(source string, feedMap map[string]*protobuf_entity.Feed) {
+func delFeedInMongo(bflUserList []string, source string, feedMap map[string]*protobuf_entity.Feed) {
 	delList := make([]string, 0)
 	for feedUrl := range feedMap {
 		delList = append(delList, feedUrl)
 	}
-	api.DelFeedInMongo(source, delList)
+	for _, bflUser := range bflUserList {
+		api.DelFeedInKnowledge(bflUser, source, delList)
+	}
+
 }
 
 func syncFeedDownloadPackage(packageUrl string, whetherAll bool) (*protobuf_entity.FeedAllPackage, *protobuf_entity.FeedIncremntPackage) {
@@ -136,7 +143,7 @@ func syncFeedGetPackage(feedUrl string, whetherAll bool) ([]*protobuf_entity.Fee
 
 }
 
-func handleFullSync(provider model.AlgoSyncProviderResponseModel, source string) {
+func handleFullSync(bflUserList []string, provider model.AlgoSyncProviderResponseModel, source string) {
 	allPackageURL := fmt.Sprintf("%s&package_type=all", provider.FeedProvider.Url)
 	allPackages, _, packageTime := syncFeedGetPackage(allPackageURL, true)
 
@@ -144,7 +151,7 @@ func handleFullSync(provider model.AlgoSyncProviderResponseModel, source string)
 	_, incrementalPackages, _ := syncFeedGetPackage(incrementalURL, false)
 
 	mergedFeeds := mergeAllAndIncrementalFeeds(allPackages, incrementalPackages)
-	addFeedInMongo(source, mergedFeeds)
+	addFeedInMongo(bflUserList, source, mergedFeeds)
 }
 
 func mergeAllAndIncrementalFeeds(allPackages []*protobuf_entity.FeedAllPackage, incrementalPackages []*protobuf_entity.FeedIncremntPackage) map[string]*protobuf_entity.Feed {
@@ -220,7 +227,7 @@ func processIncrementalFeedOperations(operations []*protobuf_entity.FeedOperatio
 	return updateFields
 }
 
-func handleIncrementalSync(postgresClient *sql.DB, provider model.AlgoSyncProviderResponseModel, source string, startTimestamp int64) {
+func handleIncrementalSync(bflUserList []string, postgresClient *sql.DB, provider model.AlgoSyncProviderResponseModel, source string, startTimestamp int64) {
 	incrementalURL := fmt.Sprintf("%s&package_type=increment&start=%d", provider.FeedProvider.Url, startTimestamp)
 	_, incrementalPackages, _ := syncFeedGetPackage(incrementalURL, false)
 
@@ -252,21 +259,21 @@ func handleIncrementalSync(postgresClient *sql.DB, provider model.AlgoSyncProvid
 			}
 		}
 
-		addFeedInMongo(source, addPackageFeeds)
-		delFeedInMongo(source, deletePackageFeeds)
+		addFeedInMongo(bflUserList, source, addPackageFeeds)
+		delFeedInMongo(bflUserList, source, deletePackageFeeds)
 		updateFields := processIncrementalFeedOperations(pkg.FeedOperations)
 		storge.UpdateFeed(postgresClient, source, updateFields)
 	}
 }
 
-func syncFeed(postgresClient *sql.DB, redisClient *redis.Client, provider model.AlgoSyncProviderResponseModel, source string) {
+func syncFeed(bflUserList []string, postgresClient *sql.DB, redisClient *redis.Client, provider model.AlgoSyncProviderResponseModel, source string) {
 	syncStartTime := time.Now()
 	saveData, _ := storge.GetFeedSync(redisClient, provider.Provider, provider.FeedName, source)
 	if saveData == nil {
-		handleFullSync(provider, source)
+		handleFullSync(bflUserList, provider, source)
 
 	} else {
-		handleIncrementalSync(postgresClient, provider, source, saveData.SyncStartTimestamp)
+		handleIncrementalSync(bflUserList, postgresClient, provider, source, saveData.SyncStartTimestamp)
 	}
 	var redisSaveData model.FeedSyncData
 	redisSaveData.SyncEndTimestamp = time.Now().UTC().Unix()
@@ -274,32 +281,10 @@ func syncFeed(postgresClient *sql.DB, redisClient *redis.Client, provider model.
 	storge.SaveFeedSync(redisClient, provider.Provider, provider.FeedName, source, redisSaveData)
 }
 
-func fileToSave(path string, fileBytes []byte) {
-	tempFile, createTempFileErr := os.Create(path)
-	if createTempFileErr != nil {
-		common.Logger.Error("create temp file err", zap.String("currentFeedFilePath", path), zap.Error(createTempFileErr))
-		return
-	}
-	writer := bufio.NewWriter(tempFile)
-	_, writeErr := writer.Write(fileBytes)
-	if writeErr != nil {
-		common.Logger.Error("write file error", zap.Error(writeErr))
-		return
-	}
-	syncErr := writer.Flush()
-	if syncErr != nil {
-		common.Logger.Error("sync file error", zap.Error(syncErr))
-		return
-	}
-}
-
-func syncEntryDownloadPackage(provider string, newPackage *model.EntryPackage) {
+func syncEntryDownloadPackage(bflUsers []string, provider string, newPackage *model.EntryPackage) {
 	startTime := time.Unix(newPackage.StartTime, 0)
 	dayStart := common.GetSpecificDayOneDayStart(startTime).Unix()
 	timeStr := strconv.FormatInt(dayStart, 10)
-
-	path := filepath.Join(common.SyncEntryDirectory(provider, newPackage.FeedName, newPackage.ModelName), timeStr) // newPackage.Language, timeStr)
-	common.CreateNotExistDirectory(path, newPackage.ModelName+"_"+timeStr)
 
 	client := &http.Client{Timeout: time.Second * 5}
 	entryRes, err := client.Get(newPackage.URL)
@@ -336,7 +321,11 @@ func syncEntryDownloadPackage(provider string, newPackage *model.EntryPackage) {
 	}
 
 	fileName := fmt.Sprintf("%d.zlib", newPackage.StartTime)
-	fileToSave(filepath.Join(path, fileName), currentProtoByte)
+	for _, bflUser := range bflUsers {
+		path := filepath.Join(common.SyncEntryDirectory(bflUser, provider, newPackage.FeedName, newPackage.ModelName), timeStr) // newPackage.Language, timeStr)
+		common.CreateNotExistDirectory(path, newPackage.ModelName+"_"+timeStr)
+		common.FileToSave(filepath.Join(path, fileName), currentProtoByte)
+	}
 
 }
 
@@ -379,7 +368,7 @@ func syncEntry(redisClient *redis.Client, provider *model.SyncProvider, lastSync
 	for _, currentEntryPackage := range entryPackages {
 		saveData, _ := storge.GetEntrySyncPackageData(redisClient, provider.Provider, currentEntryPackage.FeedName, currentEntryPackage.ModelName, currentEntryPackage.StartTime)
 		if saveData == nil || saveData.Md5 != currentEntryPackage.MD5 {
-			syncEntryDownloadPackage(provider.Provider, currentEntryPackage)
+			syncEntryDownloadPackage(provider.BflUsers, provider.Provider, currentEntryPackage)
 			var saveData model.EntrySyncPackageData
 			saveData.Md5 = currentEntryPackage.MD5
 			saveData.Language = currentEntryPackage.Language
@@ -411,25 +400,25 @@ func fetchModelNameFromUrl(url string) string {
 }
 
 type SourceDataStruct struct {
-	Users     []string
+	BflUsers  []string
 	Providers []model.AlgoSyncProviderResponseModel
 }
 
 func getUserSource() map[string]SourceDataStruct {
 	userList := common.GetUserList()
 	userSourceMap := make(map[string]SourceDataStruct)
-	for _, user := range userList {
-		sources := api.LoadSources(user)
+	for _, bflUser := range userList {
+		sources := api.LoadSources(bflUser)
 		for source := range sources {
 			if _, exists := userSourceMap[source]; !exists {
 				sourceData := SourceDataStruct{
-					Users:     []string{},
+					BflUsers:  []string{},
 					Providers: sources[source],
 				}
 				userSourceMap[source] = sourceData
 			}
 			mapData := userSourceMap[source]
-			mapData.Users = append(mapData.Users, user)
+			mapData.BflUsers = append(mapData.BflUsers, bflUser)
 			userSourceMap[source] = mapData
 		}
 	}
@@ -466,20 +455,21 @@ func doSyncTask() {
 				providerSetting.FeedUrl = provider.FeedProvider.Url
 				providerSetting.EntrySyncDate = provider.EntryProvider.SyncDate
 				providerSetting.EntryUrl = provider.EntryProvider.Url
+				providerSetting.BflUsers = sourceData.BflUsers
 				providerList[key] = &providerSetting
 			}
-			syncFeed(postgresClient, redisClient, provider, source)
+			syncFeed(sourceData.BflUsers, postgresClient, redisClient, provider, source)
 		}
 	}
 
 	for key, provider := range providerList {
-		lastSyncTimeStr, _ := api.GetRedisConfig(key, "last_sync_time").(string)
+		lastSyncTimeStr, _ := api.GetRedisConfig("sync", key, "last_sync_time").(string)
 		lastSyncTime, _ := strconv.ParseInt(lastSyncTimeStr, 10, 64)
 		common.Logger.Info("sync  start", zap.String("last sync time str", lastSyncTimeStr), zap.Int64("last sync time", lastSyncTime), zap.Int64("now time", startTimestamp))
 		if lastSyncTimeStr == "" || startTimestamp > lastSyncTime+10*60 {
 			syncErr := syncEntry(redisClient, provider, lastSyncTime)
 			if syncErr == nil {
-				api.SetRedisConfig(key, "last_sync_time", startTimestamp)
+				api.SetRedisConfig("sync", key, "last_sync_time", startTimestamp)
 			}
 		}
 
@@ -488,7 +478,7 @@ func doSyncTask() {
 	common.Logger.Info("package sync  end")
 }
 
-func main() {
+func main2() {
 	//common.Logger.Info("crawler task start 10...")
 	//doSyncTask()
 	//common.Logger.Info("crawler task end...")
@@ -501,7 +491,7 @@ func main() {
 	})
 }
 
-func main1() {
+func main() {
 	common.Logger.Info("sync task start 10...")
 	//c := cron.New()
 	c := cron.New(cron.WithChain(cron.SkipIfStillRunning(cron.DefaultLogger)))
