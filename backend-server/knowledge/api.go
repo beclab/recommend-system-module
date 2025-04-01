@@ -175,8 +175,8 @@ func UpdateLibraryEntryContent(bflUser string, entry *model.Entry, isVideo bool)
 }
 
 func LoadMetaFromYtdlp(bflUser, entryUrl string) *model.Entry {
-	common.Logger.Info("load meta from ytdlp", zap.String("bflUser", bflUser))
-	url := common.YTDLPApiUrl() + "?url=" + entryUrl + "&blf_name=" + bflUser
+	url := common.YTDLPApiUrl() + "?url=" + entryUrl + "&bfl_user=" + bflUser
+	common.Logger.Info("load meta from ytdlp", zap.String("url", url))
 	client := &http.Client{Timeout: time.Second * 50}
 	res, err := client.Get(url)
 	if err != nil {
