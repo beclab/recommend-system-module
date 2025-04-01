@@ -68,7 +68,7 @@ func NewEnclosure(entry *model.Entry, feed *model.Feed, store *storage.Storage) 
 		download.FileName = entry.Title
 		download.FileType = entry.MediaType
 		download.Path = "Downloads/Wise/Article"
-
+		download.BflUser = entry.BflUser
 		if feed != nil {
 			download.Path = "Downloads/Wise/Feed/" + feed.Title
 		}

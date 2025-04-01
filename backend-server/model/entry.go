@@ -162,4 +162,5 @@ type EntryDownloadModel struct {
 	FileName    string `json:"file_name"`
 	FileType    string `json:"file_type"`
 	Path        string `json:"path"`
+	BflUser     string `json:"bfl_user"`
 }
