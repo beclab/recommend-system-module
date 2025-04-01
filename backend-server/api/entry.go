@@ -63,7 +63,7 @@ func (h *handler) newFetchContent(entry *model.Entry) string {
 		updateEntry.Attachment = true
 		knowledge.NewEnclosure(entry, nil, h.store)
 	}
-	knowledge.UpdateLibraryEntryContent(updateEntry, false)
+	knowledge.UpdateLibraryEntryContent(entry.BflUser, updateEntry, false)
 
 	return entry.FullContent
 }
@@ -172,7 +172,7 @@ func (h *handler) newVideoFetchContent(entry *model.Entry) string {
 	crawler.EntryCrawler(entry, feedUrl, userAgent, cookie, certificates, fetchViaProxy)
 
 	updateEntry := &model.Entry{ID: entry.ID, URL: entry.URL, ImageUrl: entry.ImageUrl, PublishedAt: entry.PublishedAt, Title: entry.Title, Language: entry.Language, Author: entry.Author, RawContent: entry.RawContent, FullContent: entry.FullContent}
-	knowledge.UpdateLibraryEntryContent(updateEntry, true)
+	knowledge.UpdateLibraryEntryContent(entry.BflUser, updateEntry, true)
 
 	return entry.FullContent
 }

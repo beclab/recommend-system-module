@@ -17,9 +17,9 @@ func ProcessFeedEntries(store *storage.Storage, feed *model.Feed, entries model.
 		savedEntry := store.GetEntryByUrl(feed.ID, entry.URL)
 
 		if savedEntry == nil {
-			entry.BflUser = feed.BflUser
 			//crawler.EntryCrawler(entry, feed)
 			crawler.EntryCrawler(entry, feed.FeedURL, feed.UserAgent, feed.Cookie, feed.AllowSelfSignedCertificates, feed.FetchViaProxy)
+			entry.BflUser = feed.BflUser
 			if entry.PublishedAt == 0 {
 				entry.PublishedAt = entry.PublishedAtParsed.Unix()
 			}
@@ -30,7 +30,7 @@ func ProcessFeedEntries(store *storage.Storage, feed *model.Feed, entries model.
 				}
 				newEntries = append(newEntries, entry)
 				if len(newEntries) > 20 {
-					knowledge.SaveFeedEntries(store, newEntries, feed)
+					knowledge.SaveFeedEntries(entry.BflUser, store, newEntries, feed)
 					newEntries = make([]*model.Entry, 0)
 				}
 			} else {
@@ -47,8 +47,8 @@ func ProcessFeedEntries(store *storage.Storage, feed *model.Feed, entries model.
 			break
 		}
 	}
-	knowledge.SaveFeedEntries(store, newEntries, feed)
-	knowledge.UpdateFeedEntries(store, updateEntries, feed)
+	knowledge.SaveFeedEntries(feed.BflUser, store, newEntries, feed)
+	knowledge.UpdateFeedEntries(feed.BflUser, store, updateEntries, feed)
 }
 
 func contains(s []string, e string) bool {

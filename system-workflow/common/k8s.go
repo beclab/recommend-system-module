@@ -2,6 +2,7 @@ package common
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"sync"
@@ -80,16 +81,19 @@ func GetUserList() []string {
 		klog.Errorln("Failed to list namespaces: ", err)
 	}
 	Logger.Info("userspace", zap.Int(" len:", len(namespaces.Items)))
-	userList := make([]string, 3)
+	userList := make([]string, 0)
 	for _, ns := range namespaces.Items {
 		_, err := k8sClient.AppsV1().StatefulSets(ns.Name).List(ctx, metav1.ListOptions{})
 		if err != nil {
 			klog.Errorf("Failed to list StatefulSets in namespace %s: %v", ns.Name, err)
 			continue
 		}
-		user := ns.Name[len("user-space-"):]
-		userList = append(userList, user)
-		Logger.Info("userspace: ", zap.String("ns name:", ns.Name), zap.String("bfl_user:", user))
+		Logger.Info("userspace: ", zap.String("ns name:", ns.Name))
+		if strings.HasPrefix(ns.Name, "user-space-") {
+			user := ns.Name[len("user-space-"):]
+			userList = append(userList, user)
+			Logger.Info("userspace: ", zap.String("ns name:", ns.Name), zap.String("bfl_user:", user))
+		}
 
 	}
 
