@@ -55,7 +55,6 @@ func K8sTest() {
 func GetPvcAnnotation(bflUser string) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	Logger.Info("K8sTest start")
 	initK8sClientSet()
 	key := "userspace_pvc"
 	namespace := "user-space-" + bflUser

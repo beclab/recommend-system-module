@@ -106,7 +106,7 @@ func RedisConfigApiUrl() string {
 
 func SyncEntryDirectory(bflUser, provider, feedName, modelName string) string {
 	annotation, _ := GetPvcAnnotation(bflUser)
-	path := filepath.Join(UserSpaceRootDirectory(), annotation, "Home", EntryPathPrefix, provider, feedName, modelName)
+	path := filepath.Join(UserSpaceRootDirectory(), annotation, "Data", EntryPathPrefix, provider, feedName, modelName)
 	return path
 }
 

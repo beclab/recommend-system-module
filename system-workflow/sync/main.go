@@ -325,6 +325,7 @@ func syncEntryDownloadPackage(bflUsers []string, provider string, newPackage *mo
 	fileName := fmt.Sprintf("%d.zlib", newPackage.StartTime)
 	for _, bflUser := range bflUsers {
 		path := filepath.Join(common.SyncEntryDirectory(bflUser, provider, newPackage.FeedName, newPackage.ModelName), timeStr) // newPackage.Language, timeStr)
+		common.Logger.Info("save entry file ", zap.String("path:", path))
 		common.CreateNotExistDirectory(path, newPackage.ModelName+"_"+timeStr)
 		common.FileToSave(filepath.Join(path, fileName), currentProtoByte)
 	}
