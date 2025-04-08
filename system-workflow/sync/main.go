@@ -268,6 +268,7 @@ func handleIncrementalSync(bflUserList []string, postgresClient *sql.DB, provide
 
 func syncFeed(bflUserList []string, postgresClient *sql.DB, redisClient *redis.Client, provider model.AlgoSyncProviderResponseModel, source string) {
 	syncStartTime := time.Now()
+	common.Logger.Info("start sync feed package ", zap.Any("users", bflUserList), zap.String("source", source))
 	saveData, _ := storge.GetFeedSync(redisClient, provider.Provider, provider.FeedName, source)
 	if saveData == nil {
 		handleFullSync(bflUserList, provider, source)
@@ -285,6 +286,7 @@ func syncEntryDownloadPackage(bflUsers []string, provider string, newPackage *mo
 	startTime := time.Unix(newPackage.StartTime, 0)
 	dayStart := common.GetSpecificDayOneDayStart(startTime).Unix()
 	timeStr := strconv.FormatInt(dayStart, 10)
+	common.Logger.Info("start sync entry package ", zap.Any("users", bflUsers), zap.String("provider", provider))
 
 	client := &http.Client{Timeout: time.Second * 5}
 	entryRes, err := client.Get(newPackage.URL)
@@ -478,7 +480,7 @@ func doSyncTask() {
 	common.Logger.Info("package sync  end")
 }
 
-func main() {
+func main2() {
 	//common.Logger.Info("crawler task start 10...")
 	//doSyncTask()
 	//common.Logger.Info("crawler task end...")
@@ -492,7 +494,7 @@ func main() {
 	})
 }
 
-func main2() {
+func main() {
 	common.Logger.Info("sync task start 10...")
 	//c := cron.New()
 	c := cron.New(cron.WithChain(cron.SkipIfStillRunning(cron.DefaultLogger)))
