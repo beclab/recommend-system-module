@@ -22,7 +22,7 @@ import (
 )
 
 func doCrawler(source string, list []model.EntryCrawlerModel) {
-	cacheDir := "/appdata/"
+	cacheDir := "/appCache/rss/"
 	if len(list) > 0 {
 		addList := make([]*model.EntryAddModel, 0)
 		for _, entry := range list {
