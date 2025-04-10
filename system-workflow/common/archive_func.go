@@ -98,18 +98,3 @@ func uncompressArchiveSingleFile(dstFileDir string, tarHeader *tar.Header, tarRe
 
 	return nil
 }
-func ExistDir(dirname string) bool {
-	fi, err := os.Stat(dirname)
-	return (err == nil || os.IsExist(err)) && fi.IsDir()
-}
-
-func IsFileExist(filepath string) bool {
-	_, err := os.Stat(filepath)
-	if err == nil {
-		return true
-	}
-	if os.IsNotExist(err) {
-		return false
-	}
-	return false
-}

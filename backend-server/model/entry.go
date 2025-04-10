@@ -34,6 +34,7 @@ type Entry struct {
 	MediaContent string   `json:"media_content"`
 	MediaUrl     string   `json:"media_url"`
 	MediaType    string   `json:"media_type"`
+	BflUser      string   `json:"bfl_user"`
 	Attachment   bool     `json:"attachment"`
 	Sources      []string `json:"sources"`
 }
@@ -161,4 +162,5 @@ type EntryDownloadModel struct {
 	FileName    string `json:"file_name"`
 	FileType    string `json:"file_type"`
 	Path        string `json:"path"`
+	BflUser     string `json:"bfl_user"`
 }

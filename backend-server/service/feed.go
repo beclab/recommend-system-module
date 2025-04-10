@@ -41,6 +41,7 @@ func RssParseFromURL(feedURL string) *model.Feed {
 func rssRrefresh(store *storage.Storage, feed *model.Feed, feedURL string, rsshubCookie string) *model.Feed {
 	common.Logger.Info("start refresh feed ", zap.String("feedId", feed.ID), zap.String("feed url:", feedURL))
 	request := client.NewClientWithConfig(feedURL)
+	request.WithBflUser(feed.BflUser)
 	request.WithCredentials(feed.Username, feed.Password)
 	request.WithUserAgent(feed.UserAgent)
 	request.WithCookie(feed.Cookie)
@@ -93,8 +94,8 @@ func getRssHubCookieDomain(domain string) string {
 	}
 	return ""
 }
-func generateRssHubCookie(domain string) string {
-	domainList := client.LoadCookieInfoManager(domain, domain)
+func generateRssHubCookie(bflUser, domain string) string {
+	domainList := client.LoadCookieInfoManager(bflUser, domain, domain)
 	cookies := ""
 	for _, domainItem := range domainList {
 		for _, record := range domainItem.Records {
@@ -150,7 +151,7 @@ func RefreshFeed(store *storage.Storage, feedID string) {
 			common.Logger.Info(" rsshub feed refresh ", zap.String("feedpath", feedUrl[9:]))
 			cookieDomain := getRssHubCookieDomain(feedUrl[9:])
 			if cookieDomain != "" {
-				cookie := generateRssHubCookie(cookieDomain)
+				cookie := generateRssHubCookie(originalFeed.BflUser, cookieDomain)
 				common.Logger.Info(" rsshub feed cookie ", zap.String("domain", cookieDomain), zap.String("cookie", cookie))
 				if len(cookie) > 0 {
 					rsshubCookie = cookie

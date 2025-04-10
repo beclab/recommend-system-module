@@ -56,7 +56,7 @@ func EntryCrawler(entry *model.Entry, feedUrl, userAgent, cookie string, certifi
 			twitterID = strings.TrimSpace(parts[1])
 		}
 		fmt.Println("twitter ID:", twitterID)
-		twitterEntry := knowledge.FetchTwitterContent(twitterID, entry.URL)
+		twitterEntry := knowledge.FetchTwitterContent(entry.BflUser, twitterID, entry.URL)
 		if twitterEntry != nil {
 			entry.FullContent = twitterEntry.FullContent
 			entry.MediaContent = twitterEntry.MediaContent
@@ -88,7 +88,7 @@ func EntryCrawler(entry *model.Entry, feedUrl, userAgent, cookie string, certifi
 	}
 
 	if primaryDomain == "bsky.app" {
-		bskyEntry := bskyapi.Fetch(entry.URL)
+		bskyEntry := bskyapi.Fetch(entry.BflUser, entry.URL)
 		if bskyEntry != nil {
 			entry.FullContent = bskyEntry.FullContent
 			entry.Author = bskyEntry.Author
@@ -113,6 +113,7 @@ func EntryCrawler(entry *model.Entry, feedUrl, userAgent, cookie string, certifi
 		return
 	}
 	entry.RawContent = FetchRawContnt(
+		entry.BflUser,
 		entry.URL,
 		entry.Title,
 		userAgent,
@@ -146,7 +147,7 @@ func EntryCrawler(entry *model.Entry, feedUrl, userAgent, cookie string, certifi
 			}
 		}
 		if isMetaFromYtdlp(entry.URL) {
-			metaEntry := knowledge.LoadMetaFromYtdlp(entry.URL)
+			metaEntry := knowledge.LoadMetaFromYtdlp(entry.BflUser, entry.URL)
 			if metaEntry != nil {
 				if metaEntry.Author != "" {
 					entry.Author = metaEntry.Author
@@ -249,7 +250,7 @@ func wolaiFetchByApi(websiteURL string) string {
 	return ""
 }
 
-func FetchRawContnt(websiteURL, title, userAgent string, cookie string, allowSelfSignedCertificates, useProxy bool) string {
+func FetchRawContnt(bflUser, websiteURL, title, userAgent string, cookie string, allowSelfSignedCertificates, useProxy bool) string {
 	urlDomain := domain(websiteURL)
 	common.Logger.Info("fatch raw contnet", zap.String("domain", websiteURL))
 	if strings.Contains(urlDomain, "notion.site") {
@@ -267,6 +268,7 @@ func FetchRawContnt(websiteURL, title, userAgent string, cookie string, allowSel
 	}
 
 	clt := client.NewClientWithConfig(websiteURL)
+	clt.WithBflUser(bflUser)
 	clt.WithUserAgent(userAgent)
 	clt.WithCookie(cookie)
 	if useProxy {

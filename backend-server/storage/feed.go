@@ -20,7 +20,7 @@ func (s *Storage) GetFeedById(feedID string) (*model.Feed, error) {
 	var feed model.Feed
 	query := `SELECT id, feed_url, site_url, title,etag_header,last_modified_header,checked_at,parsing_error_count,
 				parsing_error_message,user_agent,cookie,username,password,ignore_http_cache,allow_self_signed_certificates,fetch_via_proxy,
-				icon_type,icon_content,auto_download
+				icon_type,icon_content,auto_download,bfl_user
 			  FROM feeds WHERE id=$1`
 	err := s.db.QueryRow(query, feedID).Scan(&feed.ID,
 		&feed.FeedURL,
@@ -41,6 +41,7 @@ func (s *Storage) GetFeedById(feedID string) (*model.Feed, error) {
 		&feed.IconMimeType,
 		&feed.IconContent,
 		&feed.AutoDownload,
+		&feed.BflUser,
 	)
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -54,29 +55,42 @@ func (s *Storage) GetFeedById(feedID string) (*model.Feed, error) {
 
 func (s *Storage) FeedToUpdateList(batchSize int) (jobs model.JobList, err error) {
 	errorLimit := common.GetPollingParsingErrorLimit()
-	query := `
-		SELECT
-			id
-		FROM
-			feeds
-		WHERE
-			'{"wise"}' && sources AND 
-			CASE WHEN $1 > 0 THEN parsing_error_count < $1 ELSE parsing_error_count >= 0 END
-		ORDER BY checked_at ASC LIMIT $2
-	`
-	rows, err := s.db.Query(query, errorLimit, batchSize)
-	if err != nil {
+	bflUserQuery := "select DISTINCT(bfl_user) bfl_user from feeds"
+	nameRows, nameErr := s.db.Query(bflUserQuery)
+	if nameErr != nil {
 		return nil, fmt.Errorf(`store: unable to fetch batch of jobs: %v`, err)
 	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var job model.Job
-		if err := rows.Scan(&job.FeedID); err != nil {
-			return nil, fmt.Errorf(`store: unable to fetch job: %v`, err)
+	defer nameRows.Close()
+	for nameRows.Next() {
+		var bflUser string
+		if err := nameRows.Scan(&bflUser); err != nil {
+			return nil, fmt.Errorf(`store: unable to fetch bflUser: %v`, err)
 		}
-		jobs = append(jobs, job)
+		query := `
+			SELECT
+				id
+			FROM
+				feeds
+			WHERE
+				'{"wise"}' && sources AND bfl_user=$1 AND
+				CASE WHEN $2 > 0 THEN parsing_error_count < $3 ELSE parsing_error_count >= 0 END
+			ORDER BY checked_at ASC LIMIT $2
+		`
+		rows, err := s.db.Query(query, bflUser, errorLimit, batchSize)
+		if err != nil {
+			return nil, fmt.Errorf(`store: unable to fetch batch of jobs: %v`, err)
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var job model.Job
+			if err := rows.Scan(&job.FeedID); err != nil {
+				return nil, fmt.Errorf(`store: unable to fetch job: %v`, err)
+			}
+			jobs = append(jobs, job)
+		}
 	}
+
 	return jobs, nil
 }
 

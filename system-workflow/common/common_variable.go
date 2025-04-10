@@ -62,17 +62,17 @@ func GetSyncDiscoveryFeedPackageUrl() string {
 	return envDir
 }
 
-func NFSRootDirectory() string {
+/*func NFSRootDirectory() string {
 	envDir := os.Getenv("NFS_ROOT_DIRECTORY")
 	if envDir == "" {
 		return defaultNfSDir
 	}
 	return envDir
-}
+}*/
 
-func JUICEFSRootDirectory() string {
+func UserSpaceRootDirectory() string {
 
-	envDir := os.Getenv("JUICEFS_ROOT_DIRECTORY")
+	envDir := os.Getenv("USERSPACE_DIRECTORY")
 	if envDir == "" {
 		return defaultJUICEFSDir
 	}
@@ -99,13 +99,14 @@ func RedisConfigApiUrl() string {
 	return knowledgeBaseUrl() + "/knowledge/config/"
 }
 
-func SyncFeedDirectory(provider, packageName string) string {
+/*func SyncFeedDirectory(provider, packageName string) string {
 	path := filepath.Join(JUICEFSRootDirectory(), FeedPathPrefix, provider, packageName)
 	return path
-}
+}*/
 
-func SyncEntryDirectory(provider, feedName, modelName string) string {
-	path := filepath.Join(JUICEFSRootDirectory(), EntryPathPrefix, provider, feedName, modelName)
+func SyncEntryDirectory(bflUser, provider, feedName, modelName string) string {
+	annotation, _ := GetPvcAnnotation(bflUser)
+	path := filepath.Join(UserSpaceRootDirectory(), annotation, "Data", "rss", "data", EntryPathPrefix, provider, feedName, modelName)
 	return path
 }
 

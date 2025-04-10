@@ -33,6 +33,7 @@ var (
 // Client builds and executes HTTP requests.
 type Client struct {
 	inputURL string
+	bflUser  string
 
 	requestEtagHeader          string
 	requestLastModifiedHeader  string
@@ -147,6 +148,11 @@ func (c *Client) WithCookie(cookie string) *Client {
 	return c
 }
 
+func (c *Client) WithBflUser(bflUser string) *Client {
+	c.bflUser = bflUser
+	return c
+}
+
 func (c *Client) WithRssHubCookie(rsshubCookie string) *Client {
 	if rsshubCookie != "" {
 		c.requestRssHubCookie = rsshubCookie
@@ -161,9 +167,9 @@ func (c *Client) Get() (*Response, error) {
 		return nil, err
 	}
 	urlDomain, urlPrimaryDomain := GetPrimaryDomain(c.inputURL)
-	if urlDomain != "" {
+	if urlDomain != "" && c.bflUser != "" {
 		//if CheckCookRequired(domain) {
-		domainList := LoadCookieInfoManager(urlDomain, urlPrimaryDomain)
+		domainList := LoadCookieInfoManager(c.bflUser, urlDomain, urlPrimaryDomain)
 		//domainList := LoadCookieInfo(urlPrimaryDomain)
 		//addCookies := ""
 		for _, domain := range domainList {

@@ -63,7 +63,7 @@ func (h *handler) newFetchContent(entry *model.Entry) string {
 		updateEntry.Attachment = true
 		knowledge.NewEnclosure(entry, nil, h.store)
 	}
-	knowledge.UpdateLibraryEntryContent(updateEntry, false)
+	knowledge.UpdateLibraryEntryContent(entry.BflUser, updateEntry, false)
 
 	return entry.FullContent
 }
@@ -95,6 +95,7 @@ func (h *handler) radioDetection(w http.ResponseWriter, r *http.Request) {
 	common.Logger.Info("knowledge radio query", zap.String("url", url))
 	useAgent := "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 	rawContent := crawler.FetchRawContnt(
+		"",
 		url,
 		"",
 		useAgent,
@@ -106,10 +107,11 @@ func (h *handler) radioDetection(w http.ResponseWriter, r *http.Request) {
 	json.OK(w, r, model.StrResponseModel{Code: 0, Data: result})
 }
 
-func (h *handler) FetchMetaData(w http.ResponseWriter, r *http.Request) {
+/*func (h *handler) FetchMetaData(w http.ResponseWriter, r *http.Request) {
 	url := request.QueryStringParam(r, "url", "")
 	useAgent := "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 	rawContent := crawler.FetchRawContnt(
+		"",
 		url,
 		"",
 		useAgent,
@@ -127,7 +129,7 @@ func (h *handler) FetchMetaData(w http.ResponseWriter, r *http.Request) {
 
 	json.NoContent(w, r)
 
-}
+}*/
 
 func (h *handler) knowledgeVideoFetchContent(w http.ResponseWriter, r *http.Request) {
 	entryID := request.RouteStringParam(r, "entryID")
@@ -170,7 +172,7 @@ func (h *handler) newVideoFetchContent(entry *model.Entry) string {
 	crawler.EntryCrawler(entry, feedUrl, userAgent, cookie, certificates, fetchViaProxy)
 
 	updateEntry := &model.Entry{ID: entry.ID, URL: entry.URL, ImageUrl: entry.ImageUrl, PublishedAt: entry.PublishedAt, Title: entry.Title, Language: entry.Language, Author: entry.Author, RawContent: entry.RawContent, FullContent: entry.FullContent}
-	knowledge.UpdateLibraryEntryContent(updateEntry, true)
+	knowledge.UpdateLibraryEntryContent(entry.BflUser, updateEntry, true)
 
 	return entry.FullContent
 }

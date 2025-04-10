@@ -1,7 +1,9 @@
 package common
 
 import (
+	"bufio"
 	"fmt"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -19,6 +21,49 @@ func CreateNotExistDirectory(currentDirectory string, varName string) {
 			Logger.Error("create fail directory "+varName, zap.String(varName, currentDirectory), zap.Error(currentDirectoryCreateErr))
 
 		}
+	}
+}
+
+func ExistDir(dirname string) bool {
+	fi, err := os.Stat(dirname)
+	return (err == nil || os.IsExist(err)) && fi.IsDir()
+}
+
+func IsFileExist(filepath string) bool {
+	_, err := os.Stat(filepath)
+	if err == nil {
+		return true
+	}
+	if os.IsNotExist(err) {
+		return false
+	}
+	return false
+}
+
+func ReadFile(filename string) (string, error) {
+	data, err := os.ReadFile(filename)
+	if err != nil {
+		return "", err
+	}
+	return string(data), nil
+}
+
+func FileToSave(path string, fileBytes []byte) {
+	tempFile, createTempFileErr := os.Create(path)
+	if createTempFileErr != nil {
+		Logger.Error("create temp file err", zap.String("currentFeedFilePath", path), zap.Error(createTempFileErr))
+		return
+	}
+	writer := bufio.NewWriter(tempFile)
+	_, writeErr := writer.Write(fileBytes)
+	if writeErr != nil {
+		Logger.Error("write file error", zap.Error(writeErr))
+		return
+	}
+	syncErr := writer.Flush()
+	if syncErr != nil {
+		Logger.Error("sync file error", zap.Error(syncErr))
+		return
 	}
 }
 
@@ -84,4 +129,27 @@ func IsInStringArray(arr []string, target string) bool {
 		}
 	}
 	return false
+}
+
+func Contains(slice []string, value string) bool {
+	for _, v := range slice {
+		if v == value {
+			return true
+		}
+	}
+	return false
+}
+
+func GetPrimaryDomain(u string) string {
+	parsedURL, err := url.Parse(u)
+	if err != nil {
+		return ""
+	}
+	host := parsedURL.Hostname()
+
+	parts := strings.Split(host, ".")
+	if len(parts) >= 2 {
+		return strings.Join(parts[len(parts)-2:], ".")
+	}
+	return host
 }

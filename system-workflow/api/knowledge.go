@@ -15,7 +15,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func AddFeedInMongo(source string, list []*model.FeedAddModel) {
+func AddFeedInKnowledge(bfl_user, source string, list []*model.FeedAddModel) {
 	if len(list) > 0 {
 		for _, reqModel := range list {
 			reqModel.Source = source
@@ -24,6 +24,7 @@ func AddFeedInMongo(source string, list []*model.FeedAddModel) {
 		jsonByte, _ := json.Marshal(list)
 		request, _ := http.NewRequest("POST", url, bytes.NewBuffer(jsonByte))
 		request.Header.Set("Content-Type", "application/json")
+		request.Header.Set("X-Bfl-User", bfl_user)
 		client := &http.Client{Timeout: 5 * time.Second}
 		response, err := client.Do(request)
 		if err != nil {
@@ -36,7 +37,7 @@ func AddFeedInMongo(source string, list []*model.FeedAddModel) {
 	}
 
 }
-func DelFeedInMongo(source string, list []string) {
+func DelFeedInKnowledge(bfl_user, source string, list []string) {
 	if len(list) > 0 {
 		common.Logger.Info("del feed in mongo", zap.Int("list size", len(list)))
 		reqData := model.MongoFeedDelModel{FeedUrls: list}
@@ -45,6 +46,7 @@ func DelFeedInMongo(source string, list []string) {
 		url := common.FeedMonogoApiUrl() + source
 		request, _ := http.NewRequest("DELETE", url, bytes.NewBuffer(jsonByte))
 		request.Header.Set("Content-Type", "application/json")
+		request.Header.Set("X-Bfl-User", bfl_user)
 		client := &http.Client{Timeout: 5 * time.Second}
 		response, err := client.Do(request)
 		if err != nil {
@@ -57,11 +59,13 @@ func DelFeedInMongo(source string, list []string) {
 	}
 }
 
-func getAllEntries(reqParam string) *model.EntryApiDataResponseModel {
+func getAllEntries(bfl_user, reqParam string) *model.EntryApiDataResponseModel {
 	url := common.EntryMonogoEntryApiUrl() + "?" + reqParam
+	request, _ := http.NewRequest("GET", url, nil)
+	request.Header.Set("X-Bfl-User", bfl_user)
 	client := &http.Client{Timeout: time.Second * 5}
 	//res, err := http.Get(url)
-	res, err := client.Get(url)
+	res, err := client.Do(request)
 	if err != nil {
 		common.Logger.Error("get entry data  fail", zap.Error(err))
 		return nil
@@ -81,9 +85,9 @@ func getAllEntries(reqParam string) *model.EntryApiDataResponseModel {
 	return &resObj.Data
 }
 
-func GetUncrawleredList(offset, limit int, source string) (int, []model.EntryCrawlerModel) {
+func GetUncrawleredList(bfl_user string, offset, limit int, source string) (int, []model.EntryCrawlerModel) {
 	param := "offset=" + fmt.Sprintf("%d", offset) + "&limit=" + fmt.Sprintf("%d", limit) + "&crawler=false&source=" + source
-	queryData := getAllEntries(param)
+	queryData := getAllEntries(bfl_user, param)
 	crawlerList := make([]model.EntryCrawlerModel, 0)
 	for _, entry := range queryData.Items {
 		var crawlerEntry model.EntryCrawlerModel
@@ -124,9 +128,12 @@ func UpdateEntriesInMongo(addList []*model.EntryAddModel) {
 	}
 }
 
-func GetRedisConfig(provider, key string) interface{} {
+func GetRedisConfig(bfl_user, provider, key string) interface{} {
 	url := common.RedisConfigApiUrl() + provider + "/" + key
-	res, err := http.Get(url)
+	request, _ := http.NewRequest("GET", url, nil)
+	request.Header.Set("X-Bfl-User", bfl_user)
+	client := &http.Client{Timeout: time.Second * 5}
+	res, err := client.Do(request)
 	if err != nil {
 		common.Logger.Error("get redis config  fail", zap.Error(err))
 		return ""
@@ -146,7 +153,7 @@ func GetRedisConfig(provider, key string) interface{} {
 	return resObj.Data
 }
 
-func SetRedisConfig(provider, key string, val interface{}) {
+func SetRedisConfig(bfl_user, provider, key string, val interface{}) {
 	var c model.RedisConfig
 	c.Value = val
 	url := common.RedisConfigApiUrl() + provider + "/" + key
@@ -161,6 +168,7 @@ func SetRedisConfig(provider, key string, val interface{}) {
 
 	algoReq, _ := http.NewRequest("POST", url, bytes.NewBuffer(jsonByte))
 	algoReq.Header.Set("Content-Type", "application/json")
+	algoReq.Header.Set("X-Bfl-User", bfl_user)
 	algoClient := &http.Client{Timeout: 5 * time.Second}
 	_, err = algoClient.Do(algoReq)
 	if err != nil {

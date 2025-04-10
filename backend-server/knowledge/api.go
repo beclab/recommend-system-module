@@ -14,7 +14,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func SaveFeedEntries(store *storage.Storage, entries model.Entries, feed *model.Feed) {
+func SaveFeedEntries(bflUser string, store *storage.Storage, entries model.Entries, feed *model.Feed) {
 	common.Logger.Info("add entry in knowledge", zap.Int("len", len(entries)))
 	if len(entries) == 0 {
 		return
@@ -25,7 +25,7 @@ func SaveFeedEntries(store *storage.Storage, entries model.Entries, feed *model.
 		reqModel := model.GetEntryAddModel(entryModel, feed.FeedURL)
 		addList = append(addList, reqModel)
 	}
-	doReq(addList, entries, feed, store, true)
+	doReq(bflUser, addList, entries, feed, store, true)
 
 }
 
@@ -68,7 +68,7 @@ func NewEnclosure(entry *model.Entry, feed *model.Feed, store *storage.Storage) 
 		download.FileName = entry.Title
 		download.FileType = entry.MediaType
 		download.Path = "Downloads/Wise/Article"
-
+		download.BflUser = entry.BflUser
 		if feed != nil {
 			download.Path = "Downloads/Wise/Feed/" + feed.Title
 		}
@@ -81,11 +81,12 @@ func NewEnclosure(entry *model.Entry, feed *model.Feed, store *storage.Storage) 
 	}
 }
 
-func doReq(list []*model.EntryAddModel, entries model.Entries, feed *model.Feed, store *storage.Storage, isNew bool) {
+func doReq(bflUser string, list []*model.EntryAddModel, entries model.Entries, feed *model.Feed, store *storage.Storage, isNew bool) {
 	jsonByte, _ := json.Marshal(list)
 	url := common.EntryMonogoUpdateApiUrl()
 	request, _ := http.NewRequest("POST", url, bytes.NewBuffer(jsonByte))
 	request.Header.Set("Content-Type", "application/json")
+	request.Header.Set("X-Bfl-User", bflUser)
 	client := &http.Client{Timeout: 20 * time.Second}
 	response, err := client.Do(request)
 	if err != nil {
@@ -122,7 +123,7 @@ func doReq(list []*model.EntryAddModel, entries model.Entries, feed *model.Feed,
 
 }
 
-func UpdateFeedEntries(store *storage.Storage, entries model.Entries, feed *model.Feed) {
+func UpdateFeedEntries(bflUser string, store *storage.Storage, entries model.Entries, feed *model.Feed) {
 	common.Logger.Info("update entry in knowledge", zap.Int("len", len(entries)))
 	if len(entries) == 0 {
 		return
@@ -133,10 +134,10 @@ func UpdateFeedEntries(store *storage.Storage, entries model.Entries, feed *mode
 		reqModel := model.GetEntryUpdateSourceModel(entryModel, feed.FeedURL)
 		addList = append(addList, reqModel)
 	}
-	doReq(addList, entries, feed, store, false)
+	doReq(bflUser, addList, entries, feed, store, false)
 }
 
-func UpdateLibraryEntryContent(entry *model.Entry, isVideo bool) {
+func UpdateLibraryEntryContent(bflUser string, entry *model.Entry, isVideo bool) {
 	updateList := make([]*model.EntryAddModel, 0)
 	var updateEntry model.EntryAddModel
 	updateEntry.Url = entry.URL
@@ -157,6 +158,7 @@ func UpdateLibraryEntryContent(entry *model.Entry, isVideo bool) {
 	url := common.EntryMonogoUpdateApiUrl()
 	request, _ := http.NewRequest("POST", url, bytes.NewBuffer(jsonByte))
 	request.Header.Set("Content-Type", "application/json")
+	request.Header.Set("X-Bfl-User", bflUser)
 	client := &http.Client{Timeout: 5 * time.Second}
 	response, err := client.Do(request)
 	if err != nil {
@@ -172,8 +174,9 @@ func UpdateLibraryEntryContent(entry *model.Entry, isVideo bool) {
 
 }
 
-func LoadMetaFromYtdlp(entryUrl string) *model.Entry {
-	url := common.YTDLPApiUrl() + "?url=" + entryUrl
+func LoadMetaFromYtdlp(bflUser, entryUrl string) *model.Entry {
+	url := common.YTDLPApiUrl() + "?url=" + entryUrl + "&bfl_user=" + bflUser
+	common.Logger.Info("load meta from ytdlp", zap.String("url", url))
 	client := &http.Client{Timeout: time.Second * 50}
 	res, err := client.Get(url)
 	if err != nil {
@@ -199,8 +202,8 @@ func LoadMetaFromYtdlp(entryUrl string) *model.Entry {
 
 }
 
-func FetchTwitterContent(twitterID, url string) *model.Entry {
-	apiUrl := common.DownloadApiUrl() + "/twitter/fetch-content?twitter_id=" + twitterID + "&url=" + url
+func FetchTwitterContent(bfl_user, twitterID, url string) *model.Entry {
+	apiUrl := common.DownloadApiUrl() + "/twitter/fetch-content?twitter_id=" + twitterID + "&url=" + url + "&bfl_user=" + bfl_user
 	client := &http.Client{Timeout: time.Second * 120}
 	res, err := client.Get(apiUrl)
 	if err != nil {

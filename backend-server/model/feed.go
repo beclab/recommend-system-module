@@ -34,6 +34,7 @@ type Feed struct {
 	EtagHeader                  string    `json:"etag_header"`
 	LastModifiedHeader          string    `json:"last_modified_header"`
 	AutoDownload                bool      `json:"auto_download"`
+	BflUser                     string    `json:"bfl_user"`
 	Entries                     Entries
 }
 
