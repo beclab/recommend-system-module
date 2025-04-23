@@ -87,7 +87,7 @@ func GetUserList() []string {
 			klog.Errorf("Failed to list StatefulSets in namespace %s: %v", ns.Name, err)
 			continue
 		}
-		Logger.Info("userspace: ", zap.String("ns name:", ns.Name))
+		//Logger.Info("userspace: ", zap.String("ns name:", ns.Name))
 		if strings.HasPrefix(ns.Name, "user-space-") {
 			user := ns.Name[len("user-space-"):]
 			userList = append(userList, user)

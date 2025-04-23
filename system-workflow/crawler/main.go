@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"net/http"
@@ -21,20 +23,28 @@ import (
 	"go.uber.org/zap"
 )
 
+func urlToUniqueString(url string) string {
+	hash := sha256.New()
+	hash.Write([]byte(url))
+	return hex.EncodeToString(hash.Sum(nil))
+}
+
 func doCrawler(source string, list []model.EntryCrawlerModel) {
 	cacheDir := "/appCache/rss/"
 	if len(list) > 0 {
 		addList := make([]*model.EntryAddModel, 0)
 		for _, entry := range list {
 			primaryDomain := common.GetPrimaryDomain(entry.Url)
-			path := filepath.Join(cacheDir, primaryDomain, entry.Url)
+			fileName := urlToUniqueString(entry.Url)
+			path := filepath.Join(cacheDir, primaryDomain, fileName)
 			rawContent := ""
 			if common.IsFileExist(path) {
 				rawContent, _ = common.ReadFile(path)
-			} else {
+			}
+			if rawContent == "" {
 				rawContent = common.GetUTF8ValidString(fetchRawContnt(entry.Url))
 				if rawContent != "" {
-					common.CreateNotExistDirectory(path, "save raw content"+primaryDomain)
+					common.CreateNotExistDirectory(filepath.Join(cacheDir, primaryDomain), "save raw content"+primaryDomain)
 					common.FileToSave(path, []byte(rawContent))
 				}
 			}
