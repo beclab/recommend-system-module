@@ -44,7 +44,7 @@ func doCrawler(source string, list []model.EntryCrawlerModel) {
 			if rawContent == "" {
 				rawContent = common.GetUTF8ValidString(fetchRawContnt(entry.Url))
 				if rawContent != "" {
-					common.CreateNotExistDirectory(path, "save raw content"+primaryDomain)
+					common.CreateNotExistDirectory(filepath.Join(cacheDir, primaryDomain), "save raw content"+primaryDomain)
 					common.FileToSave(path, []byte(rawContent))
 				}
 			}
@@ -155,13 +155,13 @@ func doCrawlerTask() {
 
 }
 
-func main() {
+func main1() {
 	common.Logger.Info("crawler task start ...")
 	doCrawlerTask()
 	common.Logger.Info("crawler task end...")
 }
 
-func main1() {
+func main() {
 	common.Logger.Info("crawler task start ...")
 	c := cron.New(cron.WithChain(cron.SkipIfStillRunning(cron.DefaultLogger)))
 
