@@ -58,6 +58,7 @@ func NewEnclosure(entry *model.Entry, feed *model.Feed, store *storage.Storage) 
 		common.Logger.Info("new enclosure exit where entry's enclosure exist ", zap.String("entry id:", entry.ID))
 		return
 	}
+
 	enclosureID, _ := store.CreateEnclosure(entry)
 	if entry.MediaUrl != "" {
 		var download model.EntryDownloadModel
@@ -66,6 +67,9 @@ func NewEnclosure(entry *model.Entry, feed *model.Feed, store *storage.Storage) 
 		download.DownloadAPP = "wise"
 		download.EnclosureId = enclosureID
 		download.FileName = entry.Title
+		if len(download.FileName) > 30 {
+			download.FileName = download.FileName[:30]
+		}
 		download.FileType = entry.MediaType
 		download.Path = "Downloads/Wise/Article"
 		download.BflUser = entry.BflUser
