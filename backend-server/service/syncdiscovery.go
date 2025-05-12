@@ -70,6 +70,7 @@ func SyncDiscoveryFeedPackage(store *storage.Storage) {
 	if len(packages) > 0 {
 		saveData, _ := store.GetDiscoveryFeedPackage()
 		if saveData == nil || saveData.MD5 != packages[0].MD5 {
+			common.Logger.Info("discovery feedpacke md5 is modify!!!")
 			loadErr := syncDiscoveryFeedloadPackage(store, packages[0])
 			if loadErr == nil {
 				store.SaveDiscoveryFeedPackage(*packages[0])
