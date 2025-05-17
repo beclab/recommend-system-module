@@ -2,6 +2,7 @@ package cli
 
 import (
 	"context"
+	"log"
 	"net/http"
 	"time"
 
@@ -43,10 +44,13 @@ func startHTTPServer(server *http.Server) {
 func middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		clientIP := request.FindClientIP(r)
+		start := time.Now()
 		ctx := r.Context()
 		ctx = context.WithValue(ctx, request.ClientIPContextKey, clientIP)
-
 		next.ServeHTTP(w, r.WithContext(ctx))
+
+		duration := time.Since(start)
+		log.Printf("time: %s, method: %s, URL: %s, cost: %v\n", start.Format(time.RFC3339), r.Method, r.URL.Path, duration)
 	})
 }
 
