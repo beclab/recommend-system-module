@@ -45,6 +45,11 @@ func syncDiscoveryFeedloadPackage(store *storage.Storage, newPackage *model.Disc
 }
 
 func SyncDiscoveryFeedPackage(store *storage.Storage) {
+	saveData, _ := store.GetDiscoveryFeedPackage()
+	if saveData != nil {
+		common.Logger.Info("discovery feed is exist,no sync!")
+		return
+	}
 	url := common.GetSyncDiscoveryFeedPackageUrl()
 	common.Logger.Info("sync discovery feedPackage:", zap.String("url:", url))
 	client := &http.Client{Timeout: time.Second * 5}
