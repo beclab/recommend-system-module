@@ -83,7 +83,7 @@ func (s *Storage) CreateEnclosure(entry *model.Entry) (string, error) {
 		INSERT INTO enclosures
 			(id,entry_id, content, mime_type, url, local_file_path,download_status,bfl_user)
 		VALUES
-			($1, $2, $3, $4, $5,$6,$7)
+			($1, $2, $3, $4, $5,$6,$7,$8)
 	`
 
 	_, err := s.db.Exec(
