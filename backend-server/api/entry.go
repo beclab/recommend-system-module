@@ -61,9 +61,11 @@ func (h *handler) newFetchContent(entry *model.Entry) string {
 	//h.store.UpdateEntryContent(updateDocIDEntry)
 	if entry.MediaContent != "" || entry.MediaUrl != "" {
 		updateEntry.Attachment = true
-		knowledge.NewEnclosure(entry, nil, h.store)
 	}
 	knowledge.UpdateLibraryEntryContent(entry.BflUser, updateEntry, false)
+	if entry.MediaContent != "" || entry.MediaUrl != "" {
+		knowledge.NewEnclosure(entry, nil, h.store)
+	}
 
 	return entry.FullContent
 }
