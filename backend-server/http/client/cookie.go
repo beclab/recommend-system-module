@@ -90,7 +90,7 @@ func LoadCookieInfo(bflUser string, host string) []model.SettingDomainRespModel 
 	common.Logger.Info("start load cookie info ", zap.String("host", host))
 	request, _ := http.NewRequest("POST", settingUrl, bytes.NewBuffer(reqJsonByte))
 	request.Header.Set("Content-Type", "application/json")
-	//request.Header.Set("Cookie", "auth_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MjgzMDQ5MTYsImlhdCI6MTcyNzA5NTMxNiwiaXNzIjoia3ViZXNwaGVyZSIsInN1YiI6Im1tY2hvbmcyMDIxIiwidG9rZW5fdHlwZSI6ImFjY2Vzc190b2tlbiIsInVzZXJuYW1lIjoibW1jaG9uZzIwMjEiLCJleHRyYSI6eyJ1bmluaXRpYWxpemVkIjpbInRydWUiXX19.Namzne2m9ZwChnFygILh18XUv-3wh6_4vnACykquOVc; authelia_session=F9im*hFguSW5CwTkXA9-7N!6zIgMcSTq")
+	//request.Header.Set("Cookie", "auth_token=eyJhbGciOiJIUzUxMiJ9.eyJleHAiOjE3ODA2NDYxNzksImlhdCI6MTc0OTExMDE3OSwidXNlcm5hbWUiOiJtbWNob25nMjAyMSIsImdyb3VwcyI6WyJsbGRhcF9hZG1pbiJdfQ.JqdLAMd4SAWFdatKSyXninS98DmTvy9FXn_ma6sKHXBM1YrOiQGlZhZdY3OjU9-rdY3pfj8tqPvYhiFZWa_0nw; authelia_session=Dhwb#bgNT4SqteKabN$GN-VIgq1Lm^8U")
 
 	client := &http.Client{Timeout: time.Second * 5}
 	response, err := client.Do(request)

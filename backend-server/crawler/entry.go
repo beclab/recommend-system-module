@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"net/url"
-	"os"
 	"strings"
 
 	"bytetrade.io/web3os/backend-server/common"
@@ -12,106 +11,126 @@ import (
 	"bytetrade.io/web3os/backend-server/crawler/feishu"
 	notionClient "bytetrade.io/web3os/backend-server/crawler/notionapi"
 	"bytetrade.io/web3os/backend-server/crawler/notionapi/tohtml"
+	"bytetrade.io/web3os/backend-server/crawler/nytimes"
 	"bytetrade.io/web3os/backend-server/crawler/quora"
+	"bytetrade.io/web3os/backend-server/crawler/tbilibili"
 	"bytetrade.io/web3os/backend-server/crawler/threads"
+	"bytetrade.io/web3os/backend-server/crawler/washingtonpost"
 	wolaiapi "bytetrade.io/web3os/backend-server/crawler/wolaiapi"
+	"bytetrade.io/web3os/backend-server/crawler/wsj"
+	"bytetrade.io/web3os/backend-server/crawler/ximalaya"
 	"bytetrade.io/web3os/backend-server/http/client"
 	"bytetrade.io/web3os/backend-server/knowledge"
 	"bytetrade.io/web3os/backend-server/model"
-	"github.com/PuerkitoBio/goquery"
 	"github.com/beclab/article-extractor/processor"
 	"go.uber.org/zap"
 )
 
-func writeFullContent(content string) {
-	file, err := os.Create("content.html")
-	if err != nil {
-		fmt.Println("Error creating file:", err)
-		return
+func handlerGenerateEntry(entry *model.Entry, newEntry *model.Entry) {
+	if newEntry != nil {
+		entry.FullContent = newEntry.FullContent
+		entry.MediaContent = newEntry.MediaContent
+		entry.MediaUrl = newEntry.MediaUrl
+		entry.MediaType = newEntry.MediaType
+		entry.Author = newEntry.Author
+		entry.Title = newEntry.Title
+		entry.PublishedAt = newEntry.PublishedAt
+		entry.ImageUrl = common.GetImageUrlFromContent(entry.FullContent)
 	}
-	defer file.Close()
-	file.WriteString(content)
+}
+
+func handleX(entry *model.Entry) {
+	twitterID := ""
+	parts := strings.Split(entry.URL, "status/")
+	if len(parts) > 1 {
+		twitterID = strings.TrimSpace(parts[1])
+	}
+	fmt.Println("twitter ID:", twitterID)
+	twitterEntry := knowledge.FetchTwitterContent(entry.BflUser, twitterID, entry.URL)
+	handlerGenerateEntry(entry, twitterEntry)
+	entry.Language = "en"
+}
+func handleXHS(entry *model.Entry) {
+	xshEntry := knowledge.FetchXHSContent(entry.URL, entry.BflUser)
+	handlerGenerateEntry(entry, xshEntry)
+	entry.Language = "zh-cn"
+}
+func handleBsky(entry *model.Entry) {
+	bskyEntry := bskyapi.Fetch(entry.BflUser, entry.URL)
+	handlerGenerateEntry(entry, bskyEntry)
+	entry.Language = "en"
+}
+
+func handleThreads(entry *model.Entry) {
+	threadsEntry := threads.Fetch(entry.URL)
+	handlerGenerateEntry(entry, threadsEntry)
+	entry.Language = "en"
+}
+
+func handleQtfm(entry *model.Entry) {
+	handleYtdlp(entry)
+	if entry.Title != "" {
+		entry.MediaUrl = entry.URL
+		entry.MediaType = "audio"
+	}
+}
+
+func handleTBilibili(entry *model.Entry) {
+	xshEntry := tbilibili.Fetch(entry.BflUser, entry.URL)
+	handlerGenerateEntry(entry, xshEntry)
+	entry.Language = "zh-cn"
 }
 
 func EntryCrawler(entry *model.Entry, feedUrl, userAgent, cookie string, certificates, fetchViaProxy bool) {
-	//entryID, entryUrl, entryTitle, imageUrl, author string, entryPublishedAt int64, feed *model.Feed) (string, string, int64) {
 	primaryDomain := common.GetPrimaryDomain(entry.URL)
+	urlDomain := domain(entry.URL)
 	common.Logger.Info("crawler entry start", zap.String("url", entry.URL), zap.String("primary domain:", primaryDomain))
-	if primaryDomain == "bilibili.com" {
+
+	switch primaryDomain {
+	case "bilibili.com":
 		entry.FullContent = entry.Content
 		entry.Language = "zh-cn"
+		if urlDomain == "t.bilibili.com" {
+			handleTBilibili(entry)
+		} else {
+			handleDefault(entry, feedUrl, userAgent, cookie, certificates, fetchViaProxy)
+		}
+	case "x.com":
+		handleX(entry)
+	case "xiaohongshu.com":
+		handleXHS(entry)
+	case "bsky.app":
+		handleBsky(entry)
+	case "threads.net":
+		handleThreads(entry)
+	case "qtfm.cn":
+		handleQtfm(entry)
+	default:
+		handleDefault(entry, feedUrl, userAgent, cookie, certificates, fetchViaProxy)
+	}
+	common.Logger.Info("crawler entry finished", zap.String("url", entry.URL))
+}
 
-		domain := common.Domain(entry.URL)
-		if domain == "t.bilibili.com" {
-			if entry.ImageUrl == "" && entry.Content != "" {
-				entry.ImageUrl = common.GetImageUrlFromContent(entry.Content)
-			}
-			return
+func handleYtdlp(entry *model.Entry) {
+	ytdlpEntry := knowledge.LoadMetaFromYtdlp(entry.BflUser, entry.URL)
+	if ytdlpEntry != nil {
+		if ytdlpEntry.Author != "" {
+			entry.Author = ytdlpEntry.Author
 		}
-	}
-	if primaryDomain == "x.com" {
-		twitterID := ""
-		parts := strings.Split(entry.URL, "status/")
-		if len(parts) > 1 {
-			twitterID = strings.TrimSpace(parts[1])
+		if ytdlpEntry.Title != "" {
+			entry.Title = ytdlpEntry.Title
 		}
-		fmt.Println("twitter ID:", twitterID)
-		twitterEntry := knowledge.FetchTwitterContent(entry.BflUser, twitterID, entry.URL)
-		if twitterEntry != nil {
-			entry.FullContent = twitterEntry.FullContent
-			entry.MediaContent = twitterEntry.MediaContent
-			entry.MediaUrl = twitterEntry.MediaUrl
-			entry.MediaType = twitterEntry.MediaType
-			entry.Author = twitterEntry.Author
-			entry.Title = twitterEntry.Title
-			entry.PublishedAt = twitterEntry.PublishedAt
-			entry.ImageUrl = common.GetImageUrlFromContent(entry.FullContent)
-			entry.Language = "en"
+		if ytdlpEntry.PublishedAt != 0 {
+			entry.PublishedAt = ytdlpEntry.PublishedAt
 		}
-		return
-	}
+		if ytdlpEntry.FullContent != "" {
+			entry.FullContent = ytdlpEntry.FullContent
+		}
 
-	if primaryDomain == "xiaohongshu.com" {
-		xshEntry := knowledge.FetchXHSContent(entry.URL)
-		if xshEntry != nil {
-			entry.FullContent = xshEntry.FullContent
-			entry.MediaContent = xshEntry.MediaContent
-			entry.MediaUrl = xshEntry.MediaUrl
-			entry.MediaType = xshEntry.MediaType
-			entry.Author = xshEntry.Author
-			entry.Title = xshEntry.Title
-			entry.PublishedAt = xshEntry.PublishedAt
-			entry.ImageUrl = common.GetImageUrlFromContent(entry.FullContent)
-			entry.Language = "zh-cn"
-		}
-		return
 	}
+}
 
-	if primaryDomain == "bsky.app" {
-		bskyEntry := bskyapi.Fetch(entry.BflUser, entry.URL)
-		if bskyEntry != nil {
-			entry.FullContent = bskyEntry.FullContent
-			entry.Author = bskyEntry.Author
-			entry.Title = bskyEntry.Title
-			entry.PublishedAt = bskyEntry.PublishedAt
-			entry.ImageUrl = common.GetImageUrlFromContent(entry.FullContent)
-			entry.Language = "en"
-		}
-		return
-	}
-
-	if primaryDomain == "threads.net" {
-		threadsEntry := threads.Fetch(entry.URL)
-		if threadsEntry != nil {
-			entry.FullContent = threadsEntry.FullContent
-			entry.Author = threadsEntry.Author
-			entry.Title = threadsEntry.Title
-			entry.PublishedAt = threadsEntry.PublishedAt
-			entry.ImageUrl = common.GetImageUrlFromContent(entry.FullContent)
-			entry.Language = "en"
-		}
-		return
-	}
+func handleDefault(entry *model.Entry, feedUrl, userAgent, cookie string, certificates, fetchViaProxy bool) {
 	entry.RawContent = FetchRawContnt(
 		entry.BflUser,
 		entry.URL,
@@ -146,22 +165,7 @@ func EntryCrawler(entry *model.Entry, feedUrl, userAgent, cookie string, certifi
 			}
 		}
 		if isMetaFromYtdlp(entry.URL) {
-			metaEntry := knowledge.LoadMetaFromYtdlp(entry.BflUser, entry.URL)
-			if metaEntry != nil {
-				if metaEntry.Author != "" {
-					entry.Author = metaEntry.Author
-				}
-				if metaEntry.Title != "" {
-					entry.Title = metaEntry.Title
-				}
-				if metaEntry.PublishedAt != 0 {
-					entry.PublishedAt = metaEntry.PublishedAt
-				}
-				if metaEntry.FullContent != "" {
-					entry.FullContent = metaEntry.FullContent
-				}
-
-			}
+			handleYtdlp(entry)
 		}
 
 		languageLen := len(pureContent)
@@ -177,55 +181,7 @@ func EntryCrawler(entry *model.Entry, feedUrl, userAgent, cookie string, certifi
 	} else {
 		common.Logger.Error("crawler raw content is null", zap.String("url", entry.URL))
 	}
-	common.Logger.Info("crawler entry finished", zap.String("url", entry.URL))
-	//return rawContent, rtContent, entryPublishedAt
 }
-
-/*func notionFetchByheadless(websiteURL string) string {
-	var allocCtx context.Context
-	var cancelCtx context.CancelFunc
-	allocOpts := chromedp.DefaultExecAllocatorOptions[:]
-
-	allocOpts = append(allocOpts,
-		chromedp.DisableGPU,
-		chromedp.Flag("blink-settings", "imagesEnabled=false"),
-		chromedp.Flag("no-first-run", true),
-		//chromedp.Flag("headless", true),
-		chromedp.Flag("disable-gpu", true),
-		chromedp.Flag("ignore-certificate-errors", true),
-		chromedp.UserAgent(`Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.55 Safari/537.36`),
-		//chromedp.Flag("accept-language", `zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7,zh-TW;q=0.6`),
-	)
-
-	headlessSer := os.Getenv("HEADLESS_SERVER_URL")
-	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
-	defer cancel()
-
-	if headlessSer != "" {
-		c, cancelAlloc := chromedp.NewRemoteAllocator(ctx, headlessSer)
-		defer cancelAlloc()
-		allocCtx, cancelCtx = chromedp.NewContext(c)
-	} else {
-		c, cancelAlloc := chromedp.NewExecAllocator(ctx, allocOpts...)
-		defer cancelAlloc()
-
-		allocCtx, cancelCtx = chromedp.NewContext(c)
-	}
-	//ctx, cancel := chromedp.NewContext(context.Background())
-	defer cancelCtx()
-	htmlContent := ""
-	common.Logger.Info("notion headless fetch 1 ")
-	err := chromedp.Run(allocCtx,
-		chromedp.Navigate(websiteURL),
-		//chromedp.WaitVisible(`.notion-page-content`),
-		chromedp.OuterHTML("html", &htmlContent),
-	)
-	if err != nil {
-		common.Logger.Error("notion headless fetch error", zap.String("url", websiteURL), zap.Error(err))
-	}
-	common.Logger.Info("notion headless fetch end...", zap.Int("content len", len(htmlContent)))
-	return htmlContent
-}*/
 
 func notionFetchByApi(websiteURL string) string {
 	client := notionClient.Client{}
@@ -264,6 +220,20 @@ func FetchRawContnt(bflUser, websiteURL, title, userAgent string, cookie string,
 	}
 	if strings.Contains(urlDomain, "feishu.cn") {
 		return feishu.FeishuByheadless(websiteURL)
+	}
+	if strings.Contains(urlDomain, "ximalaya.com") {
+		return ximalaya.XimalayaByheadless(websiteURL)
+	}
+	if strings.Contains(urlDomain, "washingtonpost.com") {
+		return washingtonpost.WashingtonpostByheadless(websiteURL)
+	}
+	//nytimes no success
+	if strings.Contains(urlDomain, "nytimes.com") {
+		return nytimes.NytimesByheadless(bflUser, websiteURL)
+	}
+
+	if strings.Contains(urlDomain, "wsj.com") {
+		return wsj.WsjByheadless(websiteURL)
 	}
 
 	clt := client.NewClientWithConfig(websiteURL)
@@ -313,14 +283,6 @@ func isMetaFromYtdlp(url string) bool {
 	}
 
 	return false
-}
-
-func extractTitleByHtml(content string) string {
-	doc, err := goquery.NewDocumentFromReader(strings.NewReader(content))
-	if err != nil {
-		return ""
-	}
-	return doc.Find("title").Text()
 }
 
 func isAllowedContentType(contentType string) bool {
