@@ -106,7 +106,7 @@ func generateEntry(resp *Response) *model.Entry {
 	}
 
 	entry.Title = common.GetFirstSentence(resp.TextRaw)
-
+	common.Logger.Info("weibo entry", zap.String("author", string(entry.Author)), zap.String("title", string(entry.Title)))
 	return entry
 
 }
