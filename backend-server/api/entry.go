@@ -142,7 +142,8 @@ func (h *handler) knowledgeVideoFetchContent(w http.ResponseWriter, r *http.Requ
 	larepassId := request.QueryStringParam(r, "larepass_id", "")
 	folder := request.QueryStringParam(r, "folder", "")
 
-	common.Logger.Info("knowledge fetch  entry content", zap.String("entryID", entryID))
+	common.Logger.Info("knowledge fetch  entry content", zap.String("entryID", entryID),
+		zap.String("download_url", downloadUrl), zap.String("file_name", fileName), zap.String("fileType", fileType), zap.String("folder", folder))
 	entry, err := h.store.GetEntryById(entryID)
 	if err != nil {
 		common.Logger.Error("load entry error", zap.String("entryID", entryID), zap.Error(err))

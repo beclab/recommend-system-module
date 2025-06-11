@@ -19,6 +19,7 @@ func WashingtonpostByheadless(websiteURL string) string {
 		chromedp.DisableGPU,
 		chromedp.Flag("blink-settings", "imagesEnabled=false"),
 		chromedp.Flag("no-first-run", true),
+		chromedp.Flag("log-level", "error"),
 		//chromedp.Flag("headless", true),
 		chromedp.Flag("disable-gpu", true),
 		chromedp.Flag("ignore-certificate-errors", true),
@@ -43,15 +44,17 @@ func WashingtonpostByheadless(websiteURL string) string {
 	defer cancelCtx()
 	htmlContent := ""
 	common.Logger.Info("threads headless fetch 1 ")
+
 	err := chromedp.Run(allocCtx,
 		chromedp.Navigate(websiteURL),
+
 		chromedp.WaitVisible(`div.meteredContent`, chromedp.ByQuery),
 		chromedp.OuterHTML("html", &htmlContent),
 	)
 	if err != nil {
-		common.Logger.Error("threads headless fetch error", zap.String("url", websiteURL), zap.Error(err))
+		common.Logger.Error("washingtonpost headless fetch error", zap.String("url", websiteURL), zap.Error(err))
 	}
-	common.Logger.Info("threads headless fetch end...", zap.Int("content len", len(htmlContent)))
+	common.Logger.Info("washingtonpost headless fetch end...", zap.Int("content len", len(htmlContent)))
 
 	/*fileWriteErr := os.WriteFile("wst.html", []byte(htmlContent), 0644)
 	if fileWriteErr != nil {
