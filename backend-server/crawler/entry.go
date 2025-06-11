@@ -16,6 +16,7 @@ import (
 	"bytetrade.io/web3os/backend-server/crawler/tbilibili"
 	"bytetrade.io/web3os/backend-server/crawler/threads"
 	"bytetrade.io/web3os/backend-server/crawler/washingtonpost"
+	"bytetrade.io/web3os/backend-server/crawler/weibo"
 	wolaiapi "bytetrade.io/web3os/backend-server/crawler/wolaiapi"
 	"bytetrade.io/web3os/backend-server/crawler/wsj"
 	"bytetrade.io/web3os/backend-server/crawler/ximalaya"
@@ -81,6 +82,11 @@ func handleTBilibili(entry *model.Entry) {
 	entry.Language = "zh-cn"
 }
 
+func handleWeibo(entry *model.Entry) {
+	weiboEntry := weibo.Fetch(entry.BflUser, entry.URL)
+	handlerGenerateEntry(entry, weiboEntry)
+	entry.Language = "zh-cn"
+}
 func EntryCrawler(entry *model.Entry, feedUrl, userAgent, cookie string, certificates, fetchViaProxy bool) {
 	primaryDomain := common.GetPrimaryDomain(entry.URL)
 	urlDomain := domain(entry.URL)
@@ -97,6 +103,8 @@ func EntryCrawler(entry *model.Entry, feedUrl, userAgent, cookie string, certifi
 		}
 	case "x.com":
 		handleX(entry)
+	case "weibo.com":
+		handleWeibo(entry)
 	case "xiaohongshu.com":
 		handleXHS(entry)
 	case "bsky.app":
