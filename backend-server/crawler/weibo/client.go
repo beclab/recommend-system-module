@@ -98,7 +98,7 @@ func generateEntry(resp *Response) *model.Entry {
 	entry := new(model.Entry)
 
 	entry.Author = resp.User.Name
-	publicDate, parseErr := date.Parse(resp.Text)
+	publicDate, parseErr := date.Parse(resp.CreatedAt)
 	if parseErr != nil {
 		common.Logger.Error("date parse err:", zap.Error(parseErr))
 	}
@@ -146,7 +146,7 @@ func fetchPage(bflUser, websiteURL string) *Response {
 			common.Logger.Error("crawling entry rawContent error ", zap.String("url", websiteURL), zap.Error(err))
 			return nil
 		}
-		common.Logger.Info("fetch weibo result", zap.String("url", string(body)))
+		//common.Logger.Info("fetch weibo result", zap.String("url", string(body)))
 		var data Response
 		if err := json.Unmarshal(body, &data); err != nil {
 			return nil
