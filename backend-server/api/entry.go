@@ -1,6 +1,7 @@
 package api
 
 import (
+	encodeJson "encoding/json"
 	"net/http"
 	"strings"
 
@@ -136,14 +137,14 @@ func (h *handler) radioDetection(w http.ResponseWriter, r *http.Request) {
 func (h *handler) knowledgeVideoFetchContent(w http.ResponseWriter, r *http.Request) {
 	entryID := request.RouteStringParam(r, "entryID")
 
-	downloadUrl := request.QueryStringParam(r, "download_url", "")
-	fileName := request.QueryStringParam(r, "file_name", "")
-	fileType := request.QueryStringParam(r, "file_type", "")
-	larepassId := request.QueryStringParam(r, "larepass_id", "")
-	folder := request.QueryStringParam(r, "folder", "")
+	var reqObj model.VideoFetchReqModel
 
-	common.Logger.Info("knowledge fetch  entry content", zap.String("entryID", entryID),
-		zap.String("download_url", downloadUrl), zap.String("file_name", fileName), zap.String("fileType", fileType), zap.String("folder", folder))
+	err := encodeJson.NewDecoder(r.Body).Decode(&reqObj)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	common.Logger.Info("knowledge fetch  entry content", zap.Any("obj", reqObj))
 	entry, err := h.store.GetEntryById(entryID)
 	if err != nil {
 		common.Logger.Error("load entry error", zap.String("entryID", entryID), zap.Error(err))
@@ -154,7 +155,7 @@ func (h *handler) knowledgeVideoFetchContent(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	go func() {
-		h.newVideoFetchContent(entry, downloadUrl, fileName, fileType, larepassId, folder)
+		h.newVideoFetchContent(entry, reqObj.DownloadUrl, reqObj.FileName, reqObj.FileType, reqObj.LarepassId, reqObj.Folder)
 	}()
 	json.NoContent(w, r)
 

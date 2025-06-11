@@ -27,7 +27,7 @@ func Serve(router *mux.Router, store *storage.Storage, pool *worker.Pool) {
 
 	sr.HandleFunc("/knowledge/feeds/{feedID}/refresh", handler.knowledgeRefreshFeed).Methods(http.MethodPut)
 	sr.HandleFunc("/knowledge/entries/{entryID}/fetch-content", handler.knowledgeFetchContent).Methods(http.MethodGet)
-	sr.HandleFunc("/knowledge/entries/{entryID}/video-fetch-content", handler.knowledgeVideoFetchContent).Methods(http.MethodGet)
+	sr.HandleFunc("/knowledge/entries/{entryID}/video-fetch-content", handler.knowledgeVideoFetchContent).Methods(http.MethodPut)
 	//sr.HandleFunc("/knowledge/fetch-metedata", handler.FetchMetaData).Methods(http.MethodGet)
 
 	sr.HandleFunc("/knowledge/rssParse", handler.rssParse).Methods(http.MethodGet)
