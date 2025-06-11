@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	userAgent  = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3483.0 Safari/537.36"
+	userAgent  = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36"
 	acceptLang = "en-US,en;q=0.9"
 )
 
@@ -35,8 +35,16 @@ type DynamicDescData struct {
 	DynamicText string     `json:"text"`
 }
 
+type DynamicMajorOpusData struct {
+	MajorOpusSummary DynamicDescData `json:"summary"`
+}
+type DynamicMajorData struct {
+	MajorOpus DynamicMajorOpusData `json:"opus"`
+}
+
 type DynamicData struct {
-	DynamicDesc DynamicDescData `json:"desc"`
+	DynamicDesc  DynamicDescData  `json:"desc"`
+	DynamicMajor DynamicMajorData `json:"major"`
 }
 
 type AuthorData struct {
@@ -87,9 +95,9 @@ func generateEntry(resp *Response) *model.Entry {
 		if node.NodeType == "RICH_TEXT_NODE_TYPE_TEXT" {
 			moduleFullContent = moduleFullContent + "<span>" + node.NodeOrigText + "</span>"
 		}
-		if node.NodeType == "RICH_TEXT_NODE_TYPE_EMOJI" {
+		/*if node.NodeType == "RICH_TEXT_NODE_TYPE_EMOJI" {
 			moduleFullContent = moduleFullContent + "<img src='" + node.EmojiNode.EmojiUrl + "' />"
-		}
+		}*/
 	}
 	entry.FullContent = "<div class='mainClass'>" + moduleFullContent + "</div>"
 	if len(resp.Data.Item.Orig.Modules.DynamicModule.DynamicDesc.DescNodes) > 0 {
@@ -100,11 +108,23 @@ func generateEntry(resp *Response) *model.Entry {
 			if node.NodeType == "RICH_TEXT_NODE_TYPE_TEXT" {
 				origFullContent = origFullContent + "<span>" + node.NodeOrigText + "</span>"
 			}
-			if node.NodeType == "RICH_TEXT_NODE_TYPE_EMOJI" {
+			/*if node.NodeType == "RICH_TEXT_NODE_TYPE_EMOJI" {
 				origFullContent = origFullContent + "<img src='" + node.EmojiNode.EmojiUrl + "' />"
+			}*/
+		}
+		entry.FullContent = entry.FullContent + "<div class='quoteClass'>" + origFullContent + "</div>"
+	}
+	if len(resp.Data.Item.Orig.Modules.DynamicModule.DynamicMajor.MajorOpus.MajorOpusSummary.DescNodes) > 0 {
+		origFullContent := "<div class='quoteAuthor'><div class='quoteAuthorImg'><img src='" + resp.Data.Item.Orig.Modules.AuthorModule.Face +
+			"' /></div><div class='quoteAuthorLabel'>" + resp.Data.Item.Orig.Modules.AuthorModule.Name + "</div></div>"
+
+		for _, node := range resp.Data.Item.Orig.Modules.DynamicModule.DynamicMajor.MajorOpus.MajorOpusSummary.DescNodes {
+			if node.NodeType == "RICH_TEXT_NODE_TYPE_TEXT" {
+				origFullContent = origFullContent + "<span>" + node.NodeOrigText + "</span>"
 			}
 		}
 		entry.FullContent = entry.FullContent + "<div class='quoteClass'>" + origFullContent + "</div>"
+
 	}
 	entry.Title = common.GetFirstSentence(resp.Data.Item.Modules.DynamicModule.DynamicDesc.DynamicText)
 
