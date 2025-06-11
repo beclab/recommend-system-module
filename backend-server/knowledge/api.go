@@ -229,10 +229,23 @@ func FetchTwitterContent(bfl_user, twitterID, url string) *model.Entry {
 
 }
 
+type XHSReq struct {
+	Url     string `json:"url"`
+	BflUser string `json:"bfl_user"`
+}
+
 func FetchXHSContent(url string, bfl_user string) *model.Entry {
-	apiUrl := common.DownloadApiUrl() + "/xhs/fetch-content?url=" + url + "&bfl_user=" + bfl_user
-	client := &http.Client{Timeout: time.Second * 120}
-	res, err := client.Get(apiUrl)
+	//apiUrl := common.DownloadApiUrl() + "/xhs/fetch-content?url=" + url + "&bfl_user=" + bfl_user
+	//client := &http.Client{Timeout: time.Second * 120}
+	//res, err := client.Post(apiUrl)
+	req := XHSReq{Url: url, BflUser: bfl_user}
+	jsonByte, _ := json.Marshal(req)
+	apiUrl := common.DownloadApiUrl() + "/xhs/fetch-content"
+	request, _ := http.NewRequest("POST", apiUrl, bytes.NewBuffer(jsonByte))
+	request.Header.Set("Content-Type", "application/json")
+	client := &http.Client{Timeout: 20 * time.Second}
+	res, err := client.Do(request)
+
 	if err != nil {
 		common.Logger.Error("fetch xhs content error", zap.String("url", url), zap.Error(err))
 		return nil
