@@ -1,6 +1,7 @@
 package api
 
 import (
+	encodeJson "encoding/json"
 	"net/http"
 	"strings"
 
@@ -136,7 +137,14 @@ func (h *handler) radioDetection(w http.ResponseWriter, r *http.Request) {
 func (h *handler) knowledgeVideoFetchContent(w http.ResponseWriter, r *http.Request) {
 	entryID := request.RouteStringParam(r, "entryID")
 
-	common.Logger.Info("knowledge fetch  entry content", zap.String("entryID", entryID))
+	var reqObj model.VideoFetchReqModel
+
+	err := encodeJson.NewDecoder(r.Body).Decode(&reqObj)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	common.Logger.Info("knowledge fetch  entry content", zap.Any("obj", reqObj))
 	entry, err := h.store.GetEntryById(entryID)
 	if err != nil {
 		common.Logger.Error("load entry error", zap.String("entryID", entryID), zap.Error(err))
@@ -147,12 +155,12 @@ func (h *handler) knowledgeVideoFetchContent(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	go func() {
-		h.newVideoFetchContent(entry)
+		h.newVideoFetchContent(entry, reqObj.DownloadUrl, reqObj.FileName, reqObj.FileType, reqObj.LarepassId, reqObj.Folder)
 	}()
 	json.NoContent(w, r)
 
 }
-func (h *handler) newVideoFetchContent(entry *model.Entry) string {
+func (h *handler) newVideoFetchContent(entry *model.Entry, downloadUrl string, fileName string, fileType string, larepassId string, folder string) string {
 	var feed *model.Feed
 	if entry.FeedID != nil {
 		feed, _ = h.store.GetFeedById(*entry.FeedID)
@@ -176,5 +184,19 @@ func (h *handler) newVideoFetchContent(entry *model.Entry) string {
 	updateEntry := &model.Entry{ID: entry.ID, URL: entry.URL, ImageUrl: entry.ImageUrl, PublishedAt: entry.PublishedAt, Title: entry.Title, Language: entry.Language, Author: entry.Author, RawContent: entry.RawContent, FullContent: entry.FullContent}
 	knowledge.UpdateLibraryEntryContent(entry.BflUser, updateEntry, true)
 
+	var download model.EntryDownloadModel
+	download.DataSource = downloadUrl
+	download.DownloadAPP = "wise"
+	download.EnclosureId = ""
+	download.FileName = fileName
+	download.FileType = fileType
+	download.EntryId = entry.ID
+	download.Path = "Downloads/Wise/" + folder
+	download.BflUser = entry.BflUser
+	download.LarepassId = larepassId
+	if larepassId != "" {
+		download.DownloadAPP = "larepass"
+	}
+	knowledge.DownloadDoReq(download)
 	return entry.FullContent
 }

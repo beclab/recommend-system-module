@@ -29,7 +29,7 @@ func SaveFeedEntries(bflUser string, store *storage.Storage, entries model.Entri
 
 }
 
-func doDownloadReq(download model.EntryDownloadModel) {
+func DownloadDoReq(download model.EntryDownloadModel) {
 	downloadUrl := common.DownloadApiUrl() + "/termius/download"
 	algoJsonByte, err := json.Marshal(download)
 	if err != nil {
@@ -62,7 +62,7 @@ func NewEnclosure(entry *model.Entry, feed *model.Feed, store *storage.Storage) 
 	if entry.MediaUrl != "" {
 		var download model.EntryDownloadModel
 		download.DataSource = entry.MediaUrl
-		download.TaskUser = common.CurrentUser()
+		//download.TaskUser = common.CurrentUser()
 		download.DownloadAPP = "wise"
 		download.EnclosureId = enclosureID
 		download.FileName = entry.Title
@@ -74,7 +74,7 @@ func NewEnclosure(entry *model.Entry, feed *model.Feed, store *storage.Storage) 
 		}
 
 		if feed == nil || feed.AutoDownload {
-			doDownloadReq(download)
+			DownloadDoReq(download)
 		}
 	} else {
 		common.Logger.Error("entry mediaUrl is null")
@@ -229,10 +229,23 @@ func FetchTwitterContent(bfl_user, twitterID, url string) *model.Entry {
 
 }
 
-func FetchXHSContent(url string) *model.Entry {
-	apiUrl := common.DownloadApiUrl() + "/xhs/fetch-content?url=" + url
-	client := &http.Client{Timeout: time.Second * 120}
-	res, err := client.Get(apiUrl)
+type XHSReq struct {
+	Url     string `json:"url"`
+	BflUser string `json:"bfl_user"`
+}
+
+func FetchXHSContent(url string, bfl_user string) *model.Entry {
+	//apiUrl := common.DownloadApiUrl() + "/xhs/fetch-content?url=" + url + "&bfl_user=" + bfl_user
+	//client := &http.Client{Timeout: time.Second * 120}
+	//res, err := client.Post(apiUrl)
+	req := XHSReq{Url: url, BflUser: bfl_user}
+	jsonByte, _ := json.Marshal(req)
+	apiUrl := common.DownloadApiUrl() + "/xhs/fetch-content"
+	request, _ := http.NewRequest("POST", apiUrl, bytes.NewBuffer(jsonByte))
+	request.Header.Set("Content-Type", "application/json")
+	client := &http.Client{Timeout: 20 * time.Second}
+	res, err := client.Do(request)
+
 	if err != nil {
 		common.Logger.Error("fetch xhs content error", zap.String("url", url), zap.Error(err))
 		return nil

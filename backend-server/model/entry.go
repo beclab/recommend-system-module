@@ -155,12 +155,22 @@ func GetEntryFromWeChatEntry(wechatEntry *WeChatEntry) *Entry {
 type WeChatEntries []*WeChatEntry
 
 type EntryDownloadModel struct {
-	DataSource  string `json:"data_source"`
-	TaskUser    string `json:"task_user"`
+	DataSource string `json:"data_source"`
+	//TaskUser    string `json:"task_user"`
 	DownloadAPP string `json:"download_app"`
 	EnclosureId string `json:"enclosure_id"`
 	FileName    string `json:"file_name"`
 	FileType    string `json:"file_type"`
 	Path        string `json:"path"`
 	BflUser     string `json:"bfl_user"`
+	LarepassId  string `json:"larepass_id"`
+	EntryId     string `json:"entry_id"`
+}
+
+type VideoFetchReqModel struct {
+	DownloadUrl string `json:"download_url"`
+	FileName    string `json:"file_name"`
+	FileType    string `json:"file_type"`
+	LarepassId  string `json:"larepass_id"`
+	Folder      string `json:"folder"`
 }
