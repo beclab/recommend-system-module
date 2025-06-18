@@ -72,8 +72,8 @@ github.com/armon/go-metrics v0.0.0-20180917152333-f0300d1749da/go.mod h1:Q73ZrmV
 github.com/armon/go-radix v0.0.0-20180808171621-7fddfc383310/go.mod h1:ufUuZ+zHj4x4TnLV4JWEpy2hxWSpsRywHrMgIH9cCH8=
 github.com/armon/go-socks5 v0.0.0-20160902184237-e75332964ef5/go.mod h1:wHh0iHkYZB8zMSxRWpUBQtwG5a7fFgvEO+odwuTv2gs=
 github.com/asaskevich/govalidator v0.0.0-20190424111038-f61b66f89f4a/go.mod h1:lB+ZfQJz7igIIfQNfa7Ml4HSf2uFQQRzpGGRXenZAgY=
-github.com/beclab/article-extractor v0.0.46 h1:GC6D0F+DAptvCpYGNPFXd1T9kqKUsFUkaUrOd2STttg=
-github.com/beclab/article-extractor v0.0.46/go.mod h1:mGT6FvsLc9xzccWLO02XPvpNBcejj8ZTz40u7bkCBgI=
+github.com/beclab/article-extractor v0.0.47 h1:+sgqK0s6W4y/6hbKlsvb/d22PDtzpoTHPvtQUX8t9e0=
+github.com/beclab/article-extractor v0.0.47/go.mod h1:mGT6FvsLc9xzccWLO02XPvpNBcejj8ZTz40u7bkCBgI=
 github.com/beclab/fs-lib v0.0.2 h1:NGsbNSt3wLweJgFW3gOBz9UyLoe4L8VTNKxIJOTgN2Y=
 github.com/beclab/fs-lib v0.0.2/go.mod h1:7MvnhYdMGnFiQBl96B1g5IGeZ0jM+p501ip2T+ZxR+I=
 github.com/benbjohnson/clock v1.0.3/go.mod h1:bGMdMPoPVvcYyt1gHDf4J2KE153Yf9BuiUKYMaxlTDM=

@@ -214,6 +214,7 @@ func wolaiFetchByApi(websiteURL string) string {
 }
 
 func FetchRawContnt(bflUser, websiteURL, title, userAgent string, cookie string, allowSelfSignedCertificates, useProxy bool) string {
+	websiteURL = fetchUrlToChange(websiteURL)
 	urlDomain := domain(websiteURL)
 	common.Logger.Info("fatch raw contnet", zap.String("domain", websiteURL))
 	if strings.Contains(urlDomain, "notion.site") {
@@ -306,4 +307,17 @@ func domain(websiteURL string) string {
 	}
 
 	return parsedURL.Host
+}
+
+func fetchUrlToChange(websiteURL string) string {
+	urlDomain := domain(websiteURL)
+	switch urlDomain {
+	case "web.okjike.com":
+		parts := strings.Split(websiteURL, "/")
+		id := parts[len(parts)-1]
+		return "https://m.okjike.com/originalPosts/" + id
+	default:
+		return websiteURL
+	}
+
 }
