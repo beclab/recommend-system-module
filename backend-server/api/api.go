@@ -31,7 +31,7 @@ func Serve(router *mux.Router, store *storage.Storage, pool *worker.Pool) {
 	//sr.HandleFunc("/knowledge/fetch-metedata", handler.FetchMetaData).Methods(http.MethodGet)
 
 	sr.HandleFunc("/knowledge/rssParse", handler.rssParse).Methods(http.MethodGet)
-	sr.HandleFunc("/knowledge/radioDetection", handler.radioDetection).Methods(http.MethodGet)
+	sr.HandleFunc("/knowledge/radioDetection", handler.exceptYTdlpDownloadQuery).Methods(http.MethodGet)
 
 	sr.HandleFunc("/knowledge/getPvcAnnotation", handler.getPvcAnnotation).Methods(http.MethodGet)
 
