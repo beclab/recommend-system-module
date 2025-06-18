@@ -106,8 +106,11 @@ func (h *handler) exceptYTdlpDownloadQuery(w http.ResponseWriter, r *http.Reques
 		false,
 		false,
 	)
-	result := processor.ExceptYTdlpDownloadQueryInArticle(rawContent, url)
-	json.OK(w, r, model.StrResponseModel{Code: 0, Data: result})
+	url, urlType := processor.ExceptYTdlpDownloadQueryInArticle(rawContent, url)
+	var result model.DownloadFetchReqModel
+	result.DownloadUrl = url
+	result.FileType = urlType
+	json.OK(w, r, model.DownloadFetchResponseModel{Code: 0, Data: result})
 }
 
 /*func (h *handler) FetchMetaData(w http.ResponseWriter, r *http.Request) {
@@ -137,7 +140,7 @@ func (h *handler) exceptYTdlpDownloadQuery(w http.ResponseWriter, r *http.Reques
 func (h *handler) knowledgeVideoFetchContent(w http.ResponseWriter, r *http.Request) {
 	entryID := request.RouteStringParam(r, "entryID")
 
-	var reqObj model.VideoFetchReqModel
+	var reqObj model.DownloadFetchReqModel
 
 	err := encodeJson.NewDecoder(r.Body).Decode(&reqObj)
 	if err != nil {
