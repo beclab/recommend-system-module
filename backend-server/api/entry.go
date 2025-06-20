@@ -93,12 +93,13 @@ func (h *handler) knowledgeFetchContent(w http.ResponseWriter, r *http.Request) 
 
 }
 
-func (h *handler) radioDetection(w http.ResponseWriter, r *http.Request) {
+func (h *handler) exceptYTdlpDownloadQuery(w http.ResponseWriter, r *http.Request) {
 	url := request.QueryStringParam(r, "url", "")
+	bflUser := request.QueryStringParam(r, "bfl_user", "")
 	common.Logger.Info("knowledge radio query", zap.String("url", url))
 	useAgent := "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 	rawContent := crawler.FetchRawContnt(
-		"",
+		bflUser,
 		url,
 		"",
 		useAgent,
@@ -106,8 +107,22 @@ func (h *handler) radioDetection(w http.ResponseWriter, r *http.Request) {
 		false,
 		false,
 	)
-	result := processor.RadioDetectionInArticle(rawContent, url)
-	json.OK(w, r, model.StrResponseModel{Code: 0, Data: result})
+	downloadUrl, urlType := processor.ExceptYTdlpDownloadQueryInArticle(rawContent, url)
+	var result model.DownloadFetchReqModel
+	result.DownloadUrl = downloadUrl
+	result.FileType = urlType
+	if result.FileType != "" {
+		lastSlashIndex := strings.LastIndex(url, "/")
+		result.FileName = url[lastSlashIndex+1:]
+		if result.FileType == "ebook" {
+			result.FileName = result.FileName + ".epub"
+		}
+		if result.FileType == "pdf" {
+			result.FileName = result.FileName + ".pdf"
+		}
+	}
+
+	json.OK(w, r, model.DownloadFetchResponseModel{Code: 0, Data: result})
 }
 
 /*func (h *handler) FetchMetaData(w http.ResponseWriter, r *http.Request) {
@@ -137,7 +152,7 @@ func (h *handler) radioDetection(w http.ResponseWriter, r *http.Request) {
 func (h *handler) knowledgeVideoFetchContent(w http.ResponseWriter, r *http.Request) {
 	entryID := request.RouteStringParam(r, "entryID")
 
-	var reqObj model.VideoFetchReqModel
+	var reqObj model.DownloadFetchReqModel
 
 	err := encodeJson.NewDecoder(r.Body).Decode(&reqObj)
 	if err != nil {

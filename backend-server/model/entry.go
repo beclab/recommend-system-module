@@ -167,10 +167,15 @@ type EntryDownloadModel struct {
 	EntryId     string `json:"entry_id"`
 }
 
-type VideoFetchReqModel struct {
+type DownloadFetchReqModel struct {
 	DownloadUrl string `json:"download_url"`
 	FileName    string `json:"file_name"`
 	FileType    string `json:"file_type"`
 	LarepassId  string `json:"larepass_id"`
 	Folder      string `json:"folder"`
+}
+
+type DownloadFetchResponseModel struct {
+	Code int                   `json:"code"`
+	Data DownloadFetchReqModel `json:"data"`
 }

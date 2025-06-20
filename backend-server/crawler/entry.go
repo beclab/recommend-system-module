@@ -215,6 +215,7 @@ func wolaiFetchByApi(websiteURL string) string {
 }
 
 func FetchRawContnt(bflUser, websiteURL, title, userAgent string, cookie string, allowSelfSignedCertificates, useProxy bool) string {
+	websiteURL = fetchUrlToChange(websiteURL)
 	urlDomain := domain(websiteURL)
 	common.Logger.Info("fatch raw contnet", zap.String("domain", websiteURL))
 	if strings.Contains(urlDomain, "notion.site") {
@@ -280,6 +281,7 @@ func FetchRawContnt(bflUser, websiteURL, title, userAgent string, cookie string,
 		common.Logger.Error("crawling entry rawContent error ", zap.String("url", websiteURL), zap.Error(err))
 		return ""
 	}
+	common.Logger.Info("crawle raw content", zap.Int("length:", len(body)))
 	return string(body)
 }
 
@@ -307,4 +309,17 @@ func domain(websiteURL string) string {
 	}
 
 	return parsedURL.Host
+}
+
+func fetchUrlToChange(websiteURL string) string {
+	urlDomain := domain(websiteURL)
+	switch urlDomain {
+	case "web.okjike.com":
+		parts := strings.Split(websiteURL, "/")
+		id := parts[len(parts)-1]
+		return "https://m.okjike.com/originalPosts/" + id
+	default:
+		return websiteURL
+	}
+
 }
