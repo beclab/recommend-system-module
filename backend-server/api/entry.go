@@ -107,9 +107,9 @@ func (h *handler) exceptYTdlpDownloadQuery(w http.ResponseWriter, r *http.Reques
 		false,
 		false,
 	)
-	url, urlType := processor.ExceptYTdlpDownloadQueryInArticle(rawContent, url)
+	downloadUrl, urlType := processor.ExceptYTdlpDownloadQueryInArticle(rawContent, url)
 	var result model.DownloadFetchReqModel
-	result.DownloadUrl = url
+	result.DownloadUrl = downloadUrl
 	result.FileType = urlType
 	if result.FileType != "" {
 		lastSlashIndex := strings.LastIndex(url, "/")
