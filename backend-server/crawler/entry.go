@@ -280,6 +280,7 @@ func FetchRawContnt(bflUser, websiteURL, title, userAgent string, cookie string,
 		common.Logger.Error("crawling entry rawContent error ", zap.String("url", websiteURL), zap.Error(err))
 		return ""
 	}
+	common.Logger.Info("crawle raw content", zap.Int("length:", len(body)))
 	return string(body)
 }
 
