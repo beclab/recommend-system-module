@@ -14,7 +14,7 @@ func GetDownloadFile(downloadUrl string, bflUser string, fileType string) string
 		log.Fatalf("Error creating request: %v", err)
 	}
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Mobile Safari/537.36")
-	//RequestAddCookie(req, url, bflUser)
+	RequestAddCookie(req, downloadUrl, bflUser)
 	reqClient := &http.Client{
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			return http.ErrUseLastResponse
@@ -25,6 +25,7 @@ func GetDownloadFile(downloadUrl string, bflUser string, fileType string) string
 		log.Fatalf("Error fetching URL: %v", err)
 	}
 	defer resp.Body.Close()
+	log.Print("downloadfile head:", downloadUrl, resp.Header)
 	//redirectURL := resp.Header.Get("Location")
 	if values, ok := resp.Header["Location"]; ok {
 		return GetFileNameFromUrl(values[0], fileType)
@@ -53,13 +54,14 @@ func GetContentAndisposition(downloadUrl string, bflUser string) (string, string
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Mobile Safari/537.36")
 	//z-lib
 	//req.Header.Set("Cookie", "siteLanguage=en; refuseChangeDomain=1; remix_userkey=5fad65ce9889bb2ad717d985df7bad46; remix_userid=43395752; hide_regBonusPopup_announcement=true")
-	//RequestAddCookie(req, url, bflUser)
+	RequestAddCookie(req, downloadUrl, bflUser)
 	reqClient := &http.Client{}
 	resp, err := reqClient.Do(req)
 	if err != nil {
 		log.Fatalf("Error fetching URL: %v", err)
 	}
 	defer resp.Body.Close()
+	log.Print("contentdisposition head:", downloadUrl, resp.Header)
 	contentType := ""
 	reqContentType := ""
 	fileName := ""
