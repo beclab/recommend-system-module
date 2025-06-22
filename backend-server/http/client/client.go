@@ -166,47 +166,7 @@ func (c *Client) Get() (*Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	urlDomain, urlPrimaryDomain := GetPrimaryDomain(c.inputURL)
-	if urlDomain != "" && c.bflUser != "" {
-		//if CheckCookRequired(domain) {
-		domainList := LoadCookieInfoManager(c.bflUser, urlDomain, urlPrimaryDomain)
-		//domainList := LoadCookieInfo(urlPrimaryDomain)
-		//addCookies := ""
-		for _, domain := range domainList {
-			for _, record := range domain.Records {
-				if strings.HasPrefix(record.Domain, ".") {
-					if len(record.Domain)-len(urlDomain) > 1 {
-						print("skip cookie domain:", record.Domain)
-						continue
-					}
-				} else {
-					if record.Domain != urlDomain {
-						print("skip cookie domain2:", record.Domain)
-						continue
-					}
-				}
-				cookieVal := record.Value
-				if urlPrimaryDomain != "zhihu.com" {
-					cookieVal = url.QueryEscape(record.Value)
-				}
-				cookie := &http.Cookie{
-					Name:    record.Name,
-					Value:   cookieVal,
-					Path:    record.Path,
-					Domain:  record.Domain,
-					Expires: time.Unix(int64(record.Expires), 0),
-				}
-				request.AddCookie(cookie)
-				//addCookies = addCookies + record.Name + "=" + record.Value + ";"
-			}
-		}
-		/*if addCookies != "" {
-			common.Logger.Info("add cookie1", zap.String("cookie", addCookies))
-			request.Header.Add("Cookie", addCookies)
-		}*/
-
-		//}
-	}
+	RequestAddCookie(request, c.inputURL, c.bflUser)
 	return c.executeRequest(request)
 }
 

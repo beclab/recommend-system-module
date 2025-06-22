@@ -15,14 +15,6 @@ import (
 	"go.uber.org/zap"
 )
 
-var COOKIE_RULES = map[string]string{
-	"bilibili.com": "recommend",
-	"spotify.com":  "required",
-	"reuters.com":  "required",
-	"wsj.com":      "required",
-	"ft.com":       "required",
-}
-
 func GetPrimaryDomain(u string) (string, string) {
 	parsedURL, err := url.Parse(u)
 	if err != nil {
@@ -44,15 +36,6 @@ func getParentDomain(domain string) string {
 		return strings.Join(parts[1:], ".")
 	}
 	return ""
-}
-
-func CheckCookRequired(host string) bool {
-
-	if _, ok := COOKIE_RULES[host]; ok {
-		log.Print("check cookie true :", host)
-		return true
-	}
-	return false
 }
 
 func LoadCookieInfoManager(bflUser, domain, primaryDomain string) []model.SettingDomainRespModel {
@@ -113,4 +96,38 @@ func LoadCookieInfo(bflUser string, host string) []model.SettingDomainRespModel 
 	}
 	return []model.SettingDomainRespModel{}
 
+}
+
+func RequestAddCookie(request *http.Request, reqUrl string, bflUser string) {
+	urlDomain, urlPrimaryDomain := GetPrimaryDomain(reqUrl)
+	if urlDomain != "" && bflUser != "" {
+		domainList := LoadCookieInfoManager(bflUser, urlDomain, urlPrimaryDomain)
+		for _, domain := range domainList {
+			for _, record := range domain.Records {
+				if strings.HasPrefix(record.Domain, ".") {
+					if len(record.Domain)-len(urlDomain) > 1 {
+						print("skip cookie domain:", record.Domain)
+						continue
+					}
+				} else {
+					if record.Domain != urlDomain {
+						print("skip cookie domain2:", record.Domain)
+						continue
+					}
+				}
+				cookieVal := record.Value
+				if urlPrimaryDomain != "zhihu.com" {
+					cookieVal = url.QueryEscape(record.Value)
+				}
+				cookie := &http.Cookie{
+					Name:    record.Name,
+					Value:   cookieVal,
+					Path:    record.Path,
+					Domain:  record.Domain,
+					Expires: time.Unix(int64(record.Expires), 0),
+				}
+				request.AddCookie(cookie)
+			}
+		}
+	}
 }
