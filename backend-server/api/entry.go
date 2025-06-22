@@ -97,7 +97,7 @@ func (h *handler) knowledgeFetchContent(w http.ResponseWriter, r *http.Request) 
 func (h *handler) exceptYTdlpDownloadQuery(w http.ResponseWriter, r *http.Request) {
 	url := request.QueryStringParam(r, "url", "")
 	bflUser := request.QueryStringParam(r, "bfl_user", "")
-	common.Logger.Info("knowledge radio query", zap.String("url", url))
+	common.Logger.Info("knowledge download file query", zap.String("url", url), zap.String("bfl_user", bflUser))
 	urlType, fileName := client.GetContentAndisposition(url, bflUser)
 	var result model.DownloadFetchReqModel
 	if urlType != "" {
