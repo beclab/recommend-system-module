@@ -1,10 +1,15 @@
 package client
 
 import (
+	"bufio"
+	"fmt"
 	"log"
 	"net/http"
 	"net/url"
+	"os/exec"
 	"strings"
+
+	"bytetrade.io/web3os/backend-server/common"
 )
 
 func GetDownloadFile(downloadUrl string, bflUser string, fileType string) string {
@@ -48,7 +53,34 @@ func GetFileNameFromUrl(url string, fileType string) string {
 	return fileName
 }
 
+func particularUrlAnalysis(downloadUrl string) (string, string) {
+	contentType := ""
+	fileName := ""
+	urlDomain := common.Domain(downloadUrl)
+	if strings.Contains(urlDomain, "manybooks.net") {
+		cleanPath := strings.Trim(downloadUrl, "/")
+		parts := strings.Split(cleanPath, "/")
+		lastPart := parts[len(parts)-1]
+		if lastPart == "pdf" {
+			contentType = "pdf"
+			fileName = parts[len(parts)-2] + ".pdf"
+		}
+		if lastPart == "epub" {
+			contentType = "epub"
+			fileName = parts[len(parts)-2] + ".epub"
+		}
+
+	}
+	return contentType, fileName
+}
+
 func GetContentAndisposition(downloadUrl string, bflUser string) (string, string) {
+	contentType := ""
+	fileName := ""
+	contentType, fileName = particularUrlAnalysis(downloadUrl)
+	if contentType != "" {
+		return contentType, fileName
+	}
 
 	req, err := http.NewRequest("HEAD", downloadUrl, nil)
 	if err != nil {
@@ -56,25 +88,22 @@ func GetContentAndisposition(downloadUrl string, bflUser string) (string, string
 	}
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Mobile Safari/537.36")
 	req.Header.Set("Accept", "*/*")
-	req.Header.Set("Accept-Encoding", "identity")
+	req.Header.Set("Connection", "keep-alive")
+	//req.Header.Set("Accept-Encoding", "identity")
+	//req.Header.Set("Accept-Encoding", "gzip, deflate, br")
+
 	//z-lib
 	//req.Header.Set("Cookie", "siteLanguage=en; refuseChangeDomain=1; remix_userkey=5fad65ce9889bb2ad717d985df7bad46; remix_userid=43395752; hide_regBonusPopup_announcement=true")
 	RequestAddCookie(req, downloadUrl, bflUser)
-	reqClient := &http.Client{
-		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			req.Header = via[0].Header
-			return nil
-		},
-	}
+	reqClient := &http.Client{}
 	resp, err := reqClient.Do(req)
 	if err != nil {
 		log.Fatalf("Error fetching URL: %v", err)
 	}
 	defer resp.Body.Close()
 	log.Print("contentdisposition head:", downloadUrl, resp.Header["Content-Type"])
-	contentType := ""
 	reqContentType := ""
-	fileName := ""
+
 	if headContentType, ok := resp.Header["Content-Type"]; ok {
 		reqContentType = headContentType[0]
 	}
@@ -113,5 +142,39 @@ func GetContentAndisposition(downloadUrl string, bflUser string) (string, string
 		}
 		log.Print("Content-Disposition filename:", fileName)
 	}
+	return contentType, fileName
+}
+
+func GetContentAndispositionByWget(downloadUrl string, bflUser string) (string, string) {
+	contentType := ""
+	//reqContentType := ""
+	fileName := ""
+	cookie := ""
+
+	userAgent := "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+
+	args := []string{"--spider", "--server-response"}
+	args = append(args, "--header", fmt.Sprintf("User-Agent: %s", userAgent))
+	if strings.TrimSpace(cookie) != "" {
+		args = append(args, "--header", fmt.Sprintf("Cookie: %s", cookie))
+	}
+
+	args = append(args, downloadUrl)
+
+	cmd := exec.Command("wget", args...)
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		log.Fatalf("Command failed: %v\nOutput: %s", err, output)
+	}
+
+	scanner := bufio.NewScanner(strings.NewReader(string(output)))
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.HasPrefix(line, "  ") {
+			fmt.Println(line)
+		}
+	}
+
 	return contentType, fileName
 }

@@ -98,6 +98,20 @@ func (h *handler) exceptYTdlpDownloadQuery(w http.ResponseWriter, r *http.Reques
 	url := request.QueryStringParam(r, "url", "")
 	bflUser := request.QueryStringParam(r, "bfl_user", "")
 	common.Logger.Info("knowledge download file query", zap.String("url", url), zap.String("bfl_user", bflUser))
+	useAgent := "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+	rawContent := crawler.FetchRawContnt(
+		bflUser,
+		url,
+		"",
+		useAgent,
+		"",
+		false,
+		false,
+	)
+	downloadUrl, _ := processor.ExceptYTdlpDownloadQueryInArticle(rawContent, url)
+	if downloadUrl != "" {
+		url = downloadUrl
+	}
 	urlType, fileName := client.GetContentAndisposition(url, bflUser)
 	var result model.DownloadFetchReqModel
 	if urlType != "" {
@@ -110,31 +124,6 @@ func (h *handler) exceptYTdlpDownloadQuery(w http.ResponseWriter, r *http.Reques
 		json.OK(w, r, model.DownloadFetchResponseModel{Code: 0, Data: result})
 		return
 	}
-	useAgent := "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-	rawContent := crawler.FetchRawContnt(
-		bflUser,
-		url,
-		"",
-		useAgent,
-		"",
-		false,
-		false,
-	)
-	downloadUrl, _ := processor.ExceptYTdlpDownloadQueryInArticle(rawContent, url)
-	if downloadUrl != "" && downloadUrl != url {
-		extractUrlType, extractFileName := client.GetContentAndisposition(downloadUrl, bflUser)
-		if extractUrlType != "" {
-			result.DownloadUrl = downloadUrl
-			result.FileType = extractUrlType
-			if fileName == "" {
-				extractFileName = client.GetDownloadFile(downloadUrl, bflUser, extractUrlType)
-			}
-			result.FileName = extractFileName
-			json.OK(w, r, model.DownloadFetchResponseModel{Code: 0, Data: result})
-			return
-		}
-	}
-
 	json.OK(w, r, model.DownloadFetchResponseModel{Code: 0, Data: result})
 }
 
