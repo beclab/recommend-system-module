@@ -66,7 +66,7 @@ func particularUrlAnalysis(downloadUrl string) (string, string) {
 			fileName = parts[len(parts)-2] + ".pdf"
 		}
 		if lastPart == "epub" {
-			contentType = "epub"
+			contentType = "ebook"
 			fileName = parts[len(parts)-2] + ".epub"
 		}
 
