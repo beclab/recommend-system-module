@@ -38,7 +38,7 @@ const (
 	defaultEntryMongoUpdateApiUrl = "http://localhost:3010/knowledge/entry/"
 
 	defaultDownloadApiUrl = "http://localhost:3080/api"
-	defaultYtdlpApiUrl    = "http://127.0.0.1:3082/api/v1/get_metadata"
+	defaultYtdlpApiUrl    = "http://127.0.0.1:3082/api"
 
 	FeedSource                   = "wise"
 	DefaultWorkerPoolSize        = 1

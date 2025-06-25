@@ -66,8 +66,20 @@ func (s *Storage) GetEntryByUrl(feedID, url string) *model.Entry {
 
 func (s *Storage) GetEnclosureNumByEntry(entryID string) int {
 	num := 0
-	query := `SELECT count(*)FROM enclosures WHERE entry_id=$1`
+	query := `SELECT count(*) FROM enclosures WHERE entry_id=$1`
 	row := s.db.QueryRow(query, entryID)
+
+	if err := row.Scan(&num); err != nil {
+		common.Logger.Error("unable to create enclosure", zap.Error(err))
+	}
+	return num
+
+}
+
+func (s *Storage) GetEntryNumByFeed(feedID string) int {
+	num := 0
+	query := `SELECT count(*) FROM entries WHERE feed=$1`
+	row := s.db.QueryRow(query, feedID)
 
 	if err := row.Scan(&num); err != nil {
 		common.Logger.Error("unable to create enclosure", zap.Error(err))

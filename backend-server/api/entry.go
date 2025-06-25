@@ -7,6 +7,7 @@ import (
 
 	"bytetrade.io/web3os/backend-server/common"
 	"bytetrade.io/web3os/backend-server/crawler"
+	"bytetrade.io/web3os/backend-server/http/client"
 	"bytetrade.io/web3os/backend-server/http/request"
 	"bytetrade.io/web3os/backend-server/http/response/json"
 	"bytetrade.io/web3os/backend-server/knowledge"
@@ -96,7 +97,7 @@ func (h *handler) knowledgeFetchContent(w http.ResponseWriter, r *http.Request) 
 func (h *handler) exceptYTdlpDownloadQuery(w http.ResponseWriter, r *http.Request) {
 	url := request.QueryStringParam(r, "url", "")
 	bflUser := request.QueryStringParam(r, "bfl_user", "")
-	common.Logger.Info("knowledge radio query", zap.String("url", url))
+	common.Logger.Info("knowledge download file query", zap.String("url", url), zap.String("bfl_user", bflUser))
 	useAgent := "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 	rawContent := crawler.FetchRawContnt(
 		bflUser,
@@ -107,21 +108,22 @@ func (h *handler) exceptYTdlpDownloadQuery(w http.ResponseWriter, r *http.Reques
 		false,
 		false,
 	)
-	downloadUrl, urlType := processor.ExceptYTdlpDownloadQueryInArticle(rawContent, url)
-	var result model.DownloadFetchReqModel
-	result.DownloadUrl = downloadUrl
-	result.FileType = urlType
-	if result.FileType != "" {
-		lastSlashIndex := strings.LastIndex(url, "/")
-		result.FileName = url[lastSlashIndex+1:]
-		if result.FileType == "ebook" {
-			result.FileName = result.FileName + ".epub"
-		}
-		if result.FileType == "pdf" {
-			result.FileName = result.FileName + ".pdf"
-		}
+	downloadUrl, _ := processor.ExceptYTdlpDownloadQueryInArticle(rawContent, url)
+	if downloadUrl != "" {
+		url = downloadUrl
 	}
-
+	urlType, fileName := client.GetContentAndisposition(url, bflUser)
+	var result model.DownloadFetchReqModel
+	if urlType != "" {
+		result.DownloadUrl = url
+		result.FileType = urlType
+		if fileName == "" {
+			fileName = client.GetDownloadFile(url, bflUser, urlType)
+		}
+		result.FileName = fileName
+		json.OK(w, r, model.DownloadFetchResponseModel{Code: 0, Data: result})
+		return
+	}
 	json.OK(w, r, model.DownloadFetchResponseModel{Code: 0, Data: result})
 }
 
