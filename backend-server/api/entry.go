@@ -98,33 +98,55 @@ func (h *handler) exceptYTdlpDownloadQuery(w http.ResponseWriter, r *http.Reques
 	url := request.QueryStringParam(r, "url", "")
 	bflUser := request.QueryStringParam(r, "bfl_user", "")
 	common.Logger.Info("knowledge download file query", zap.String("url", url), zap.String("bfl_user", bflUser))
-	useAgent := "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-	rawContent := crawler.FetchRawContnt(
-		bflUser,
-		url,
-		"",
-		useAgent,
-		"",
-		false,
-		false,
-	)
-	downloadUrl, _ := processor.ExceptYTdlpDownloadQueryInArticle(rawContent, url)
-	if downloadUrl != "" {
-		url = downloadUrl
-	}
+
 	urlType, fileName := client.GetContentAndisposition(url, bflUser)
-	var result model.DownloadFetchReqModel
-	if urlType != "" {
-		result.DownloadUrl = url
-		result.FileType = urlType
+	if urlType != "" && urlType != "text/html" {
 		if fileName == "" {
 			fileName = client.GetDownloadFile(url, bflUser, urlType)
 		}
-		result.FileName = fileName
-		json.OK(w, r, model.DownloadFetchResponseModel{Code: 0, Data: result})
+		json.OK(w, r, model.DownloadFetchResponseModel{
+			Code: 0,
+			Data: model.DownloadFetchReqModel{
+				DownloadUrl: url,
+				FileType:    urlType,
+				FileName:    fileName,
+			},
+		})
 		return
+	} else if urlType == "text/html" {
+		useAgent := "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+		rawContent := crawler.FetchRawContnt(
+			bflUser,
+			url,
+			"",
+			useAgent,
+			"",
+			false,
+			false,
+		)
+		parseUrl, _ := processor.ExceptYTdlpDownloadQueryInArticle(rawContent, url)
+		if url != parseUrl && parseUrl != "" {
+			parseUrlType, parseFileName := client.GetContentAndisposition(parseUrl, bflUser)
+			if parseUrlType != "" && parseUrlType != "text/html" {
+				if parseFileName == "" {
+					parseFileName = client.GetDownloadFile(parseUrl, bflUser, parseUrlType)
+				}
+				json.OK(w, r, model.DownloadFetchResponseModel{
+					Code: 0,
+					Data: model.DownloadFetchReqModel{
+						DownloadUrl: parseUrl,
+						FileType:    parseUrlType,
+						FileName:    parseFileName,
+					},
+				})
+				return
+			}
+		}
 	}
-	json.OK(w, r, model.DownloadFetchResponseModel{Code: 0, Data: result})
+	json.OK(w, r, model.DownloadFetchResponseModel{
+		Code: 0,
+		Data: model.DownloadFetchReqModel{},
+	})
 }
 
 /*func (h *handler) FetchMetaData(w http.ResponseWriter, r *http.Request) {

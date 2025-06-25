@@ -107,6 +107,9 @@ func GetContentAndisposition(downloadUrl string, bflUser string) (string, string
 	if headContentType, ok := resp.Header["Content-Type"]; ok {
 		reqContentType = headContentType[0]
 	}
+	if strings.HasPrefix(reqContentType, "text/html") {
+		contentType = "text/html"
+	}
 	if reqContentType == "application/pdf" {
 		contentType = "pdf"
 	}
@@ -140,8 +143,8 @@ func GetContentAndisposition(downloadUrl string, bflUser string) (string, string
 				fileName = strings.Trim(part[len("filename="):], `"`)
 			}
 		}
-		log.Print("Content-Disposition filename:", fileName)
 	}
+	log.Print("Content-Disposition filename:", fileName, "contentType:", contentType)
 	return contentType, fileName
 }
 
