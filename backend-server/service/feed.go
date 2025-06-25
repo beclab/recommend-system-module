@@ -126,6 +126,7 @@ func RefreshFeed(store *storage.Storage, feedID string) {
 	}
 	common.Logger.Info("refresh feed", zap.String("feedurl", originalFeed.FeedURL), zap.String("etag header", originalFeed.EtagHeader), zap.String("last modified header", originalFeed.LastModifiedHeader))
 	feedUrl := originalFeed.FeedURL
+	feedDomain := common.Domain(feedUrl)
 	var updatedFeed *model.Feed
 	if strings.HasPrefix(feedUrl, "wechat://") {
 		wechatAcc := feedUrl[9:]
@@ -136,11 +137,19 @@ func RefreshFeed(store *storage.Storage, feedID string) {
 			if icon != nil && icon.MimeType != "" {
 				originalFeed.IconMimeType = icon.MimeType
 				originalFeed.IconContent = fmt.Sprintf("%s;base64,%s", icon.MimeType, base64.StdEncoding.EncodeToString(icon.Content))
-			} else {
-				common.Logger.Error("feed icon get null!!!", zap.String("siteurl", originalFeed.SiteURL))
 			}
 		}
 
+	} else if feedDomain == "www.youtube.com" {
+		var avatar string
+		updatedFeed, avatar = RefreshYoutubeFeed(store, feedUrl, originalFeed.ID)
+		if avatar != "" {
+			icon, _ := icon.DownloadIcon(avatar, originalFeed.UserAgent, originalFeed.FetchViaProxy, originalFeed.AllowSelfSignedCertificates)
+			if icon != nil && icon.MimeType != "" {
+				originalFeed.IconMimeType = icon.MimeType
+				originalFeed.IconContent = fmt.Sprintf("%s;base64,%s", icon.MimeType, base64.StdEncoding.EncodeToString(icon.Content))
+			}
+		}
 	} else {
 		rsshubCookie := ""
 		feedURL := originalFeed.FeedURL
