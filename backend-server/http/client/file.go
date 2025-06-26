@@ -10,13 +10,15 @@ import (
 	"strings"
 
 	"bytetrade.io/web3os/backend-server/common"
+	"go.uber.org/zap"
 )
 
 func GetDownloadFile(downloadUrl string, bflUser string, fileType string) string {
 
 	req, err := http.NewRequest("HEAD", downloadUrl, nil)
 	if err != nil {
-		log.Fatalf("Error creating request: %v", err)
+		common.Logger.Error("Error creating request", zap.Error(err))
+		return ""
 	}
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Mobile Safari/537.36")
 	req.Header.Set("Accept", "*/*")
@@ -30,7 +32,8 @@ func GetDownloadFile(downloadUrl string, bflUser string, fileType string) string
 	}
 	resp, err := reqClient.Do(req)
 	if err != nil {
-		log.Fatalf("Error fetching URL: %v", err)
+		common.Logger.Error("Error fetching URL", zap.Error(err))
+		return ""
 	}
 	defer resp.Body.Close()
 	log.Print("downloadfile head:", downloadUrl, resp.Header)
@@ -84,7 +87,8 @@ func GetContentAndisposition(downloadUrl string, bflUser string) (string, string
 
 	req, err := http.NewRequest("HEAD", downloadUrl, nil)
 	if err != nil {
-		log.Fatalf("Error creating request: %v", err)
+		common.Logger.Error("Error creating request", zap.Error(err))
+		return contentType, fileName
 	}
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Mobile Safari/537.36")
 	req.Header.Set("Accept", "*/*")
@@ -94,11 +98,13 @@ func GetContentAndisposition(downloadUrl string, bflUser string) (string, string
 
 	//z-lib
 	//req.Header.Set("Cookie", "siteLanguage=en; refuseChangeDomain=1; remix_userkey=5fad65ce9889bb2ad717d985df7bad46; remix_userid=43395752; hide_regBonusPopup_announcement=true")
+	log.Print("start contentdisposition head:")
 	RequestAddCookie(req, downloadUrl, bflUser)
 	reqClient := &http.Client{}
 	resp, err := reqClient.Do(req)
 	if err != nil {
-		log.Fatalf("Error fetching URL: %v", err)
+		common.Logger.Error("Error fetching URL:", zap.Error(err))
+		return contentType, fileName
 	}
 	defer resp.Body.Close()
 	log.Print("contentdisposition head:", downloadUrl, resp.Header["Content-Type"])
@@ -168,7 +174,8 @@ func GetContentAndispositionByWget(downloadUrl string, bflUser string) (string, 
 
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		log.Fatalf("Command failed: %v\nOutput: %s", err, output)
+		common.Logger.Error("Command failed:", zap.Error(err))
+		return contentType, fileName
 	}
 
 	scanner := bufio.NewScanner(strings.NewReader(string(output)))
