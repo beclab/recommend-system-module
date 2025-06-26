@@ -46,6 +46,7 @@ func GetEntryFromYoutubeEntry(youtubeEntry YoutubeResponseItem, author string) *
 func youtubeFeedRefreshExec(url string, start int, end int) YoutubeListResponse {
 	youtubeListUrl := common.YTDLPApiUrl() + "/v1/get_youtube_entry_list?" + fmt.Sprintf("url=%s&start=%d&end=%d", url, start, end)
 	client := &http.Client{Timeout: time.Second * 60}
+	common.Logger.Info("start get youtube entry list")
 	var responseData YoutubeListResponse
 	res, err := client.Get(youtubeListUrl)
 	if err != nil {
@@ -78,7 +79,7 @@ func RefreshYoutubeFeed(store *storage.Storage, url string, feedID string) (*mod
 	responseData := youtubeFeedRefreshExec(url, start, start+limit)
 	common.Logger.Info("youtube feed refresh over", zap.Any("data", responseData))
 	author := responseData.Data.Author
-	if len(responseData.Data.List) > 0 {
+	for len(responseData.Data.List) > 0 {
 		entrySize := len(responseData.Data.List)
 		for _, respEntry := range responseData.Data.List {
 			entries = append(entries, GetEntryFromYoutubeEntry(respEntry, author))
@@ -87,11 +88,11 @@ func RefreshYoutubeFeed(store *storage.Storage, url string, feedID string) (*mod
 		//else fetch the next list
 		lastEntry := responseData.Data.List[entrySize-1]
 		savedEntry := store.GetEntryByUrl(feedID, lastEntry.URL)
-		if savedEntry != nil {
-			break
-		} else if len(responseData.Data.List) == limit {
+		if len(responseData.Data.List) == limit && savedEntry == nil {
 			start = start + limit
 			responseData = youtubeFeedRefreshExec(url, start, start+limit)
+		} else {
+			break
 		}
 	}
 	feed.Title = responseData.Data.Title
