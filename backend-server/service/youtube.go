@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"time"
 
@@ -59,10 +58,10 @@ func youtubeFeedRefreshExec(url string, start int, end int) YoutubeListResponse 
 	body, _ := io.ReadAll(res.Body)
 
 	if err := json.Unmarshal(body, &responseData); err != nil {
-		log.Print("json decode failed, err", err)
+		common.Logger.Error("json decode failed", zap.Error(err))
 	}
 	if responseData.Code != 0 {
-		log.Print("youtube feed code err")
+		common.Logger.Info("youtube feed code err")
 	}
 	return responseData
 
@@ -77,8 +76,9 @@ func RefreshYoutubeFeed(store *storage.Storage, url string, feedID string) (*mod
 	}
 	entries := make([]*model.Entry, 0)
 	responseData := youtubeFeedRefreshExec(url, start, start+limit)
+	common.Logger.Info("youtube feed refresh over", zap.Any("data", responseData))
 	author := responseData.Data.Author
-	for len(responseData.Data.List) > 0 {
+	if len(responseData.Data.List) > 0 {
 		entrySize := len(responseData.Data.List)
 		for _, respEntry := range responseData.Data.List {
 			entries = append(entries, GetEntryFromYoutubeEntry(respEntry, author))
