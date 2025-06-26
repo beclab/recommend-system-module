@@ -99,7 +99,7 @@ func GetContentAndisposition(downloadUrl string, bflUser string) (string, string
 	//z-lib
 	//req.Header.Set("Cookie", "siteLanguage=en; refuseChangeDomain=1; remix_userkey=5fad65ce9889bb2ad717d985df7bad46; remix_userid=43395752; hide_regBonusPopup_announcement=true")
 	log.Print("start contentdisposition head:")
-	//RequestAddCookie(req, downloadUrl, bflUser)
+	RequestAddCookie(req, downloadUrl, bflUser)
 	reqClient := &http.Client{}
 	resp, err := reqClient.Do(req)
 	if err != nil {
