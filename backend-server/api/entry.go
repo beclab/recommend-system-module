@@ -28,7 +28,7 @@ func (h *handler) fetchContent(w http.ResponseWriter, r *http.Request) {
 		json.OK(w, r, "")
 		return
 	}
-	if entry.FullContent == "" {
+	if strings.TrimSpace(entry.FullContent) == "" {
 		entry.FullContent = h.newFetchContent(entry)
 	}
 	json.OK(w, r, entry.FullContent)

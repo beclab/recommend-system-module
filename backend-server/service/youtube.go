@@ -17,6 +17,7 @@ type YoutubeResponseItem struct {
 	Total     string `json:"id"`
 	Title     string `json:"title"`
 	URL       string `json:"url"`
+	ImageUrl  string `json:"image_url"`
 	Timestamp int64  `json:"timestamp"`
 }
 
@@ -39,6 +40,7 @@ func GetEntryFromYoutubeEntry(youtubeEntry YoutubeResponseItem, author string) *
 	entry.Title = youtubeEntry.Title
 	entry.URL = youtubeEntry.URL
 	entry.PublishedAt = youtubeEntry.Timestamp
+	entry.ImageUrl = youtubeEntry.ImageUrl
 	entry.Author = author
 	return &entry
 }

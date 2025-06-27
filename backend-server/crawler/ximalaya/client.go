@@ -45,7 +45,7 @@ func XimalayaByheadless(websiteURL string) string {
 	common.Logger.Info("threads headless fetch 1 ")
 	err := chromedp.Run(allocCtx,
 		chromedp.Navigate(websiteURL),
-		chromedp.WaitVisible(`article.intro`, chromedp.ByQuery),
+		chromedp.WaitVisible(`main.main-content`, chromedp.ByQuery),
 		chromedp.OuterHTML("html", &htmlContent),
 	)
 	if err != nil {
