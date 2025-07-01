@@ -99,6 +99,33 @@ func (h *handler) exceptYTdlpDownloadQuery(w http.ResponseWriter, r *http.Reques
 	bflUser := request.QueryStringParam(r, "bfl_user", "")
 	common.Logger.Info("knowledge download file query", zap.String("url", url), zap.String("bfl_user", bflUser))
 
+	downloadUrl, donwloadFile, donwloadFileType := processor.NonRawContentDownloadQueryInArticle(url)
+	if donwloadFileType != "" {
+		json.OK(w, r, model.DownloadFetchResponseModel{
+			Code: 0,
+			Data: model.DownloadFetchReqModel{
+				DownloadUrl: downloadUrl,
+				FileType:    donwloadFileType,
+				FileName:    donwloadFile,
+			},
+		})
+		return
+	}
+
+	useAgent := "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+	rawContent := crawler.FetchRawContnt(
+		bflUser,
+		url,
+		"",
+		useAgent,
+		"",
+		false,
+		false,
+	)
+	parseUrl, _ := processor.ExceptYTdlpDownloadQueryInArticle(rawContent, url)
+	if url != parseUrl && parseUrl != "" {
+		url = parseUrl
+	}
 	urlType, fileName := client.GetContentAndisposition(url, bflUser)
 	if urlType != "" && urlType != "text/html" {
 		if fileName == "" {
@@ -113,35 +140,6 @@ func (h *handler) exceptYTdlpDownloadQuery(w http.ResponseWriter, r *http.Reques
 			},
 		})
 		return
-	} else if urlType == "text/html" {
-		useAgent := "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-		rawContent := crawler.FetchRawContnt(
-			bflUser,
-			url,
-			"",
-			useAgent,
-			"",
-			false,
-			false,
-		)
-		parseUrl, _ := processor.ExceptYTdlpDownloadQueryInArticle(rawContent, url)
-		if url != parseUrl && parseUrl != "" {
-			parseUrlType, parseFileName := client.GetContentAndisposition(parseUrl, bflUser)
-			if parseUrlType != "" && parseUrlType != "text/html" {
-				if parseFileName == "" {
-					parseFileName = client.GetDownloadFile(parseUrl, bflUser, parseUrlType)
-				}
-				json.OK(w, r, model.DownloadFetchResponseModel{
-					Code: 0,
-					Data: model.DownloadFetchReqModel{
-						DownloadUrl: parseUrl,
-						FileType:    parseUrlType,
-						FileName:    parseFileName,
-					},
-				})
-				return
-			}
-		}
 	}
 	json.OK(w, r, model.DownloadFetchResponseModel{
 		Code: 0,
