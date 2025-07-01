@@ -150,7 +150,7 @@ func handleDefault(entry *model.Entry, feedUrl, userAgent, cookie string, certif
 	)
 
 	if entry.RawContent != "" {
-		common.Logger.Info("crawler entry start to extract", zap.String("url", entry.URL), zap.String("feedid", *entry.FeedID))
+		common.Logger.Info("crawler entry start to extract", zap.String("url", entry.URL))
 		fullContent, pureContent, dateInArticle, imageUrlFromContent, title, templateAuthor, publishedAtTimestamp, mediaContent, mediaUrl, mediaType := processor.ArticleReadabilityExtractor(entry.RawContent, entry.URL, feedUrl, "", true)
 		if strings.TrimSpace(entry.Title) == "" {
 			entry.Title = title
