@@ -173,7 +173,7 @@ func handleDefault(entry *model.Entry, feedUrl, userAgent, cookie string, certif
 			}
 		}
 		//if youtube feed don't fetch metadata
-		if isMetaFromYtdlp(entry.URL) && (entry.FeedID == nil || !strings.Contains(entry.URL, "youtube.com")) {
+		if isMetaFromYtdlp(entry.URL) && (feedUrl == "" || !strings.Contains(entry.URL, "youtube.com")) {
 			handleYtdlp(entry)
 		}
 
