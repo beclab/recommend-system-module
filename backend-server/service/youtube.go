@@ -39,7 +39,7 @@ func GetEntryFromYoutubeEntry(youtubeEntry YoutubeResponseItem, author string) *
 
 	entry.Title = youtubeEntry.Title
 	entry.URL = youtubeEntry.URL
-	entry.PublishedAt = 0 //youtubeEntry.Timestamp cann't timestamp
+	entry.PublishedAt = time.Now().Unix() //youtubeEntry.Timestamp cann't timestamp
 	entry.ImageUrl = youtubeEntry.ImageUrl
 	entry.Author = author
 	return &entry
