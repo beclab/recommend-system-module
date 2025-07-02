@@ -17,6 +17,7 @@ type YoutubeResponseItem struct {
 	Total     string `json:"id"`
 	Title     string `json:"title"`
 	URL       string `json:"url"`
+	ImageUrl  string `json:"image_url"`
 	Timestamp int64  `json:"timestamp"`
 }
 
@@ -38,13 +39,14 @@ func GetEntryFromYoutubeEntry(youtubeEntry YoutubeResponseItem, author string) *
 
 	entry.Title = youtubeEntry.Title
 	entry.URL = youtubeEntry.URL
-	entry.PublishedAt = youtubeEntry.Timestamp
+	entry.PublishedAt = time.Now().Unix() //youtubeEntry.Timestamp cann't timestamp
+	entry.ImageUrl = youtubeEntry.ImageUrl
 	entry.Author = author
 	return &entry
 }
 
-func youtubeFeedRefreshExec(url string, start int, end int) YoutubeListResponse {
-	youtubeListUrl := common.YTDLPApiUrl() + "/v1/get_youtube_entry_list?" + fmt.Sprintf("url=%s&start=%d&end=%d", url, start, end)
+func youtubeFeedRefreshExec(url string, start int, limit int) YoutubeListResponse {
+	youtubeListUrl := common.YTDLPApiUrl() + "/v1/get_youtube_entry_list?" + fmt.Sprintf("url=%s&start=%d&limit=%d", url, start, limit)
 	client := &http.Client{Timeout: time.Second * 60}
 	common.Logger.Info("start get youtube entry list")
 	var responseData YoutubeListResponse
@@ -73,7 +75,7 @@ func RefreshYoutubeFeed(store *storage.Storage, url string, feedID string) (*mod
 	start := 0
 	limit := 10
 	if store.GetEntryNumByFeed(feedID) == 0 {
-		limit = 30
+		limit = 0
 	}
 	entries := make([]*model.Entry, 0)
 	responseData := youtubeFeedRefreshExec(url, start, start+limit)
@@ -88,9 +90,9 @@ func RefreshYoutubeFeed(store *storage.Storage, url string, feedID string) (*mod
 		//else fetch the next list
 		lastEntry := responseData.Data.List[entrySize-1]
 		savedEntry := store.GetEntryByUrl(feedID, lastEntry.URL)
-		if len(responseData.Data.List) == limit && savedEntry == nil {
+		if limit > 0 && len(responseData.Data.List) == limit && savedEntry == nil {
 			start = start + limit
-			responseData = youtubeFeedRefreshExec(url, start, start+limit)
+			responseData = youtubeFeedRefreshExec(url, start, limit)
 		} else {
 			break
 		}
