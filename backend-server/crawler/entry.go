@@ -149,47 +149,47 @@ func handleDefault(entry *model.Entry, feedUrl, userAgent, cookie string, certif
 		fetchViaProxy,
 	)
 
-	if entry.RawContent != "" {
-		common.Logger.Info("crawler entry start to extract", zap.String("url", entry.URL))
-		fullContent, pureContent, dateInArticle, imageUrlFromContent, title, templateAuthor, publishedAtTimestamp, mediaContent, mediaUrl, mediaType := processor.ArticleReadabilityExtractor(entry.RawContent, entry.URL, feedUrl, "", true)
-		if strings.TrimSpace(entry.Title) == "" {
-			entry.Title = title
-		}
-		entry.FullContent = fullContent
-		entry.MediaContent = mediaContent
-		entry.MediaUrl = mediaUrl
-		entry.MediaType = mediaType
-		if entry.ImageUrl == "" {
-			entry.ImageUrl = imageUrlFromContent
-		}
-		if templateAuthor != "" {
-			entry.Author = templateAuthor
-		}
-		if publishedAtTimestamp != 0 {
-			entry.PublishedAt = publishedAtTimestamp
-		} else {
-			if dateInArticle != nil {
-				entry.PublishedAt = (*dateInArticle).Unix()
-			}
-		}
-		//if youtube feed don't fetch metadata
-		if isMetaFromYtdlp(entry.URL) && (feedUrl == "" || !strings.Contains(entry.URL, "youtube.com")) {
-			handleYtdlp(entry)
-		}
-
-		languageLen := len(pureContent)
-		if languageLen > 100 {
-			languageLen = 100
-		}
-		entry.Language = common.GetLanguage(pureContent[:languageLen])
-
-		if entry.ImageUrl == "" && fullContent != "" {
-			entry.ImageUrl = common.GetImageUrlFromContent(fullContent)
-		}
-
-	} else {
-		common.Logger.Error("crawler raw content is null", zap.String("url", entry.URL))
+	//if entry.RawContent != "" {
+	common.Logger.Info("crawler entry start to extract", zap.String("url", entry.URL))
+	fullContent, pureContent, dateInArticle, imageUrlFromContent, title, templateAuthor, publishedAtTimestamp, mediaContent, mediaUrl, mediaType := processor.ArticleReadabilityExtractor(entry.RawContent, entry.URL, feedUrl, "", true)
+	if strings.TrimSpace(entry.Title) == "" {
+		entry.Title = title
 	}
+	entry.FullContent = fullContent
+	entry.MediaContent = mediaContent
+	entry.MediaUrl = mediaUrl
+	entry.MediaType = mediaType
+	if entry.ImageUrl == "" {
+		entry.ImageUrl = imageUrlFromContent
+	}
+	if templateAuthor != "" {
+		entry.Author = templateAuthor
+	}
+	if publishedAtTimestamp != 0 {
+		entry.PublishedAt = publishedAtTimestamp
+	} else {
+		if dateInArticle != nil {
+			entry.PublishedAt = (*dateInArticle).Unix()
+		}
+	}
+	//if youtube feed don't fetch metadata
+	if isMetaFromYtdlp(entry.URL) && (feedUrl == "" || !strings.Contains(entry.URL, "youtube.com")) {
+		handleYtdlp(entry)
+	}
+
+	languageLen := len(pureContent)
+	if languageLen > 100 {
+		languageLen = 100
+	}
+	entry.Language = common.GetLanguage(pureContent[:languageLen])
+
+	if entry.ImageUrl == "" && fullContent != "" {
+		entry.ImageUrl = common.GetImageUrlFromContent(fullContent)
+	}
+
+	/*} else {
+		common.Logger.Error("crawler raw content is null", zap.String("url", entry.URL))
+	}*/
 }
 
 func notionFetchByApi(websiteURL string) string {
@@ -244,6 +244,9 @@ func FetchRawContnt(bflUser, websiteURL, title, userAgent string, cookie string,
 
 	if strings.Contains(urlDomain, "wsj.com") {
 		return wsj.WsjByheadless(websiteURL)
+	}
+	if strings.Contains(urlDomain, "youtube.com") {
+		return ""
 	}
 
 	clt := client.NewClientWithConfig(websiteURL)
