@@ -94,12 +94,20 @@ func (h *handler) knowledgeFetchContent(w http.ResponseWriter, r *http.Request) 
 
 }
 
+func getUrlType(url string, bflUser string) (string, string) {
+	urlType, fileName := client.GetContentAndisposition(url, bflUser)
+	if fileName == "" {
+		fileName = client.GetDownloadFile(url, bflUser, urlType)
+	}
+	return urlType, fileName
+}
+
 func (h *handler) exceptYTdlpDownloadQuery(w http.ResponseWriter, r *http.Request) {
 	url := request.QueryStringParam(r, "url", "")
 	bflUser := request.QueryStringParam(r, "bfl_user", "")
 	common.Logger.Info("knowledge download file query", zap.String("url", url), zap.String("bfl_user", bflUser))
 
-	downloadUrl, donwloadFile, donwloadFileType := processor.NonRawContentDownloadQueryInArticle(url)
+	downloadUrl, donwloadFile, donwloadFileType := processor.NonMediaDownloadQueryInArticle(url)
 	if donwloadFileType != "" {
 		json.OK(w, r, model.DownloadFetchResponseModel{
 			Code: 0,
@@ -107,6 +115,18 @@ func (h *handler) exceptYTdlpDownloadQuery(w http.ResponseWriter, r *http.Reques
 				DownloadUrl: downloadUrl,
 				FileType:    donwloadFileType,
 				FileName:    donwloadFile,
+			},
+		})
+		return
+	}
+	urlType, fileName := getUrlType(url, bflUser)
+	if urlType != "" && urlType != "text/html" {
+		json.OK(w, r, model.DownloadFetchResponseModel{
+			Code: 0,
+			Data: model.DownloadFetchReqModel{
+				DownloadUrl: url,
+				FileType:    urlType,
+				FileName:    fileName,
 			},
 		})
 		return
@@ -122,25 +142,21 @@ func (h *handler) exceptYTdlpDownloadQuery(w http.ResponseWriter, r *http.Reques
 		false,
 		false,
 	)
-	parseUrl, _ := processor.ExceptYTdlpDownloadQueryInArticle(rawContent, url)
+	parseUrl, _ := processor.MediaDownloadQueryInArticle(rawContent, url)
 	if url != parseUrl && parseUrl != "" {
-		url = parseUrl
-	}
-	urlType, fileName := client.GetContentAndisposition(url, bflUser)
-	if urlType != "" && urlType != "text/html" {
-		if fileName == "" {
-			fileName = client.GetDownloadFile(url, bflUser, urlType)
+		parseUrlType, parseFileName := getUrlType(parseUrl, bflUser)
+		if parseUrlType != "" && parseUrlType != "text/html" {
+			json.OK(w, r, model.DownloadFetchResponseModel{
+				Code: 0,
+				Data: model.DownloadFetchReqModel{
+					DownloadUrl: parseUrl,
+					FileType:    parseUrlType,
+					FileName:    parseFileName,
+				},
+			})
 		}
-		json.OK(w, r, model.DownloadFetchResponseModel{
-			Code: 0,
-			Data: model.DownloadFetchReqModel{
-				DownloadUrl: url,
-				FileType:    urlType,
-				FileName:    fileName,
-			},
-		})
-		return
 	}
+
 	json.OK(w, r, model.DownloadFetchResponseModel{
 		Code: 0,
 		Data: model.DownloadFetchReqModel{},
