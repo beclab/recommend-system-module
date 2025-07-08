@@ -2,7 +2,7 @@
 
 Provide feeds update and article extract.
 
-# Run
+# 环境变量
 
 | 变量名                     | 描述                      | 示例                  |
 |---------------------------|--------------------------|---------------------- |
@@ -19,7 +19,8 @@ Provide feeds update and article extract.
 | `RSS_HUB_URL`             | rsshub服务地址            | `http://127.0.0.1:1200`|
 | `WE_CHAT_REFRESH_FEED_URL`| 微信服务地址。             | `https://recommend-wechat-prd.bttcdn.com/api/wechat/entries`|
 
-localhost PG_PORT=5432 PG_USERNAME=postgres PG_PASSWORD=password PG_DATABASE=rss
+
+# Run
 
 ```
 export LISTEN_ADDR="127.0.0.1:8081"
