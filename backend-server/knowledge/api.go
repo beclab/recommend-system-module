@@ -36,7 +36,7 @@ func DownloadDoReq(download model.EntryDownloadModel) {
 		common.Logger.Error("add download json marshal  fail", zap.Error(err))
 	}
 
-	common.Logger.Info("start download ", zap.String("url", download.DataSource), zap.String("file_type", download.FileType))
+	common.Logger.Info("start download ", zap.String("api", downloadUrl), zap.String("url", download.DataSource), zap.String("file_type", download.FileType))
 	algoReq, _ := http.NewRequest("POST", downloadUrl, bytes.NewBuffer(algoJsonByte))
 	algoReq.Header.Set("Content-Type", "application/json")
 	algoClient := &http.Client{Timeout: time.Second * 5}
