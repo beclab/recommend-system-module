@@ -30,7 +30,7 @@ func SaveFeedEntries(bflUser string, store *storage.Storage, entries model.Entri
 }
 
 func DownloadDoReq(download model.EntryDownloadModel) {
-	downloadUrl := common.DownloadApiUrl() + "/api/download/start" // "/termius/download"
+	downloadUrl := common.DownloadApiUrl() + "/download/start" // "/termius/download"
 	algoJsonByte, err := json.Marshal(download)
 	if err != nil {
 		common.Logger.Error("add download json marshal  fail", zap.Error(err))
