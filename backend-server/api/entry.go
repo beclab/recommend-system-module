@@ -102,7 +102,7 @@ func getUrlType(url string, bflUser string) (string, string) {
 	return urlType, fileName
 }
 
-func (h *handler) exceptYTdlpDownloadQuery(w http.ResponseWriter, r *http.Request) {
+func (h *handler) noMediaDownloadQuery(w http.ResponseWriter, r *http.Request) {
 	url := request.QueryStringParam(r, "url", "")
 	bflUser := request.QueryStringParam(r, "bfl_user", "")
 	common.Logger.Info("knowledge download file query", zap.String("url", url), zap.String("bfl_user", bflUser))
