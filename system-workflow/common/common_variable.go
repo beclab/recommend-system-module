@@ -47,6 +47,14 @@ func GetCrawlerFrequency() string {
 	return frequency
 }
 
+func GetAppServiceUrl() string {
+	frequency := os.Getenv("APP_SERVICE_URL")
+	if frequency == "" {
+		return "http://app-service.os-framework:6755/"
+	}
+	return "http://app-service.os-framework:6755/"
+}
+
 func GetSyncTemplatePluginsUrl() string {
 	envDir := os.Getenv("SYNC_TEMPLATE_PLUGINS_URL")
 	if envDir == "" {

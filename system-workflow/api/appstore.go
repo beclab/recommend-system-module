@@ -13,7 +13,7 @@ import (
 
 func LoadSources(name string) map[string][]model.AlgoSyncProviderResponseModel {
 	sourceMap := make(map[string][]model.AlgoSyncProviderResponseModel)
-	url := "http://app-service.os-system:6755/app-service/v1/recommenddev/" + name + "/status"
+	url := common.GetAppServiceUrl() + "app-service/v1/recommenddev/" + name + "/status"
 	client := &http.Client{Timeout: time.Second * 5}
 	res, err := client.Get(url)
 	if err != nil {
