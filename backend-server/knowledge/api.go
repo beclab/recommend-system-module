@@ -30,13 +30,13 @@ func SaveFeedEntries(bflUser string, store *storage.Storage, entries model.Entri
 }
 
 func DownloadDoReq(download model.EntryDownloadModel) {
-	downloadUrl := common.DownloadApiUrl() + "/termius/download"
+	downloadUrl := common.DownloadApiUrl() + "/download/start" // "/termius/download"
 	algoJsonByte, err := json.Marshal(download)
 	if err != nil {
 		common.Logger.Error("add download json marshal  fail", zap.Error(err))
 	}
 
-	common.Logger.Info("start download ", zap.String("url", download.DataSource), zap.String("file_type", download.FileType))
+	common.Logger.Info("start download ", zap.String("api", downloadUrl), zap.String("url", download.DataSource), zap.String("file_type", download.FileType))
 	algoReq, _ := http.NewRequest("POST", downloadUrl, bytes.NewBuffer(algoJsonByte))
 	algoReq.Header.Set("Content-Type", "application/json")
 	algoClient := &http.Client{Timeout: time.Second * 5}
