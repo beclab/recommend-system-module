@@ -305,7 +305,7 @@ func syncEntryDownloadPackage(bflUsers []string, provider string, newPackage *mo
 	transEntryList := make([]*protobuf_entity.EntryTrans, 0)
 	unmarshalErr := proto.Unmarshal(uncompressByte, &allPackageData)
 	if unmarshalErr != nil {
-		common.Logger.Error("unmarshal all feed object  error", zap.Error(unmarshalErr))
+		common.Logger.Error("unmarshal all feed object  error", zap.String("url", newPackage.URL), zap.Error(unmarshalErr))
 		return
 	}
 	for _, entry := range allPackageData.Entries {
