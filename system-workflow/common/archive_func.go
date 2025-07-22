@@ -21,10 +21,12 @@ func DoZlibCompress(src []byte) []byte {
 }
 
 func DoZlibUnCompress(compressSrc []byte) []byte {
-	b := bytes.NewReader(compressSrc)
 	var out bytes.Buffer
-	r, _ := zlib.NewReader(b)
-	io.Copy(&out, r)
+	b := bytes.NewReader(compressSrc)
+	if b != nil {
+		r, _ := zlib.NewReader(b)
+		io.Copy(&out, r)
+	}
 	return out.Bytes()
 }
 
