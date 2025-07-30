@@ -140,8 +140,9 @@ func RefreshFeed(store *storage.Storage, feedID string) {
 			}
 		}
 
-	} else if feedDomain == "www.youtube.com" {
+	} else if strings.HasPrefix(feedUrl, "youtube://") { //feedDomain == "www.youtube.com" {
 		var avatar string
+		feedUrl = strings.Replace(feedUrl, "youtube://", "https://www.youtube.com/", 1)
 		updatedFeed, avatar = RefreshYoutubeFeed(store, feedUrl, originalFeed.ID)
 		if avatar != "" {
 			icon, _ := icon.DownloadIcon(avatar, originalFeed.UserAgent, originalFeed.FetchViaProxy, originalFeed.AllowSelfSignedCertificates)
