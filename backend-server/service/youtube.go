@@ -48,7 +48,7 @@ func GetEntryFromYoutubeEntry(youtubeEntry YoutubeResponseItem, author string) *
 func youtubeFeedRefreshExec(url string, start int, limit int) YoutubeListResponse {
 	youtubeListUrl := common.YTDLPApiUrl() + "/v1/get_youtube_entry_list?" + fmt.Sprintf("url=%s&start=%d&limit=%d", url, start, limit)
 	client := &http.Client{Timeout: time.Second * 60}
-	common.Logger.Info("start get youtube entry list")
+	common.Logger.Info("youtube start get list:" + url)
 	var responseData YoutubeListResponse
 	res, err := client.Get(youtubeListUrl)
 	if err != nil {
