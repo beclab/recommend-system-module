@@ -126,7 +126,6 @@ func RefreshFeed(store *storage.Storage, feedID string) {
 	}
 	common.Logger.Info("refresh feed", zap.String("feedurl", originalFeed.FeedURL), zap.String("etag header", originalFeed.EtagHeader), zap.String("last modified header", originalFeed.LastModifiedHeader))
 	feedUrl := originalFeed.FeedURL
-	feedDomain := common.Domain(feedUrl)
 	var updatedFeed *model.Feed
 	if strings.HasPrefix(feedUrl, "wechat://") {
 		wechatAcc := feedUrl[9:]
