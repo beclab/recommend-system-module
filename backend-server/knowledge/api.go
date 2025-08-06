@@ -59,24 +59,26 @@ func NewEnclosure(entry *model.Entry, feed *model.Feed, store *storage.Storage) 
 		common.Logger.Info("new enclosure exit where entry's enclosure exist ", zap.String("entry id:", entry.ID))
 		return
 	}
-	folder := "Downloads/Wise/Article"
-	if entry.FileType != "article" {
-		folder = strings.ToUpper(string(entry.FileType[0])) + entry.FileType[1:] + "s"
-	}
-	enclosureID, _ := store.CreateEnclosure(entry)
 	if entry.MediaUrl != "" {
 		var download model.EntryDownloadModel
 		download.DataSource = entry.MediaUrl
 		//download.TaskUser = common.CurrentUser()
 		download.DownloadAPP = "wise"
-		download.EnclosureId = enclosureID
 		download.FileName = entry.Title
 		download.FileType = entry.MediaType
-		download.Path = folder
 		download.BflUser = entry.BflUser
-		if feed != nil {
-			download.Path = "Downloads/Wise/Feed/" + feed.Title
+
+		folder := "Downloads/Wise/Article"
+		if entry.FileType == "article" {
+			enclosureID, _ := store.CreateEnclosure(entry)
+			download.EnclosureId = enclosureID
+		} else {
+			folder = strings.ToUpper(string(entry.FileType[0])) + entry.FileType[1:] + "s"
 		}
+		if feed != nil {
+			folder = "Downloads/Wise/Feed/" + feed.Title
+		}
+		download.Path = folder
 
 		if feed == nil || feed.AutoDownload {
 			DownloadDoReq(download)
