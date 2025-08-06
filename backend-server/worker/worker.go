@@ -1,6 +1,8 @@
 package worker
 
 import (
+	"time"
+
 	"bytetrade.io/web3os/backend-server/common"
 	"bytetrade.io/web3os/backend-server/model"
 	"bytetrade.io/web3os/backend-server/service"
@@ -23,5 +25,6 @@ func (w *Worker) Run(c chan model.Job) {
 		common.Logger.Info("[Worker ] Received feed #%d ", zap.Int("id", w.id), zap.String("feed id", job.FeedID))
 		//service.RefreshFeed(w.store, w.contentPool, job.FeedID)
 		service.RefreshFeed(w.store, job.FeedID)
+		time.Sleep(1 * time.Minute)
 	}
 }

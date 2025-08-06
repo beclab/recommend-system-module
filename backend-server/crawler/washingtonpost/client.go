@@ -46,6 +46,7 @@ func WashingtonpostByheadless(websiteURL string) string {
 	common.Logger.Info("threads headless fetch 1 ")
 
 	err := chromedp.Run(allocCtx,
+
 		chromedp.Navigate(websiteURL),
 
 		chromedp.WaitVisible(`div.meteredContent`, chromedp.ByQuery),
@@ -55,11 +56,6 @@ func WashingtonpostByheadless(websiteURL string) string {
 		common.Logger.Error("washingtonpost headless fetch error", zap.String("url", websiteURL), zap.Error(err))
 	}
 	common.Logger.Info("washingtonpost headless fetch end...", zap.Int("content len", len(htmlContent)))
-
-	/*fileWriteErr := os.WriteFile("wst.html", []byte(htmlContent), 0644)
-	if fileWriteErr != nil {
-		fmt.Println("Error writing file:", fileWriteErr)
-	}*/
 
 	return htmlContent
 }

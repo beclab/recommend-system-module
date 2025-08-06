@@ -3,7 +3,6 @@ package api
 import (
 	encodeJson "encoding/json"
 	"net/http"
-	"strings"
 
 	"bytetrade.io/web3os/backend-server/common"
 	"bytetrade.io/web3os/backend-server/crawler"
@@ -28,10 +27,10 @@ func (h *handler) fetchContent(w http.ResponseWriter, r *http.Request) {
 		json.OK(w, r, "")
 		return
 	}
-	if strings.TrimSpace(entry.FullContent) == "" {
-		entry.FullContent = h.newFetchContent(entry)
-	}
-	json.OK(w, r, entry.FullContent)
+	//if strings.TrimSpace(entry.FullContent) == "" {
+	content := h.newFetchContent(entry)
+	//}
+	json.OK(w, r, content)
 
 }
 
@@ -65,6 +64,7 @@ func (h *handler) newFetchContent(entry *model.Entry) string {
 		updateEntry.Attachment = true
 	}
 	knowledge.UpdateLibraryEntryContent(entry.BflUser, updateEntry, false)
+	common.Logger.Info("new content fetch", zap.String("mediaurl", entry.MediaUrl))
 	if entry.MediaContent != "" || entry.MediaUrl != "" {
 		knowledge.NewEnclosure(entry, nil, h.store)
 	}
@@ -85,11 +85,11 @@ func (h *handler) knowledgeFetchContent(w http.ResponseWriter, r *http.Request) 
 		json.OK(w, r, "")
 		return
 	}
-	if strings.TrimSpace(entry.FullContent) == "" {
-		go func() {
-			h.newFetchContent(entry)
-		}()
-	}
+	//if strings.TrimSpace(entry.FullContent) == "" {
+	go func() {
+		h.newFetchContent(entry)
+	}()
+	//}
 	json.NoContent(w, r)
 
 }
