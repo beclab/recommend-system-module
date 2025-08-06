@@ -73,7 +73,7 @@ func NewEnclosure(entry *model.Entry, feed *model.Feed, store *storage.Storage) 
 			enclosureID, _ := store.CreateEnclosure(entry)
 			download.EnclosureId = enclosureID
 		} else {
-			folder = strings.ToUpper(string(entry.FileType[0])) + entry.FileType[1:] + "s"
+			folder = "Downloads/Wise/" + strings.ToUpper(string(entry.FileType[0])) + entry.FileType[1:] + "s"
 		}
 		if feed != nil {
 			folder = "Downloads/Wise/Feed/" + feed.Title
