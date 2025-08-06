@@ -65,6 +65,7 @@ func (h *handler) newFetchContent(entry *model.Entry) string {
 		updateEntry.Attachment = true
 	}
 	knowledge.UpdateLibraryEntryContent(entry.BflUser, updateEntry, false)
+	common.Logger.Info("new content fetch", zap.String("mediaContent", entry.MediaContent), zap.String("mediaurl", entry.MediaUrl))
 	if entry.MediaContent != "" || entry.MediaUrl != "" {
 		knowledge.NewEnclosure(entry, nil, h.store)
 	}
