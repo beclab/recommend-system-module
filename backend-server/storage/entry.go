@@ -13,7 +13,7 @@ import (
 
 func (s *Storage) GetEntryById(entryID string) (*model.Entry, error) {
 	var entry model.Entry
-	query := `SELECT id, feed, title, url,full_content,author,sources,bfl_user 
+	query := `SELECT id, feed, title, url,full_content,author,sources,bfl_user,file_type 
 			  FROM entries WHERE id=$1`
 	err := s.db.QueryRow(query, entryID).Scan(&entry.ID,
 		&entry.FeedID,
@@ -23,6 +23,7 @@ func (s *Storage) GetEntryById(entryID string) (*model.Entry, error) {
 		&entry.Author,
 		pq.Array(&entry.Sources),
 		&entry.BflUser,
+		&entry.FileType,
 	)
 	if err == sql.ErrNoRows {
 		return nil, nil

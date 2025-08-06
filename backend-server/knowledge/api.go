@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"bytetrade.io/web3os/backend-server/common"
@@ -58,6 +59,10 @@ func NewEnclosure(entry *model.Entry, feed *model.Feed, store *storage.Storage) 
 		common.Logger.Info("new enclosure exit where entry's enclosure exist ", zap.String("entry id:", entry.ID))
 		return
 	}
+	folder := "Downloads/Wise/Article"
+	if entry.FileType != "article" {
+		folder = strings.ToUpper(string(entry.FileType[0])) + entry.FileType[1:] + "s"
+	}
 	enclosureID, _ := store.CreateEnclosure(entry)
 	if entry.MediaUrl != "" {
 		var download model.EntryDownloadModel
@@ -67,7 +72,7 @@ func NewEnclosure(entry *model.Entry, feed *model.Feed, store *storage.Storage) 
 		download.EnclosureId = enclosureID
 		download.FileName = entry.Title
 		download.FileType = entry.MediaType
-		download.Path = "Downloads/Wise/Article"
+		download.Path = folder
 		download.BflUser = entry.BflUser
 		if feed != nil {
 			download.Path = "Downloads/Wise/Feed/" + feed.Title
