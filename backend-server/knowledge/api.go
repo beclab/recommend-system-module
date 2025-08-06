@@ -54,11 +54,6 @@ func DownloadDoReq(download model.EntryDownloadModel) {
 	common.Logger.Info("new download response: ", zap.String("download url", download.DataSource), zap.String("body", jsonStr))
 }
 func NewEnclosure(entry *model.Entry, feed *model.Feed, store *storage.Storage) {
-	exist := store.GetEnclosureNumByEntry(entry.ID)
-	if exist > 0 {
-		common.Logger.Info("new enclosure exit where entry's enclosure exist ", zap.String("entry id:", entry.ID))
-		return
-	}
 	if entry.MediaUrl != "" {
 		var download model.EntryDownloadModel
 		download.DataSource = entry.MediaUrl
@@ -70,6 +65,11 @@ func NewEnclosure(entry *model.Entry, feed *model.Feed, store *storage.Storage) 
 
 		folder := "Downloads/Wise/Article"
 		if entry.FileType == "article" {
+			exist := store.GetEnclosureNumByEntry(entry.ID)
+			if exist > 0 {
+				common.Logger.Info("new enclosure exit where entry's enclosure exist ", zap.String("entry id:", entry.ID))
+				return
+			}
 			enclosureID, _ := store.CreateEnclosure(entry)
 			download.EnclosureId = enclosureID
 		} else {
