@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"bytetrade.io/web3os/backend-server/common"
@@ -30,13 +31,13 @@ func SaveFeedEntries(bflUser string, store *storage.Storage, entries model.Entri
 }
 
 func DownloadDoReq(download model.EntryDownloadModel) {
-	downloadUrl := common.DownloadApiUrl() + "/termius/download"
+	downloadUrl := common.DownloadApiUrl() + "/download/start" // "/termius/download"
 	algoJsonByte, err := json.Marshal(download)
 	if err != nil {
 		common.Logger.Error("add download json marshal  fail", zap.Error(err))
 	}
 
-	common.Logger.Info("start download ", zap.String("url", download.DataSource), zap.String("file_type", download.FileType))
+	common.Logger.Info("start download ", zap.String("api", downloadUrl), zap.String("url", download.DataSource), zap.String("file_type", download.FileType))
 	algoReq, _ := http.NewRequest("POST", downloadUrl, bytes.NewBuffer(algoJsonByte))
 	algoReq.Header.Set("Content-Type", "application/json")
 	algoClient := &http.Client{Timeout: time.Second * 5}
@@ -53,25 +54,31 @@ func DownloadDoReq(download model.EntryDownloadModel) {
 	common.Logger.Info("new download response: ", zap.String("download url", download.DataSource), zap.String("body", jsonStr))
 }
 func NewEnclosure(entry *model.Entry, feed *model.Feed, store *storage.Storage) {
-	exist := store.GetEnclosureNumByEntry(entry.ID)
-	if exist > 0 {
-		common.Logger.Info("new enclosure exit where entry's enclosure exist ", zap.String("entry id:", entry.ID))
-		return
-	}
-	enclosureID, _ := store.CreateEnclosure(entry)
 	if entry.MediaUrl != "" {
 		var download model.EntryDownloadModel
 		download.DataSource = entry.MediaUrl
 		//download.TaskUser = common.CurrentUser()
 		download.DownloadAPP = "wise"
-		download.EnclosureId = enclosureID
 		download.FileName = entry.Title
 		download.FileType = entry.MediaType
-		download.Path = "Downloads/Wise/Article"
 		download.BflUser = entry.BflUser
-		if feed != nil {
-			download.Path = "Downloads/Wise/Feed/" + feed.Title
+
+		folder := "Downloads/Wise/Article"
+		if entry.FileType == "article" {
+			exist := store.GetEnclosureNumByEntry(entry.ID)
+			if exist > 0 {
+				common.Logger.Info("new enclosure exit where entry's enclosure exist ", zap.String("entry id:", entry.ID))
+				return
+			}
+			enclosureID, _ := store.CreateEnclosure(entry)
+			download.EnclosureId = enclosureID
+		} else {
+			folder = "Downloads/Wise/" + strings.ToUpper(string(entry.FileType[0])) + entry.FileType[1:] + "s"
 		}
+		if feed != nil {
+			folder = "Downloads/Wise/Feed/" + feed.Title
+		}
+		download.Path = folder
 
 		if feed == nil || feed.AutoDownload {
 			DownloadDoReq(download)

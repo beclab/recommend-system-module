@@ -30,7 +30,7 @@ func ProcessFeedEntries(store *storage.Storage, feed *model.Feed, entries model.
 					entry.Attachment = true
 				}
 				newEntries = append(newEntries, entry)
-				if len(newEntries) > 20 {
+				if len(newEntries) > 10 {
 					knowledge.SaveFeedEntries(entry.BflUser, store, newEntries, feed)
 					newEntries = make([]*model.Entry, 0)
 				}

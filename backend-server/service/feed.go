@@ -126,7 +126,6 @@ func RefreshFeed(store *storage.Storage, feedID string) {
 	}
 	common.Logger.Info("refresh feed", zap.String("feedurl", originalFeed.FeedURL), zap.String("etag header", originalFeed.EtagHeader), zap.String("last modified header", originalFeed.LastModifiedHeader))
 	feedUrl := originalFeed.FeedURL
-	feedDomain := common.Domain(feedUrl)
 	var updatedFeed *model.Feed
 	if strings.HasPrefix(feedUrl, "wechat://") {
 		wechatAcc := feedUrl[9:]
@@ -140,8 +139,9 @@ func RefreshFeed(store *storage.Storage, feedID string) {
 			}
 		}
 
-	} else if feedDomain == "www.youtube.com" {
+	} else if strings.HasPrefix(feedUrl, "youtube://") { //feedDomain == "www.youtube.com" {
 		var avatar string
+		feedUrl = strings.Replace(feedUrl, "youtube://", "https://www.youtube.com/", 1)
 		updatedFeed, avatar = RefreshYoutubeFeed(store, feedUrl, originalFeed.ID)
 		if avatar != "" {
 			icon, _ := icon.DownloadIcon(avatar, originalFeed.UserAgent, originalFeed.FetchViaProxy, originalFeed.AllowSelfSignedCertificates)

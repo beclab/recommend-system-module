@@ -103,7 +103,6 @@ func generateEntry(resp *Response) *model.Entry {
 		common.Logger.Error("date parse err:", zap.Error(parseErr))
 	}
 	entry.PublishedAt = publicDate.Unix()
-	common.Logger.Info("weibo entry publishedAt", zap.String("text", string(resp.Text)), zap.Int64("publishedAt", entry.PublishedAt))
 	entry.FullContent = "<div class='mainClass'>" + resp.Text + "</div>"
 	if resp.Retweet.Text != "" {
 		entry.FullContent = entry.FullContent + "<div class='quoteClass'>" + resp.Retweet.Text + "</div>"
