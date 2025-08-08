@@ -7,12 +7,12 @@ import (
 )
 
 type Entry struct {
-	ID                string  `json:"id"`
-	FeedID            *string `json:"feed"`
-	Status            string  `json:"status"`
-	Title             string  `json:"title"`
-	URL               string  `json:"url"`
-	CommentsURL       string  `json:"comments_url"`
+	ID                string `json:"id"`
+	FeedID            string `json:"feed"`
+	Status            string `json:"status"`
+	Title             string `json:"title"`
+	URL               string `json:"url"`
+	CommentsURL       string `json:"comments_url"`
 	PublishedAtParsed time.Time
 	PublishedAt       int64     `json:"published_at"`
 	CreatedAt         time.Time `json:"createdAt"`
@@ -22,22 +22,24 @@ type Entry struct {
 	//PureContent string             `bson:"pure_content"`
 	FullContent string `json:"full_content"`
 	//DocId       string   `json:"doc_id"`
-	Author       string   `json:"author"`
-	ImageUrl     string   `json:"image_url"`
-	Readlater    bool     `json:"readlater"`
-	Crawler      bool     `json:"crawler"`
-	Starred      bool     `json:"starred"`
-	Disabled     bool     `json:"disabled"`
-	Saved        bool     `json:"saved"`
-	Unread       bool     `json:"unread"`
-	Language     string   `json:"language"`
-	MediaContent string   `json:"media_content"`
-	MediaUrl     string   `json:"media_url"`
-	MediaType    string   `json:"media_type"`
-	BflUser      string   `json:"bfl_user"`
-	FileType     string   `json:"file_type"`
-	Attachment   bool     `json:"attachment"`
-	Sources      []string `json:"sources"`
+	Author           string   `json:"author"`
+	ImageUrl         string   `json:"image_url"`
+	Readlater        bool     `json:"readlater"`
+	Crawler          bool     `json:"crawler"`
+	Starred          bool     `json:"starred"`
+	Disabled         bool     `json:"disabled"`
+	Saved            bool     `json:"saved"`
+	Unread           bool     `json:"unread"`
+	Language         string   `json:"language"`
+	MediaContent     string   `json:"media_content"`
+	FileType         string   `json:"file_type"`
+	BflUser          string   `json:"bfl_user"`
+	DownloadFileType string   `json:"download_file_type"`
+	DownloadFileUrl  string   `json:"download_file_url"`
+	DownloadFileName string   `json:"download_file_name"`
+	FileName         string   `json:"file_name"`
+	Attachment       bool     `json:"attachment"`
+	Sources          []string `json:"sources"`
 }
 
 type EntryAddModel struct {
@@ -179,4 +181,15 @@ type DownloadFetchReqModel struct {
 type DownloadFetchResponseModel struct {
 	Code int                   `json:"code"`
 	Data DownloadFetchReqModel `json:"data"`
+}
+
+type FileParseReqDataModel struct {
+	DownloadUrl string `json:"download_url"`
+	FileName    string `json:"file_name"`
+	FileType    string `json:"file_type"`
+}
+
+type FileParseResponseModel struct {
+	Code int                   `json:"code"`
+	Data FileParseReqDataModel `json:"data"`
 }

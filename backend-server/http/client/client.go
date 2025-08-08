@@ -233,14 +233,15 @@ func (c *Client) executeRequest(request *http.Request) (*Response, error) {
 	}
 
 	response := &Response{
-		Body:          bytes.NewReader(buf),
-		StatusCode:    resp.StatusCode,
-		EffectiveURL:  resp.Request.URL.String(),
-		LastModified:  resp.Header.Get("Last-Modified"),
-		ETag:          resp.Header.Get("ETag"),
-		Expires:       resp.Header.Get("Expires"),
-		ContentType:   resp.Header.Get("Content-Type"),
-		ContentLength: resp.ContentLength,
+		Body:               bytes.NewReader(buf),
+		StatusCode:         resp.StatusCode,
+		EffectiveURL:       resp.Request.URL.String(),
+		LastModified:       resp.Header.Get("Last-Modified"),
+		ETag:               resp.Header.Get("ETag"),
+		Expires:            resp.Header.Get("Expires"),
+		ContentType:        resp.Header.Get("Content-Type"),
+		ContentDisposition: resp.Header.Get("Content-Disposition"),
+		ContentLength:      resp.ContentLength,
 	}
 
 	// Ignore caching headers for feeds that do not want any cache.

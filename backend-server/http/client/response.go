@@ -15,14 +15,15 @@ var xmlEncodingRegex = regexp.MustCompile(`<\?xml(.*)encoding=["'](.+)["'](.*)\?
 
 // Response wraps a server response.
 type Response struct {
-	Body          io.Reader
-	StatusCode    int
-	EffectiveURL  string
-	LastModified  string
-	ETag          string
-	Expires       string
-	ContentType   string
-	ContentLength int64
+	Body               io.Reader
+	StatusCode         int
+	EffectiveURL       string
+	LastModified       string
+	ETag               string
+	Expires            string
+	ContentType        string
+	ContentLength      int64
+	ContentDisposition string
 }
 
 func (r *Response) String() string {

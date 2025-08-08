@@ -6,6 +6,15 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
+func Contains(s []string, e string) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
+}
+
 func GetFirstSentence(text string) string {
 	sentenceEndings := []string{".", "。", "!", "?", "？", "<br>"}
 	minIndex := len(text)

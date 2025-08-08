@@ -1,12 +1,9 @@
 package client
 
 import (
-	"bufio"
-	"fmt"
 	"log"
 	"net/http"
 	"net/url"
-	"os/exec"
 	"strings"
 
 	"bytetrade.io/web3os/backend-server/common"
@@ -151,40 +148,5 @@ func GetContentAndisposition(downloadUrl string, bflUser string) (string, string
 		}
 	}
 	log.Print("Content-Disposition filename:", fileName, "contentType:", contentType)
-	return contentType, fileName
-}
-
-func GetContentAndispositionByWget(downloadUrl string, bflUser string) (string, string) {
-	contentType := ""
-	//reqContentType := ""
-	fileName := ""
-	cookie := ""
-
-	userAgent := "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-
-	args := []string{"--spider", "--server-response"}
-	args = append(args, "--header", fmt.Sprintf("User-Agent: %s", userAgent))
-	if strings.TrimSpace(cookie) != "" {
-		args = append(args, "--header", fmt.Sprintf("Cookie: %s", cookie))
-	}
-
-	args = append(args, downloadUrl)
-
-	cmd := exec.Command("wget", args...)
-
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		common.Logger.Error("Command failed:", zap.Error(err))
-		return contentType, fileName
-	}
-
-	scanner := bufio.NewScanner(strings.NewReader(string(output)))
-	for scanner.Scan() {
-		line := scanner.Text()
-		if strings.HasPrefix(line, "  ") {
-			fmt.Println(line)
-		}
-	}
-
 	return contentType, fileName
 }

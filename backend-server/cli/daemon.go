@@ -14,8 +14,6 @@ import (
 	"bytetrade.io/web3os/backend-server/storage"
 )
 
-const DefaultPort = "6317"
-
 func StartDaemon(store *storage.Storage) {
 	common.Logger.Info("Starting Service v0.0.25...")
 
@@ -23,21 +21,10 @@ func StartDaemon(store *storage.Storage) {
 	signal.Notify(stop, os.Interrupt)
 	signal.Notify(stop, syscall.SIGTERM)
 
-	//contentPool := contentworker.NewContentPool(store, common.GetContentWorkPoolSize())
-	//pool := worker.NewPool(store, contentPool, common.GetWorkPoolSize())
 	pool := worker.NewPool(store, common.GetWorkPoolSize())
 	scheduler.Serve(store, pool)
 
 	httpServer := HttpdServe(store, pool)
-
-	/*watchDirStr := common.GetWatchDir()
-	watchDirs := strings.Split(watchDirStr, ",")
-	for i, dir := range watchDirs {
-		watchDirs[i] = strings.TrimSpace(dir)
-	}
-	if len(watchDirs) > 0 {
-		service.WatchPath(store, watchDirs)
-	}*/
 
 	<-stop
 	common.Logger.Info("Shutting down the process...")

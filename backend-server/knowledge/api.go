@@ -26,12 +26,46 @@ func SaveFeedEntries(bflUser string, store *storage.Storage, entries model.Entri
 		reqModel := model.GetEntryAddModel(entryModel, feed.FeedURL)
 		addList = append(addList, reqModel)
 	}
-	doReq(bflUser, addList, entries, feed, store, true)
+	doSaveEntriesReq(bflUser, addList, entries, feed, store, true)
 
 }
 
-func DownloadDoReq(download model.EntryDownloadModel) {
-	downloadUrl := common.DownloadApiUrl() + "/download/start" // "/termius/download"
+func getDownloadFromEntry(entry *model.Entry, feed *model.Feed, store *storage.Storage) *model.EntryDownloadModel {
+	if entry.DownloadFileUrl == "" {
+		return nil
+	}
+	var download model.EntryDownloadModel
+	download.DataSource = entry.DownloadFileUrl
+	download.DownloadAPP = "wise"
+	download.FileName = entry.DownloadFileName
+	download.FileType = entry.DownloadFileType
+	download.BflUser = entry.BflUser
+
+	folder := "Downloads/Wise/Article"
+	if entry.FileType == "article" {
+		exist := store.GetEnclosureNumByEntry(entry.ID)
+		if exist > 0 {
+			common.Logger.Info("new enclosure exit where entry's enclosure exist ", zap.String("entry id:", entry.ID))
+			return nil
+		}
+		enclosureID, _ := store.CreateEnclosure(entry)
+		download.EnclosureId = enclosureID
+	} else {
+		folder = "Downloads/Wise/" + strings.ToUpper(string(entry.FileType[0])) + entry.FileType[1:] + "s"
+	}
+	if feed != nil {
+		folder = "Downloads/Wise/Feed/" + feed.Title
+	}
+	download.Path = folder
+	return &download
+
+}
+func DownloadDoReq(entry *model.Entry, feed *model.Feed, store *storage.Storage) {
+	download := getDownloadFromEntry(entry, feed, store)
+	if download == nil {
+		return
+	}
+	downloadUrl := common.DownloadApiUrl() + "/download/start"
 	algoJsonByte, err := json.Marshal(download)
 	if err != nil {
 		common.Logger.Error("add download json marshal  fail", zap.Error(err))
@@ -53,42 +87,8 @@ func DownloadDoReq(download model.EntryDownloadModel) {
 	jsonStr := string(body)
 	common.Logger.Info("new download response: ", zap.String("download url", download.DataSource), zap.String("body", jsonStr))
 }
-func NewEnclosure(entry *model.Entry, feed *model.Feed, store *storage.Storage) {
-	if entry.MediaUrl != "" {
-		var download model.EntryDownloadModel
-		download.DataSource = entry.MediaUrl
-		//download.TaskUser = common.CurrentUser()
-		download.DownloadAPP = "wise"
-		download.FileName = entry.Title
-		download.FileType = entry.MediaType
-		download.BflUser = entry.BflUser
 
-		folder := "Downloads/Wise/Article"
-		if entry.FileType == "article" {
-			exist := store.GetEnclosureNumByEntry(entry.ID)
-			if exist > 0 {
-				common.Logger.Info("new enclosure exit where entry's enclosure exist ", zap.String("entry id:", entry.ID))
-				return
-			}
-			enclosureID, _ := store.CreateEnclosure(entry)
-			download.EnclosureId = enclosureID
-		} else {
-			folder = "Downloads/Wise/" + strings.ToUpper(string(entry.FileType[0])) + entry.FileType[1:] + "s"
-		}
-		if feed != nil {
-			folder = "Downloads/Wise/Feed/" + feed.Title
-		}
-		download.Path = folder
-
-		if feed == nil || feed.AutoDownload {
-			DownloadDoReq(download)
-		}
-	} else {
-		common.Logger.Error("entry mediaUrl is null")
-	}
-}
-
-func doReq(bflUser string, list []*model.EntryAddModel, entries model.Entries, feed *model.Feed, store *storage.Storage, isNew bool) {
+func doSaveEntriesReq(bflUser string, list []*model.EntryAddModel, entries model.Entries, feed *model.Feed, store *storage.Storage, isNew bool) {
 	jsonByte, _ := json.Marshal(list)
 	url := common.EntryMonogoUpdateApiUrl()
 	request, _ := http.NewRequest("POST", url, bytes.NewBuffer(jsonByte))
@@ -119,8 +119,8 @@ func doReq(bflUser string, list []*model.EntryAddModel, entries model.Entries, f
 				entryID, ok := resEntryMap[entry.URL]
 				if ok {
 					entry.ID = entryID
-					if entry.MediaContent != "" || entry.MediaUrl != "" {
-						NewEnclosure(entry, feed, store)
+					if entry.DownloadFileUrl != "" {
+						DownloadDoReq(entry, feed, store)
 					}
 				}
 			}
@@ -141,7 +141,7 @@ func UpdateFeedEntries(bflUser string, store *storage.Storage, entries model.Ent
 		reqModel := model.GetEntryUpdateSourceModel(entryModel, feed.FeedURL)
 		addList = append(addList, reqModel)
 	}
-	doReq(bflUser, addList, entries, feed, store, false)
+	doSaveEntriesReq(bflUser, addList, entries, feed, store, false)
 }
 
 func UpdateLibraryEntryContent(bflUser string, entry *model.Entry, isVideo bool) {
