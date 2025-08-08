@@ -13,12 +13,6 @@ const (
 	defaultHTTPClientTimeout     = 20
 	defaultHTTPClientMaxBodySize = 15 * 1024 * 1024
 
-	defaultMongodbURI          = "mongodb://localhost:27017"
-	defaultMongodbName         = "document"
-	defaultMongoFeedColl       = "feeds"
-	defaultMongoEntryColl      = "entries"
-	defaultMongoAlgorithmsColl = "algorithms"
-
 	defaultDatabaseURL = "host=127.0.0.1  user=postgres password=postgres dbname=rss sslmode=disable"
 	//defaultDatabaseURL = "host=124.222.40.95  user=postgres password=liujx123 dbname=rss_v4 sslmode=disable"
 	defaultPGHost    = "127.0.0.1"
@@ -35,7 +29,7 @@ const (
 	defaultDatabaseMinConns           = 1
 	defaultDatabaseConnectionLifetime = 5
 
-	defaultEntryMongoUpdateApiUrl = "http://localhost:3010/knowledge/entry/"
+	defaultEntryUpdateApiUrl = "http://localhost:3010/knowledge/entry/"
 
 	defaultDownloadApiUrl = "http://localhost:3080/api"
 	defaultYtdlpApiUrl    = "http://127.0.0.1:3082/api"
@@ -47,10 +41,10 @@ const (
 	DefaultBatchSize             = 100
 )
 
-func EntryMonogoUpdateApiUrl() string {
-	env := os.Getenv("ENTRY_MONGO_UPDATE_API_URL")
+func EntryUpdateApiUrl() string {
+	env := os.Getenv("ENTRY_UPDATE_API_URL")
 	if env == "" {
-		return defaultEntryMongoUpdateApiUrl
+		return defaultEntryUpdateApiUrl
 	}
 	return env
 }
@@ -119,25 +113,6 @@ func DatabaseMinConns() int {
 func DatabaseConnectionLifetime() time.Duration {
 	lifeTIme := ParseInt(os.Getenv("DATABASE_LIFETIME"), defaultDatabaseConnectionLifetime)
 	return time.Duration(lifeTIme) * time.Minute
-}
-
-func GetMongoURI() string {
-	return ParseString(os.Getenv("MONGODB_URI"), defaultMongodbURI)
-}
-func GetMongoDbName() string {
-	return ParseString(os.Getenv("MONGODB_NAME"), defaultMongodbName)
-}
-
-func GetMongoFeedColl() string {
-	return ParseString(os.Getenv("MONGODB_FEED_COLL"), defaultMongoFeedColl)
-}
-
-func GetMongoEntryColl() string {
-	return ParseString(os.Getenv("MONGODB_ENTRY_COLL"), defaultMongoEntryColl)
-}
-
-func GetMongoAlgorithmsColl() string {
-	return ParseString(os.Getenv("MONGODB_ALGORITHMS_COLL"), defaultMongoAlgorithmsColl)
 }
 
 func GetWorkPoolSize() int {

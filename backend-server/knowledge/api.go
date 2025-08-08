@@ -90,7 +90,7 @@ func DownloadDoReq(entry *model.Entry, feed *model.Feed, store *storage.Storage)
 
 func doSaveEntriesReq(bflUser string, list []*model.EntryAddModel, entries model.Entries, feed *model.Feed, store *storage.Storage, isNew bool) {
 	jsonByte, _ := json.Marshal(list)
-	url := common.EntryMonogoUpdateApiUrl()
+	url := common.EntryUpdateApiUrl()
 	request, _ := http.NewRequest("POST", url, bytes.NewBuffer(jsonByte))
 	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("X-Bfl-User", bflUser)
@@ -104,7 +104,7 @@ func doSaveEntriesReq(bflUser string, list []*model.EntryAddModel, entries model
 		defer response.Body.Close()
 	}
 	responseBody, _ := io.ReadAll(response.Body)
-	var resObj model.MongoEntryApiResponseModel
+	var resObj model.EntryApiResponseModel
 	if err := json.Unmarshal(responseBody, &resObj); err != nil {
 		log.Print("json decode failed, err", err)
 		return
@@ -162,14 +162,14 @@ func UpdateLibraryEntryContent(bflUser string, entry *model.Entry) {
 
 	updateList = append(updateList, &updateEntry)
 	jsonByte, _ := json.Marshal(updateList)
-	url := common.EntryMonogoUpdateApiUrl()
+	url := common.EntryUpdateApiUrl()
 	request, _ := http.NewRequest("POST", url, bytes.NewBuffer(jsonByte))
 	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("X-Bfl-User", bflUser)
 	client := &http.Client{Timeout: 5 * time.Second}
 	response, err := client.Do(request)
 	if err != nil {
-		common.Logger.Error("add entry in knowledg  fail", zap.Error(err))
+		common.Logger.Error("update entry in knowledg  fail", zap.Error(err))
 		return
 	}
 	if response != nil {
@@ -177,7 +177,7 @@ func UpdateLibraryEntryContent(bflUser string, entry *model.Entry) {
 	}
 	responseBody, _ := io.ReadAll(response.Body)
 	jsonStr := string(responseBody)
-	common.Logger.Info("update content response: ", zap.String("body", jsonStr))
+	common.Logger.Info("update content response: ", zap.String("url", url), zap.String("body", jsonStr))
 
 }
 

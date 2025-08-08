@@ -70,7 +70,7 @@ type EntryAddResponseModel struct {
 	Url    string `json:"url"`
 }
 
-type MongoEntryApiResponseModel struct {
+type EntryApiResponseModel struct {
 	Code    int                     `json:"code"`
 	Message string                  `json:"message"`
 	Data    []EntryAddResponseModel `json:"data"`

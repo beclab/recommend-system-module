@@ -23,17 +23,6 @@ func main() {
 	}
 	defer db.Close()
 
-	/*mongodb, err := database.NewMongodbConnection()
-	if err != nil {
-		common.Logger.Error("mongodb connect fail", zap.Error(err))
-	}
-
-	defer func() {
-		if err := mongodb.Disconnect(context.Background()); err != nil {
-			panic(err)
-		}
-	}()*/
-
 	store := storage.NewStorage(db, redisdb)
 	cli.StartDaemon(store)
 }

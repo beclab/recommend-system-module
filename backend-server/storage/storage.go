@@ -8,7 +8,6 @@ import (
 
 // Storage handles all operations related to the database.
 type Storage struct {
-	//mongodb *mongo.Client
 	db      *sql.DB
 	redisdb *redis.Client
 }
