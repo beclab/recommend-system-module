@@ -20,7 +20,7 @@ func (h *handler) newFetchContent(entry *model.Entry) string {
 	if updateEntry.MediaContent != "" || updateEntry.DownloadFileUrl != "" {
 		updateEntry.Attachment = true
 	}
-	knowledge.UpdateLibraryEntryContent(entry.BflUser, updateEntry)
+	knowledge.UpdateLibraryEntryContent(entry.BflUser, entry)
 	if entry.DownloadFileUrl != "" {
 		knowledge.DownloadDoReq(entry, nil, h.store)
 	}
