@@ -60,6 +60,7 @@ type EntryAddModel struct {
 	Readlater   bool   `json:"readlater,omitempty"`
 	Language    string `json:"language,omitempty"`
 	Attachment  bool   `json:"attachment,omitempty"`
+	FileType    string `json:"file_type"`
 	Source      string `json:"source"`
 }
 

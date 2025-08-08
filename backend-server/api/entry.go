@@ -9,18 +9,18 @@ import (
 	"bytetrade.io/web3os/backend-server/http/response/json"
 	"bytetrade.io/web3os/backend-server/knowledge"
 	"bytetrade.io/web3os/backend-server/model"
+	"bytetrade.io/web3os/backend-server/service"
 	"go.uber.org/zap"
 )
 
 func (h *handler) newFetchContent(entry *model.Entry) string {
 
-	crawler.EntryCrawler(entry.URL, entry.BflUser, entry.FeedID)
-
-	updateEntry := &model.Entry{ID: entry.ID, URL: entry.URL, ImageUrl: entry.ImageUrl, PublishedAt: entry.PublishedAt, Title: entry.Title, Language: entry.Language, Author: entry.Author, RawContent: entry.RawContent, FullContent: entry.FullContent}
-	if entry.MediaContent != "" || entry.DownloadFileUrl != "" {
+	updateEntry := crawler.EntryCrawler(entry.URL, entry.BflUser, entry.FeedID)
+	service.CopyEntry(entry, updateEntry)
+	if updateEntry.MediaContent != "" || updateEntry.DownloadFileUrl != "" {
 		updateEntry.Attachment = true
 	}
-	knowledge.UpdateLibraryEntryContent(entry.BflUser, updateEntry, false)
+	knowledge.UpdateLibraryEntryContent(entry.BflUser, updateEntry)
 	if entry.DownloadFileUrl != "" {
 		knowledge.DownloadDoReq(entry, nil, h.store)
 	}

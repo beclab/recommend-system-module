@@ -144,7 +144,7 @@ func UpdateFeedEntries(bflUser string, store *storage.Storage, entries model.Ent
 	doSaveEntriesReq(bflUser, addList, entries, feed, store, false)
 }
 
-func UpdateLibraryEntryContent(bflUser string, entry *model.Entry, isVideo bool) {
+func UpdateLibraryEntryContent(bflUser string, entry *model.Entry) {
 	updateList := make([]*model.EntryAddModel, 0)
 	var updateEntry model.EntryAddModel
 	updateEntry.Url = entry.URL
@@ -155,11 +155,11 @@ func UpdateLibraryEntryContent(bflUser string, entry *model.Entry, isVideo bool)
 	updateEntry.Language = entry.Language
 	updateEntry.RawContent = entry.RawContent
 	updateEntry.FullContent = entry.FullContent
-	if isVideo == false {
-		updateEntry.Crawler = true
-		updateEntry.Extract = true
-		updateEntry.Attachment = entry.Attachment
-	}
+	updateEntry.FileType = entry.FileType
+	updateEntry.Crawler = true
+	updateEntry.Extract = true
+	updateEntry.Attachment = entry.Attachment
+
 	updateList = append(updateList, &updateEntry)
 	jsonByte, _ := json.Marshal(updateList)
 	url := common.EntryMonogoUpdateApiUrl()

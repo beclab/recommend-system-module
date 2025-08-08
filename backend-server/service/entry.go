@@ -9,17 +9,43 @@ import (
 	"go.uber.org/zap"
 )
 
-func copyEntry(entry *model.Entry, newEntry *model.Entry) {
+func CopyEntry(entry *model.Entry, newEntry *model.Entry) {
 	if newEntry == nil {
 		return
 	}
-	entry.FullContent = newEntry.FullContent
-	entry.MediaContent = newEntry.MediaContent
-	entry.DownloadFileType = newEntry.DownloadFileType
-	entry.DownloadFileUrl = newEntry.DownloadFileUrl
-	entry.Author = newEntry.Author
-	entry.Title = newEntry.Title
-	entry.PublishedAt = newEntry.PublishedAt
+	if newEntry.RawContent != "" {
+		entry.RawContent = newEntry.FullContent
+	}
+	if newEntry.FullContent != "" {
+		entry.FullContent = newEntry.FullContent
+	}
+	if newEntry.MediaContent != "" {
+		entry.MediaContent = newEntry.MediaContent
+	}
+	if newEntry.FileType != "" {
+		entry.FileType = newEntry.FileType
+	}
+	if newEntry.DownloadFileName != "" {
+		entry.DownloadFileName = newEntry.DownloadFileName
+	}
+	if newEntry.DownloadFileType != "" {
+		entry.DownloadFileType = newEntry.DownloadFileType
+	}
+	if newEntry.DownloadFileUrl != "" {
+		entry.DownloadFileUrl = newEntry.DownloadFileUrl
+	}
+	if newEntry.Author != "" {
+		entry.Author = newEntry.Author
+	}
+	if newEntry.Title != "" {
+		entry.Title = newEntry.Title
+	}
+	if newEntry.PublishedAt != 0 {
+		entry.PublishedAt = newEntry.PublishedAt
+	}
+	if newEntry.Language != "" {
+		entry.Language = newEntry.Language
+	}
 	entry.ImageUrl = common.GetImageUrlFromContent(entry.FullContent)
 
 }
@@ -34,7 +60,7 @@ func ProcessFeedEntries(store *storage.Storage, feed *model.Feed, entries model.
 		if savedEntry == nil {
 			entry.BflUser = feed.BflUser
 			newEntry := crawler.EntryCrawler(entry.URL, feed.FeedURL, feed.ID)
-			copyEntry(entry, newEntry)
+			CopyEntry(entry, newEntry)
 			if entry.PublishedAt == 0 {
 				entry.PublishedAt = entry.PublishedAtParsed.Unix()
 			}
