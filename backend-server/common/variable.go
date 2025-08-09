@@ -9,6 +9,14 @@ import (
 )
 
 const (
+	ArticleFileType = "article"
+	VideoFileType   = "video"
+	AudioFileType   = "audio"
+	PdfFileType     = "pdf"
+	EbookFileType   = "ebook"
+)
+
+const (
 	defaultListenAddr            = "127.0.0.1:8081"
 	defaultHTTPClientTimeout     = 20
 	defaultHTTPClientMaxBodySize = 15 * 1024 * 1024

@@ -65,7 +65,7 @@ func handleQtfm(url string, bflUser string) *model.Entry {
 	entry := ytdlp.Fetch(bflUser, url)
 	if entry.Title != "" {
 		entry.DownloadFileUrl = url
-		entry.FileType = "audio"
+		entry.FileType = common.AudioFileType
 	}
 	return entry
 }
@@ -305,15 +305,15 @@ func defaultFetchRawContent(url string, bflUser string) (string, string, string)
 func determineFileType(reqContentType string) string {
 	switch {
 	case strings.HasPrefix(reqContentType, "text/html"):
-		return "text/html"
+		return ""
 	case reqContentType == "application/pdf":
-		return "pdf"
+		return common.PdfFileType
 	case reqContentType == "application/epub+zip":
-		return "ebook"
+		return common.EbookFileType
 	case strings.HasPrefix(reqContentType, "audio/"):
-		return "audio"
+		return common.AudioFileType
 	case strings.HasPrefix(reqContentType, "video/"):
-		return "video"
+		return common.VideoFileType
 	}
 	return ""
 }
@@ -343,10 +343,10 @@ func extractFileName(contentDisposition string) string {
 func getFileNameFromUrl(url string, fileType string) string {
 	lastSlashIndex := strings.LastIndex(url, "/")
 	fileName := url[lastSlashIndex+1:]
-	if fileType == "ebook" && !strings.HasSuffix(fileName, ".epub") {
+	if fileType == common.EbookFileType && !strings.HasSuffix(fileName, ".epub") {
 		fileName = fileName + ".epub"
 	}
-	if fileType == "pdf" && !strings.HasSuffix(fileName, ".pdf") {
+	if fileType == common.PdfFileType && !strings.HasSuffix(fileName, ".pdf") {
 		fileName = fileName + ".pdf"
 	}
 	return fileName
