@@ -189,7 +189,9 @@ func handleDefault(url string, bflUser string, feedID string) *model.Entry {
 		fileNameFromContentType,
 	)
 
-	if feedID == "" {
+	if feedID != "" {
+		entry.FileType = common.ArticleFileType
+	} else {
 		handleYtdlp(bflUser, entry)
 	}
 
