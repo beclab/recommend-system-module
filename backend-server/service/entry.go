@@ -59,7 +59,7 @@ func ProcessFeedEntries(store *storage.Storage, feed *model.Feed, entries model.
 
 		if savedEntry == nil {
 			entry.BflUser = feed.BflUser
-			newEntry := crawler.EntryCrawler(entry.URL, feed.FeedURL, feed.ID)
+			newEntry := crawler.EntryCrawler(entry.URL, feed.BflUser, feed.ID)
 			CopyEntry(entry, newEntry)
 			if entry.PublishedAt == 0 {
 				entry.PublishedAt = entry.PublishedAtParsed.Unix()
