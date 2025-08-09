@@ -176,6 +176,7 @@ func handleDefault(url string, bflUser string, feedID string) *model.Entry {
 		bflUser,
 		url,
 	)
+	entry.URL = url
 	entry.RawContent = rawContent
 
 	common.Logger.Info("crawler entry start to extract", zap.String("url", entry.URL))
