@@ -3,6 +3,7 @@ package model
 import (
 	"time"
 
+	"bytetrade.io/web3os/backend-server/common"
 	"bytetrade.io/web3os/backend-server/reader/date"
 )
 
@@ -94,6 +95,7 @@ func GetEntryAddModel(entryModel *Entry, feedUrl string) *EntryAddModel {
 	result.Crawler = true
 	result.Extract = true
 	result.Language = entryModel.Language
+	result.FileType = entryModel.FileType
 
 	result.Readlater = false
 	result.Starred = false
@@ -101,7 +103,7 @@ func GetEntryAddModel(entryModel *Entry, feedUrl string) *EntryAddModel {
 	result.Saved = false
 	result.Unread = true
 
-	result.Source = "wise"
+	result.Source = common.FeedSource
 	return &result
 }
 
@@ -109,7 +111,8 @@ func GetEntryUpdateSourceModel(entryModel *Entry, feedUrl string) *EntryAddModel
 	var result EntryAddModel
 	result.Url = entryModel.URL
 	result.FeedUrl = feedUrl
-	result.Source = "wise"
+	result.Source = common.FeedSource
+	result.FileType = common.ArticleFileType
 	return &result
 }
 

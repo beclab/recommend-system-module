@@ -16,6 +16,8 @@ const (
 	EbookFileType   = "ebook"
 )
 
+const FeedSource = "wise"
+
 const (
 	defaultListenAddr            = "127.0.0.1:8081"
 	defaultHTTPClientTimeout     = 20
@@ -38,7 +40,6 @@ const (
 	defaultDownloadApiUrl = "http://localhost:3080/api"
 	defaultYtdlpApiUrl    = "http://127.0.0.1:3082/api"
 
-	FeedSource                   = "wise"
 	DefaultWorkerPoolSize        = 1
 	DefaultContentWorkerPoolSize = 3
 	DefaultPollingFrequency      = 15

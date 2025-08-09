@@ -79,7 +79,7 @@ func ProcessFeedEntries(store *storage.Storage, feed *model.Feed, entries model.
 			}
 			addEntryNum++
 		} else {
-			if !common.Contains(savedEntry.Sources, "wise") {
+			if !common.Contains(savedEntry.Sources, common.FeedSource) {
 				entry.FullContent = savedEntry.FullContent
 				updateEntries = append(updateEntries, entry)
 			}

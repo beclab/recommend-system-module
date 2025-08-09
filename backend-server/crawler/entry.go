@@ -113,29 +113,22 @@ func EntryCrawler(url string, bflUser string, feedID string) *model.Entry {
 }
 
 func handleYtdlp(bflUser string, entry *model.Entry) {
-	ytdlpEntry := ytdlp.Fetch(bflUser, entry.URL)
-	if ytdlpEntry.Author != "" {
-		entry.Author = ytdlpEntry.Author
+	if ytdlpEntry := ytdlp.Fetch(bflUser, entry.URL); ytdlpEntry != nil {
+		updateIfNotEmpty := func(dst *string, src string) {
+			if src != "" {
+				*dst = src
+			}
+		}
+		updateIfNotEmpty(&entry.Author, ytdlpEntry.Author)
+		updateIfNotEmpty(&entry.Title, ytdlpEntry.Title)
+		updateIfNotEmpty(&entry.FullContent, ytdlpEntry.FullContent)
+		updateIfNotEmpty(&entry.DownloadFileType, ytdlpEntry.DownloadFileType)
+		updateIfNotEmpty(&entry.DownloadFileUrl, ytdlpEntry.DownloadFileUrl)
+		updateIfNotEmpty(&entry.DownloadFileName, ytdlpEntry.DownloadFileName)
+		if ytdlpEntry.PublishedAt != 0 {
+			entry.PublishedAt = ytdlpEntry.PublishedAt
+		}
 	}
-	if ytdlpEntry.Title != "" {
-		entry.Title = ytdlpEntry.Title
-	}
-	if ytdlpEntry.PublishedAt != 0 {
-		entry.PublishedAt = ytdlpEntry.PublishedAt
-	}
-	if ytdlpEntry.FullContent != "" {
-		entry.FullContent = ytdlpEntry.FullContent
-	}
-	if ytdlpEntry.DownloadFileType != "" {
-		entry.DownloadFileType = ytdlpEntry.DownloadFileType
-	}
-	if ytdlpEntry.DownloadFileUrl != "" {
-		entry.DownloadFileUrl = ytdlpEntry.DownloadFileUrl
-	}
-	if ytdlpEntry.DownloadFileName != "" {
-		entry.DownloadFileName = ytdlpEntry.DownloadFileName
-	}
-
 }
 
 func setFileInfo(
@@ -166,7 +159,7 @@ func setFileInfo(
 		entry.DownloadFileType = contentTypeFileType
 		entry.DownloadFileName = contentTypeFileName
 	default:
-		entry.FileType = "article"
+		entry.FileType = common.ArticleFileType
 	}
 }
 

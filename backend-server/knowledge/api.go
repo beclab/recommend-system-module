@@ -36,14 +36,14 @@ func getDownloadFromEntry(entry *model.Entry, feed *model.Feed, store *storage.S
 	}
 	var download model.EntryDownloadModel
 	download.DataSource = entry.DownloadFileUrl
-	download.DownloadAPP = "wise"
+	download.DownloadAPP = common.FeedSource
 	download.FileName = entry.DownloadFileName
 	download.FileType = entry.DownloadFileType
 	download.BflUser = entry.BflUser
 	download.EntryId = entry.ID
 
 	folder := "Downloads/Wise/Article"
-	if entry.FileType == "article" {
+	if entry.FileType == common.ArticleFileType {
 		exist := store.GetEnclosureNumByEntry(entry.ID)
 		if exist > 0 {
 			common.Logger.Info("new enclosure exit where entry's enclosure exist ", zap.String("entry id:", entry.ID))
