@@ -138,45 +138,73 @@ func handleYtdlp(bflUser string, entry *model.Entry) {
 
 }
 
+func setFileInfo(
+	entry *model.Entry,
+	url,
+	extractFileType,
+	extractFileUrl,
+	extractFileName,
+	contentTypeFileType,
+	contentTypeFileName string,
+) {
+	if extractFileType == "" {
+		extractFileUrl, extractFileName, extractFileType = processor.DownloadTypeQueryByUrl(url)
+	}
+
+	switch {
+	case extractFileType != "":
+		entry.FileType = extractFileType
+		entry.DownloadFileUrl = extractFileUrl
+		entry.DownloadFileType = extractFileType
+		if extractFileName == "" {
+			extractFileName = entry.Title
+		}
+		entry.DownloadFileName = extractFileName
+	case contentTypeFileType != "":
+		entry.FileType = contentTypeFileType
+		entry.DownloadFileUrl = url
+		entry.DownloadFileType = contentTypeFileType
+		entry.DownloadFileName = contentTypeFileName
+	default:
+		entry.FileType = "article"
+	}
+}
+
 func handleDefault(url string, bflUser string, feedID string) *model.Entry {
 	entry := new(model.Entry)
-	rawContent, fileTypeFromContentType, fileNameFromContentType := FetchRawContnt(
+	rawContent, fileTypeFromContentType, fileNameFromContentType := FetchRawContent(
 		bflUser,
 		url,
 	)
-	downloadFileName := ""
 	entry.RawContent = rawContent
+
 	common.Logger.Info("crawler entry start to extract", zap.String("url", entry.URL))
 	fullContent, pureContent, dateInArticle, imageUrlFromContent, title, templateAuthor, publishedAtTimestamp, mediaContent, downloadFileUrl, downloadFileType := processor.ArticleExtractor(entry.RawContent, url)
+	entry.Title = common.FirstNonEmptyStr(entry.Title, title)
+	entry.FullContent = fullContent
+	entry.MediaContent = mediaContent
+	entry.Author = common.FirstNonEmptyStr(entry.Author, templateAuthor)
 
-	if downloadFileType == "" {
-		downloadFileUrl, downloadFileName, downloadFileType = processor.DownloadTypeQueryByUrl(url)
-	}
-	if downloadFileType != "" {
-		entry.FileType = downloadFileType
-	} else {
-		entry.FileType = "article"
-		entry.DownloadFileType = fileTypeFromContentType
-		entry.DownloadFileName = fileNameFromContentType
-	}
-	entry.DownloadFileName = downloadFileName
+	setFileInfo(
+		entry,
+		url,
+		downloadFileType,
+		downloadFileUrl,
+		"",
+		fileTypeFromContentType,
+		fileNameFromContentType,
+	)
+
 	if feedID != "" {
 		handleYtdlp(bflUser, entry)
 	}
 
-	if strings.TrimSpace(entry.Title) == "" {
-		entry.Title = title
-	}
-	entry.FullContent = fullContent
-	entry.MediaContent = mediaContent
-	entry.DownloadFileUrl = downloadFileUrl
-	entry.DownloadFileType = downloadFileType
-	if entry.ImageUrl == "" {
-		entry.ImageUrl = imageUrlFromContent
-	}
-	if templateAuthor != "" {
-		entry.Author = templateAuthor
-	}
+	entry.ImageUrl = common.FirstNonEmptyStr(
+		entry.ImageUrl,
+		imageUrlFromContent,
+		common.GetImageUrlFromContent(fullContent),
+	)
+
 	if publishedAtTimestamp != 0 {
 		entry.PublishedAt = publishedAtTimestamp
 	} else {
@@ -185,15 +213,7 @@ func handleDefault(url string, bflUser string, feedID string) *model.Entry {
 		}
 	}
 
-	languageLen := len(pureContent)
-	if languageLen > 100 {
-		languageLen = 100
-	}
-	entry.Language = common.GetLanguage(pureContent[:languageLen])
-
-	if entry.ImageUrl == "" && fullContent != "" {
-		entry.ImageUrl = common.GetImageUrlFromContent(fullContent)
-	}
+	entry.Language = common.DetectLanguage(pureContent)
 	return entry
 }
 
@@ -219,7 +239,7 @@ func wolaiFetchByApi(websiteURL string) string {
 	return ""
 }
 
-func FetchRawContnt(bflUser, websiteURL string) (string, string, string) {
+func FetchRawContent(bflUser, websiteURL string) (string, string, string) {
 	url := fetchUrlToChange(websiteURL)
 	urlDomain := common.Domain(url)
 	common.Logger.Info("fatch raw contnet", zap.String("domain", websiteURL))

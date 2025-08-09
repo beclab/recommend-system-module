@@ -19,11 +19,7 @@ const (
 	defaultPGUser    = "postgres"
 	defaultPGPass    = "postgres"
 	defaultPGPDBName = "rss"
-	//defaultPGHost    = "124.222.40.95"
-	//defaultPGUser    = "postgres"
-	//defaultPGPass    = "liujx123"
-	//defaultPGPDBName = "rss_v4"
-	defaultPGPort = 5432
+	defaultPGPort    = 5432
 
 	defaultDatabaseMaxConns           = 20
 	defaultDatabaseMinConns           = 1

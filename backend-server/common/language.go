@@ -26,7 +26,7 @@ func GetDetector() lingua.LanguageDetector {
 	return detector
 }
 
-func GetLanguage(content string) string {
+func getLanguage(content string) string {
 	longShortLanguageMap := map[string]string{
 		"English":           "en",
 		"Chinese":           "zh-cn",
@@ -116,4 +116,18 @@ func GetLanguage(content string) string {
 	}
 
 	return "other"
+}
+
+func DetectLanguage(content string) string {
+	if content == "" {
+		return ""
+	}
+
+	sampleLength := len(content)
+	if sampleLength > 100 {
+		sampleLength = 100
+	}
+	sample := content[:sampleLength]
+
+	return getLanguage(sample)
 }

@@ -15,6 +15,15 @@ func Contains(s []string, e string) bool {
 	return false
 }
 
+func FirstNonEmptyStr(options ...string) string {
+	for _, s := range options {
+		if strings.TrimSpace(s) != "" {
+			return s
+		}
+	}
+	return ""
+}
+
 func GetFirstSentence(text string) string {
 	sentenceEndings := []string{".", "。", "!", "?", "？", "<br>"}
 	minIndex := len(text)
