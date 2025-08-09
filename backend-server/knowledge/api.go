@@ -40,6 +40,7 @@ func getDownloadFromEntry(entry *model.Entry, feed *model.Feed, store *storage.S
 	download.FileName = entry.DownloadFileName
 	download.FileType = entry.DownloadFileType
 	download.BflUser = entry.BflUser
+	download.EntryId = entry.ID
 
 	folder := "Downloads/Wise/Article"
 	if entry.FileType == "article" {
