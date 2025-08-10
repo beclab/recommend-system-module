@@ -38,7 +38,7 @@ func Fetch(bfl_user, url string) *model.Entry {
 		return nil
 	}
 	if res.StatusCode != 200 {
-		common.Logger.Error("load ytdlp meta error")
+		common.Logger.Error("load ytdlp meta error", zap.Int("status code", res.StatusCode))
 		return nil
 	}
 	if res != nil {
