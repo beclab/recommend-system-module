@@ -230,7 +230,6 @@ func FetchTwitterContent(bfl_user, twitterID, url string) *model.Entry {
 	var resObj model.EntryFetchResponseModel
 	if err := json.Unmarshal(body, &resObj); err != nil {
 		common.Logger.Error("fetch twitter content ,json decode failed, err", zap.Error(err))
-		return nil
 	}
 
 	return &resObj.Data
@@ -270,7 +269,6 @@ func FetchXHSContent(url string, bfl_user string) *model.Entry {
 	var resObj model.EntryFetchResponseModel
 	if err := json.Unmarshal(body, &resObj); err != nil {
 		common.Logger.Error("fetch xhs content ,json decode failed, err", zap.Error(err))
-		return nil
 	}
 
 	return &resObj.Data
