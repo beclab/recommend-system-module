@@ -40,6 +40,7 @@ func handleX(url string, bflUser string) *model.Entry {
 	if twitterEntry != nil {
 		twitterEntry.ImageUrl = common.GetImageUrlFromContent(twitterEntry.FullContent)
 		twitterEntry.Language = "en"
+		twitterEntry.FileType = common.ArticleFileType
 	}
 	return twitterEntry
 }
@@ -48,6 +49,7 @@ func handleXHS(url string, bflUser string) *model.Entry {
 	if xshEntry != nil {
 		xshEntry.ImageUrl = common.GetImageUrlFromContent(xshEntry.FullContent)
 		xshEntry.Language = "zh-cn"
+		xshEntry.FileType = common.ArticleFileType
 	}
 	return xshEntry
 }
@@ -56,6 +58,7 @@ func handleBsky(url string, bflUser string) *model.Entry {
 	if bskyEntry != nil {
 		bskyEntry.ImageUrl = common.GetImageUrlFromContent(bskyEntry.FullContent)
 		bskyEntry.Language = "en"
+		bskyEntry.FileType = common.ArticleFileType
 	}
 	return bskyEntry
 }
@@ -65,6 +68,7 @@ func handleThreads(url string) *model.Entry {
 	if threadsEntry != nil {
 		threadsEntry.ImageUrl = common.GetImageUrlFromContent(threadsEntry.FullContent)
 		threadsEntry.Language = "en"
+		threadsEntry.FileType = common.ArticleFileType
 	}
 	return threadsEntry
 }
@@ -83,6 +87,7 @@ func handleTBilibili(url string, bflUser string) *model.Entry {
 	if tbilibiliEntry != nil {
 		tbilibiliEntry.ImageUrl = common.GetImageUrlFromContent(tbilibiliEntry.FullContent)
 		tbilibiliEntry.Language = "zh-cn"
+		tbilibiliEntry.FileType = common.ArticleFileType
 	}
 	return tbilibiliEntry
 }
@@ -92,6 +97,7 @@ func handleWeibo(url string, bflUser string) *model.Entry {
 	if weiboEntry != nil {
 		weiboEntry.ImageUrl = common.GetImageUrlFromContent(weiboEntry.FullContent)
 		weiboEntry.Language = "zh-cn"
+		weiboEntry.FileType = common.ArticleFileType
 	}
 	return weiboEntry
 }
@@ -123,6 +129,10 @@ func EntryCrawler(url string, bflUser string, feedID string) *model.Entry {
 	default:
 		entry = handleDefault(url, bflUser)
 	}
+	if entry == nil {
+		entry = &model.Entry{}
+		entry.FileType = common.ArticleFileType
+	}
 	if feedID != "" {
 		entry.FileType = common.ArticleFileType
 	} else {
@@ -137,9 +147,6 @@ func handleYtdlp(bflUser string, url string, entry *model.Entry) {
 			if src != "" {
 				*dst = src
 			}
-		}
-		if entry == nil {
-			entry = &model.Entry{}
 		}
 		updateIfNotEmpty(&entry.Author, ytdlpEntry.Author)
 		updateIfNotEmpty(&entry.Title, ytdlpEntry.Title)
