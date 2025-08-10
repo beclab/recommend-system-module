@@ -126,17 +126,20 @@ func EntryCrawler(url string, bflUser string, feedID string) *model.Entry {
 	if feedID != "" {
 		entry.FileType = common.ArticleFileType
 	} else {
-		handleYtdlp(bflUser, entry)
+		handleYtdlp(bflUser, url, entry)
 	}
 	return entry
 }
 
-func handleYtdlp(bflUser string, entry *model.Entry) {
-	if ytdlpEntry := ytdlp.Fetch(bflUser, entry.URL); ytdlpEntry != nil {
+func handleYtdlp(bflUser string, url string, entry *model.Entry) {
+	if ytdlpEntry := ytdlp.Fetch(bflUser, url); ytdlpEntry != nil {
 		updateIfNotEmpty := func(dst *string, src string) {
 			if src != "" {
 				*dst = src
 			}
+		}
+		if entry == nil {
+			entry = &model.Entry{}
 		}
 		updateIfNotEmpty(&entry.Author, ytdlpEntry.Author)
 		updateIfNotEmpty(&entry.Title, ytdlpEntry.Title)
