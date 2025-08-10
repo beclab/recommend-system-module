@@ -183,6 +183,7 @@ func setFileInfo(
 	default:
 		entry.FileType = common.ArticleFileType
 	}
+	common.Logger.Info("set file type", zap.String("extractFileType", extractFileType), zap.String("contentTypeFileType:", contentTypeFileType), zap.String("final file type", entry.FileType))
 }
 
 func handleDefault(url string, bflUser string) *model.Entry {
