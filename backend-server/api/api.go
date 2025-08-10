@@ -22,11 +22,6 @@ func Serve(router *mux.Router, store *storage.Storage, pool *worker.Pool) {
 	sr.Use(middleware.handleCORS)
 	sr.Methods(http.MethodOptions)
 
-	sr.HandleFunc("/page-parse", handler.parse).Methods(http.MethodGet)
-	sr.HandleFunc("/page-parse/async", handler.asyncParse).Methods(http.MethodGet)
-	sr.HandleFunc("/rss-parse", handler.rssparse).Methods(http.MethodGet)
-	sr.HandleFunc("/rss-parse/async", handler.asyncRssParse).Methods(http.MethodGet)
-
 	sr.HandleFunc("/knowledge/feeds/{feedID}/refresh", handler.knowledgeRefreshFeed).Methods(http.MethodPut)
 	sr.HandleFunc("/knowledge/entries/{entryID}/fetch-content", handler.knowledgeFetchContent).Methods(http.MethodGet)
 

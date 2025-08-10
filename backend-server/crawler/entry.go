@@ -88,28 +88,35 @@ func EntryCrawler(url string, bflUser string, feedID string) *model.Entry {
 	urlDomain := common.Domain(url)
 	common.Logger.Info("crawler entry start", zap.String("url", url), zap.String("primary domain:", primaryDomain))
 
+	var entry *model.Entry
 	switch primaryDomain {
 	case "bilibili.com":
 		if urlDomain == "t.bilibili.com" {
-			return handleTBilibili(url, bflUser)
+			entry = handleTBilibili(url, bflUser)
 		} else {
-			return handleDefault(url, bflUser, feedID)
+			entry = handleDefault(url, bflUser)
 		}
 	case "x.com":
-		return handleX(url, bflUser)
+		entry = handleX(url, bflUser)
 	case "weibo.com":
-		return handleWeibo(url, bflUser)
+		entry = handleWeibo(url, bflUser)
 	case "xiaohongshu.com":
-		return handleXHS(url, bflUser)
+		entry = handleXHS(url, bflUser)
 	case "bsky.app":
-		return handleBsky(url, bflUser)
+		entry = handleBsky(url, bflUser)
 	case "threads.net":
-		return handleThreads(url)
+		entry = handleThreads(url)
 	case "qtfm.cn":
-		return handleQtfm(url, bflUser)
+		entry = handleQtfm(url, bflUser)
 	default:
-		return handleDefault(url, bflUser, feedID)
+		entry = handleDefault(url, bflUser)
 	}
+	if feedID != "" {
+		entry.FileType = common.ArticleFileType
+	} else {
+		handleYtdlp(bflUser, entry)
+	}
+	return entry
 }
 
 func handleYtdlp(bflUser string, entry *model.Entry) {
@@ -163,7 +170,7 @@ func setFileInfo(
 	}
 }
 
-func handleDefault(url string, bflUser string, feedID string) *model.Entry {
+func handleDefault(url string, bflUser string) *model.Entry {
 	entry := new(model.Entry)
 	rawContent, fileTypeFromContentType, fileNameFromContentType := FetchRawContent(
 		bflUser,
@@ -188,12 +195,6 @@ func handleDefault(url string, bflUser string, feedID string) *model.Entry {
 		fileTypeFromContentType,
 		fileNameFromContentType,
 	)
-
-	if feedID != "" {
-		entry.FileType = common.ArticleFileType
-	} else {
-		handleYtdlp(bflUser, entry)
-	}
 
 	entry.ImageUrl = common.FirstNonEmptyStr(
 		entry.ImageUrl,

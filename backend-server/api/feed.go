@@ -28,11 +28,3 @@ func (h *handler) knowledgeRefreshFeed(w http.ResponseWriter, r *http.Request) {
 	common.Logger.Info("knowledge refresh feed", zap.String("feedID", feedID))
 	json.NoContent(w, r)
 }
-
-func (h *handler) rssparse(w http.ResponseWriter, r *http.Request) {
-
-}
-
-func (h *handler) asyncRssParse(w http.ResponseWriter, r *http.Request) {
-
-}

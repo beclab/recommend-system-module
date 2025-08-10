@@ -46,11 +46,3 @@ func (h *handler) knowledgeFetchContent(w http.ResponseWriter, r *http.Request) 
 	json.NoContent(w, r)
 
 }
-
-func (h *handler) parse(w http.ResponseWriter, r *http.Request) {
-
-}
-
-func (h *handler) asyncParse(w http.ResponseWriter, r *http.Request) {
-
-}
