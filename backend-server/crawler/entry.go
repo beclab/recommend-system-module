@@ -37,33 +37,41 @@ func handleX(url string, bflUser string) *model.Entry {
 	}
 	fmt.Println("twitter ID:", twitterID)
 	twitterEntry := knowledge.FetchTwitterContent(bflUser, twitterID, url)
-	twitterEntry.ImageUrl = common.GetImageUrlFromContent(twitterEntry.FullContent)
-	twitterEntry.Language = "en"
+	if twitterEntry != nil {
+		twitterEntry.ImageUrl = common.GetImageUrlFromContent(twitterEntry.FullContent)
+		twitterEntry.Language = "en"
+	}
 	return twitterEntry
 }
 func handleXHS(url string, bflUser string) *model.Entry {
 	xshEntry := knowledge.FetchXHSContent(url, bflUser)
-	xshEntry.ImageUrl = common.GetImageUrlFromContent(xshEntry.FullContent)
-	xshEntry.Language = "zh-cn"
+	if xshEntry != nil {
+		xshEntry.ImageUrl = common.GetImageUrlFromContent(xshEntry.FullContent)
+		xshEntry.Language = "zh-cn"
+	}
 	return xshEntry
 }
 func handleBsky(url string, bflUser string) *model.Entry {
 	bskyEntry := bskyapi.Fetch(bflUser, url)
-	bskyEntry.ImageUrl = common.GetImageUrlFromContent(bskyEntry.FullContent)
-	bskyEntry.Language = "en"
+	if bskyEntry != nil {
+		bskyEntry.ImageUrl = common.GetImageUrlFromContent(bskyEntry.FullContent)
+		bskyEntry.Language = "en"
+	}
 	return bskyEntry
 }
 
 func handleThreads(url string) *model.Entry {
 	threadsEntry := threads.Fetch(url)
-	threadsEntry.ImageUrl = common.GetImageUrlFromContent(threadsEntry.FullContent)
-	threadsEntry.Language = "en"
+	if threadsEntry != nil {
+		threadsEntry.ImageUrl = common.GetImageUrlFromContent(threadsEntry.FullContent)
+		threadsEntry.Language = "en"
+	}
 	return threadsEntry
 }
 
 func handleQtfm(url string, bflUser string) *model.Entry {
 	entry := ytdlp.Fetch(bflUser, url)
-	if entry.Title != "" {
+	if entry != nil && entry.Title != "" {
 		entry.DownloadFileUrl = url
 		entry.FileType = common.AudioFileType
 	}
@@ -72,15 +80,19 @@ func handleQtfm(url string, bflUser string) *model.Entry {
 
 func handleTBilibili(url string, bflUser string) *model.Entry {
 	tbilibiliEntry := tbilibili.Fetch(bflUser, url)
-	tbilibiliEntry.ImageUrl = common.GetImageUrlFromContent(tbilibiliEntry.FullContent)
-	tbilibiliEntry.Language = "zh-cn"
+	if tbilibiliEntry != nil {
+		tbilibiliEntry.ImageUrl = common.GetImageUrlFromContent(tbilibiliEntry.FullContent)
+		tbilibiliEntry.Language = "zh-cn"
+	}
 	return tbilibiliEntry
 }
 
 func handleWeibo(url string, bflUser string) *model.Entry {
 	weiboEntry := weibo.Fetch(bflUser, url)
-	weiboEntry.ImageUrl = common.GetImageUrlFromContent(weiboEntry.FullContent)
-	weiboEntry.Language = "zh-cn"
+	if weiboEntry != nil {
+		weiboEntry.ImageUrl = common.GetImageUrlFromContent(weiboEntry.FullContent)
+		weiboEntry.Language = "zh-cn"
+	}
 	return weiboEntry
 }
 func EntryCrawler(url string, bflUser string, feedID string) *model.Entry {

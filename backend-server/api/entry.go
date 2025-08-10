@@ -17,8 +17,8 @@ func (h *handler) newFetchContent(entry *model.Entry) string {
 
 	updateEntry := crawler.EntryCrawler(entry.URL, entry.BflUser, entry.FeedID)
 	service.CopyEntry(entry, updateEntry)
-	if updateEntry.MediaContent != "" || updateEntry.DownloadFileUrl != "" {
-		updateEntry.Attachment = true
+	if entry.MediaContent != "" || entry.DownloadFileUrl != "" {
+		entry.Attachment = true
 	}
 	knowledge.UpdateLibraryEntryContent(entry.BflUser, entry)
 	if entry.DownloadFileUrl != "" {
