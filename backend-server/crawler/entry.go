@@ -142,7 +142,7 @@ func EntryCrawler(url string, bflUser string, feedID string) *model.Entry {
 }
 
 func handleYtdlp(bflUser string, url string, entry *model.Entry) {
-	if ytdlpEntry := ytdlp.Fetch(bflUser, url); ytdlpEntry != nil {
+	if ytdlpEntry := knowledge.LoadMetaFromYtdlp(bflUser, url); ytdlpEntry != nil {
 		updateIfNotEmpty := func(dst *string, src string) {
 			if src != "" {
 				*dst = src
