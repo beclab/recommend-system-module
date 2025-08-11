@@ -136,7 +136,10 @@ func EntryCrawler(url string, bflUser string, feedID string) *model.Entry {
 	if feedID != "" {
 		entry.FileType = common.ArticleFileType
 	} else {
-		handleYtdlp(bflUser, url, entry)
+		if entry.FileType == common.VideoFileType || entry.FileType == common.ArticleFileType || entry.FileType == "" {
+			handleYtdlp(bflUser, url, entry)
+		}
+
 	}
 	return entry
 }
@@ -285,7 +288,7 @@ func FetchRawContent(bflUser, websiteURL string) (string, string, string) {
 	case strings.Contains(urlDomain, "wsj.com"):
 		return wsj.WsjByheadless(url), "", ""
 	case strings.Contains(urlDomain, "youtube.com"):
-		return "", "", ""
+		return "", common.VideoFileType, ""
 	default:
 		return defaultFetchRawContent(url, bflUser)
 	}
