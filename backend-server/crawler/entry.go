@@ -153,13 +153,14 @@ func handleYtdlp(bflUser string, url string, entry *model.Entry) {
 		updateIfNotEmpty(&entry.Title, ytdlpEntry.Title)
 		updateIfNotEmpty(&entry.FullContent, ytdlpEntry.FullContent)
 		updateIfNotEmpty(&entry.DownloadFileType, ytdlpEntry.DownloadFileType)
-		updateIfNotEmpty(&entry.DownloadFileUrl, ytdlpEntry.DownloadFileUrl)
 		updateIfNotEmpty(&entry.DownloadFileName, ytdlpEntry.DownloadFileName)
+		if ytdlpEntry.DownloadFileType != "" {
+			entry.DownloadFileUrl = url
+		}
 		if ytdlpEntry.PublishedAt != 0 {
 			entry.PublishedAt = ytdlpEntry.PublishedAt
 		}
-		common.Logger.Info("yt-dlp fetch", zap.String("download url ytdlpentry", ytdlpEntry.DownloadFileUrl), zap.String("download url:", entry.DownloadFileUrl))
-		common.Logger.Info("yt-dlp fetch", zap.Int64("publishedAt", entry.PublishedAt))
+		common.Logger.Info("yt-dlp fetch", zap.String("download url:", entry.DownloadFileUrl), zap.String("download filetype:", ytdlpEntry.DownloadFileType))
 	}
 }
 
