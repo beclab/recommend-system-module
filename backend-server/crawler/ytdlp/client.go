@@ -45,7 +45,7 @@ func Fetch(bflUser, url string) *model.Entry {
 		defer res.Body.Close()
 	}
 	body, _ := io.ReadAll(res.Body)
-
+	common.Logger.Info("ytdlp fetch :", zap.String("result:", string(body)))
 	var resObj model.EntryFetchResponseModel
 	if err := json.Unmarshal(body, &resObj); err != nil {
 		common.Logger.Error("load ytdlp meta ,json decode failed, err", zap.Error(err))
