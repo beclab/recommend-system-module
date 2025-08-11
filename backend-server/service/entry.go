@@ -9,6 +9,47 @@ import (
 	"go.uber.org/zap"
 )
 
+func CopyEntry(entry *model.Entry, newEntry *model.Entry) {
+	if newEntry == nil {
+		return
+	}
+	if newEntry.RawContent != "" {
+		entry.RawContent = newEntry.FullContent
+	}
+	if newEntry.FullContent != "" {
+		entry.FullContent = newEntry.FullContent
+	}
+	if newEntry.MediaContent != "" {
+		entry.MediaContent = newEntry.MediaContent
+	}
+	if newEntry.FileType != "" {
+		entry.FileType = newEntry.FileType
+	}
+	if newEntry.DownloadFileName != "" {
+		entry.DownloadFileName = newEntry.DownloadFileName
+	}
+	if newEntry.DownloadFileType != "" {
+		entry.DownloadFileType = newEntry.DownloadFileType
+	}
+	if newEntry.DownloadFileUrl != "" {
+		entry.DownloadFileUrl = newEntry.DownloadFileUrl
+	}
+	if newEntry.Author != "" {
+		entry.Author = newEntry.Author
+	}
+	if newEntry.Title != "" {
+		entry.Title = newEntry.Title
+	}
+	if newEntry.PublishedAt != 0 {
+		entry.PublishedAt = newEntry.PublishedAt
+	}
+	if newEntry.Language != "" {
+		entry.Language = newEntry.Language
+	}
+	entry.ImageUrl = common.GetImageUrlFromContent(entry.FullContent)
+
+}
+
 func ProcessFeedEntries(store *storage.Storage, feed *model.Feed, entries model.Entries) {
 	newEntries := make([]*model.Entry, 0)
 	updateEntries := make([]*model.Entry, 0)
@@ -17,16 +58,15 @@ func ProcessFeedEntries(store *storage.Storage, feed *model.Feed, entries model.
 		savedEntry := store.GetEntryByUrl(feed.ID, entry.URL)
 
 		if savedEntry == nil {
-			//crawler.EntryCrawler(entry, feed)
 			entry.BflUser = feed.BflUser
-			crawler.EntryCrawler(entry, feed.FeedURL, feed.UserAgent, feed.Cookie, feed.AllowSelfSignedCertificates, feed.FetchViaProxy)
-
+			newEntry := crawler.EntryCrawler(entry.URL, feed.BflUser, feed.ID)
+			CopyEntry(entry, newEntry)
 			if entry.PublishedAt == 0 {
 				entry.PublishedAt = entry.PublishedAtParsed.Unix()
 			}
 
-			if entry.FullContent != "" || entry.MediaUrl != "" {
-				if entry.MediaUrl != "" {
+			if entry.FullContent != "" || entry.DownloadFileType != "" {
+				if entry.DownloadFileType != "" {
 					entry.Attachment = true
 				}
 				newEntries = append(newEntries, entry)
@@ -39,7 +79,7 @@ func ProcessFeedEntries(store *storage.Storage, feed *model.Feed, entries model.
 			}
 			addEntryNum++
 		} else {
-			if !contains(savedEntry.Sources, "wise") {
+			if !common.Contains(savedEntry.Sources, common.FeedSource) {
 				entry.FullContent = savedEntry.FullContent
 				updateEntries = append(updateEntries, entry)
 			}
@@ -50,13 +90,4 @@ func ProcessFeedEntries(store *storage.Storage, feed *model.Feed, entries model.
 	}
 	knowledge.SaveFeedEntries(feed.BflUser, store, newEntries, feed)
 	knowledge.UpdateFeedEntries(feed.BflUser, store, updateEntries, feed)
-}
-
-func contains(s []string, e string) bool {
-	for _, a := range s {
-		if a == e {
-			return true
-		}
-	}
-	return false
 }

@@ -22,15 +22,10 @@ func Serve(router *mux.Router, store *storage.Storage, pool *worker.Pool) {
 	sr.Use(middleware.handleCORS)
 	sr.Methods(http.MethodOptions)
 
-	sr.HandleFunc("/entries/{entryID}/fetch-content", handler.fetchContent).Methods(http.MethodGet)
-	sr.HandleFunc("/feeds/{feedID}/refresh", handler.refreshFeed).Methods(http.MethodPut)
-
 	sr.HandleFunc("/knowledge/feeds/{feedID}/refresh", handler.knowledgeRefreshFeed).Methods(http.MethodPut)
-	sr.HandleFunc("/knowledge/entries/{entryID}/fetch-content", handler.knowledgeFetchContent).Methods(http.MethodGet)
-	sr.HandleFunc("/knowledge/entries/{entryID}/video-fetch-content", handler.knowledgeVideoFetchContent).Methods(http.MethodPut)
 
-	sr.HandleFunc("/knowledge/rssParse", handler.rssParse).Methods(http.MethodGet)
-	sr.HandleFunc("/knowledge/noMediaDownloadQuery", handler.noMediaDownloadQuery).Methods(http.MethodGet)
+	sr.HandleFunc("/entries/{entryID}/fetch-content", handler.fetchContent).Methods(http.MethodGet)
+	sr.HandleFunc("/knowledge/entries/{entryID}/fetch-content", handler.knowledgeFetchContent).Methods(http.MethodGet)
 
 	sr.HandleFunc("/knowledge/getPvcAnnotation", handler.getPvcAnnotation).Methods(http.MethodGet)
 

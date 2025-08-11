@@ -3,16 +3,17 @@ package model
 import (
 	"time"
 
+	"bytetrade.io/web3os/backend-server/common"
 	"bytetrade.io/web3os/backend-server/reader/date"
 )
 
 type Entry struct {
-	ID                string  `json:"id"`
-	FeedID            *string `json:"feed"`
-	Status            string  `json:"status"`
-	Title             string  `json:"title"`
-	URL               string  `json:"url"`
-	CommentsURL       string  `json:"comments_url"`
+	ID                string `json:"id"`
+	FeedID            string `json:"feed"`
+	Status            string `json:"status"`
+	Title             string `json:"title"`
+	URL               string `json:"url"`
+	CommentsURL       string `json:"comments_url"`
 	PublishedAtParsed time.Time
 	PublishedAt       int64     `json:"published_at"`
 	CreatedAt         time.Time `json:"createdAt"`
@@ -22,22 +23,24 @@ type Entry struct {
 	//PureContent string             `bson:"pure_content"`
 	FullContent string `json:"full_content"`
 	//DocId       string   `json:"doc_id"`
-	Author       string   `json:"author"`
-	ImageUrl     string   `json:"image_url"`
-	Readlater    bool     `json:"readlater"`
-	Crawler      bool     `json:"crawler"`
-	Starred      bool     `json:"starred"`
-	Disabled     bool     `json:"disabled"`
-	Saved        bool     `json:"saved"`
-	Unread       bool     `json:"unread"`
-	Language     string   `json:"language"`
-	MediaContent string   `json:"media_content"`
-	MediaUrl     string   `json:"media_url"`
-	MediaType    string   `json:"media_type"`
-	BflUser      string   `json:"bfl_user"`
-	FileType     string   `json:"file_type"`
-	Attachment   bool     `json:"attachment"`
-	Sources      []string `json:"sources"`
+	Author           string   `json:"author"`
+	ImageUrl         string   `json:"image_url"`
+	Readlater        bool     `json:"readlater"`
+	Crawler          bool     `json:"crawler"`
+	Starred          bool     `json:"starred"`
+	Disabled         bool     `json:"disabled"`
+	Saved            bool     `json:"saved"`
+	Unread           bool     `json:"unread"`
+	Language         string   `json:"language"`
+	MediaContent     string   `json:"media_content"`
+	FileType         string   `json:"file_type"`
+	BflUser          string   `json:"bfl_user"`
+	DownloadFileType string   `json:"download_file_type"`
+	DownloadFileUrl  string   `json:"download_file_url"`
+	DownloadFileName string   `json:"download_file_name"`
+	FileName         string   `json:"file_name"`
+	Attachment       bool     `json:"attachment"`
+	Sources          []string `json:"sources"`
 }
 
 type EntryAddModel struct {
@@ -58,6 +61,7 @@ type EntryAddModel struct {
 	Readlater   bool   `json:"readlater,omitempty"`
 	Language    string `json:"language,omitempty"`
 	Attachment  bool   `json:"attachment,omitempty"`
+	FileType    string `json:"file_type"`
 	Source      string `json:"source"`
 }
 
@@ -67,7 +71,7 @@ type EntryAddResponseModel struct {
 	Url    string `json:"url"`
 }
 
-type MongoEntryApiResponseModel struct {
+type EntryApiResponseModel struct {
 	Code    int                     `json:"code"`
 	Message string                  `json:"message"`
 	Data    []EntryAddResponseModel `json:"data"`
@@ -91,6 +95,7 @@ func GetEntryAddModel(entryModel *Entry, feedUrl string) *EntryAddModel {
 	result.Crawler = true
 	result.Extract = true
 	result.Language = entryModel.Language
+	result.FileType = entryModel.FileType
 
 	result.Readlater = false
 	result.Starred = false
@@ -98,7 +103,7 @@ func GetEntryAddModel(entryModel *Entry, feedUrl string) *EntryAddModel {
 	result.Saved = false
 	result.Unread = true
 
-	result.Source = "wise"
+	result.Source = common.FeedSource
 	return &result
 }
 
@@ -106,7 +111,8 @@ func GetEntryUpdateSourceModel(entryModel *Entry, feedUrl string) *EntryAddModel
 	var result EntryAddModel
 	result.Url = entryModel.URL
 	result.FeedUrl = feedUrl
-	result.Source = "wise"
+	result.Source = common.FeedSource
+	result.FileType = common.ArticleFileType
 	return &result
 }
 
@@ -179,4 +185,15 @@ type DownloadFetchReqModel struct {
 type DownloadFetchResponseModel struct {
 	Code int                   `json:"code"`
 	Data DownloadFetchReqModel `json:"data"`
+}
+
+type FileParseReqDataModel struct {
+	DownloadUrl string `json:"download_url"`
+	FileName    string `json:"file_name"`
+	FileType    string `json:"file_type"`
+}
+
+type FileParseResponseModel struct {
+	Code int                   `json:"code"`
+	Data FileParseReqDataModel `json:"data"`
 }

@@ -17,6 +17,38 @@ import (
 	"bytetrade.io/web3os/backend-server/storage"
 )
 
+const (
+	bilibiliDomain = "bilibili.com"
+	twitterDomain  = ".x.com"
+)
+
+func getRssHubCookieDomain(domain string) string {
+	switch {
+	case strings.HasPrefix(domain, "bilibili"):
+		return bilibiliDomain
+	case strings.HasPrefix(domain, "twitter"):
+		return twitterDomain
+	default:
+		return ""
+	}
+}
+func generateRssHubCookie(bflUser, domain string) string {
+	domainList := client.LoadCookieInfoManager(bflUser, domain, domain)
+	cookies := ""
+	for _, domainItem := range domainList {
+		for _, record := range domainItem.Records {
+			if domain == ".x.com" {
+				if record.Name == "auth_token" {
+					return record.Value
+				}
+			} else {
+				cookies = cookies + record.Name + "=" + record.Value + ";"
+			}
+		}
+	}
+	return cookies
+}
+
 func RssParseFromURL(feedURL string) *model.Feed {
 	request := client.NewClientWithConfig(feedURL)
 	response, requestErr := browser.Exec(request)
@@ -85,96 +117,30 @@ func rssRrefresh(store *storage.Storage, feed *model.Feed, feedURL string, rsshu
 	return nil
 }
 
-func getRssHubCookieDomain(domain string) string {
-	if strings.HasPrefix(domain, "bilibili") {
-		return "bilibili.com"
-	}
-	if strings.HasPrefix(domain, "twitter") {
-		return ".x.com"
-	}
-	return ""
-}
-func generateRssHubCookie(bflUser, domain string) string {
-	domainList := client.LoadCookieInfoManager(bflUser, domain, domain)
-	cookies := ""
-	for _, domainItem := range domainList {
-		for _, record := range domainItem.Records {
-			if domain == ".x.com" {
-				if record.Name == "auth_token" {
-					return record.Value
-				}
-
-			} else {
-				cookies = cookies + record.Name + "=" + record.Value + ";"
-			}
-		}
-	}
-	return cookies
-}
-
-// RefreshFeed refreshes a feed.
-// func RefreshFeed(store *storage.Storage, contentPool *contentworker.ContentPool, feedID string) {
 func RefreshFeed(store *storage.Storage, feedID string) {
 	originalFeed, storeErr := store.GetFeedById(feedID)
-	if storeErr != nil {
+	if storeErr != nil || originalFeed == nil {
 		common.Logger.Error("refresh feed load from db error id", zap.String("feedId", feedID), zap.Error(storeErr))
-	}
-
-	if originalFeed == nil {
-		common.Logger.Error("Feed  not found", zap.String("feedId", feedID))
 		return
 	}
 	common.Logger.Info("refresh feed", zap.String("feedurl", originalFeed.FeedURL), zap.String("etag header", originalFeed.EtagHeader), zap.String("last modified header", originalFeed.LastModifiedHeader))
 	feedUrl := originalFeed.FeedURL
+	feedDomain := common.Domain(feedUrl)
+	var avatar string
 	var updatedFeed *model.Feed
-	if strings.HasPrefix(feedUrl, "wechat://") {
-		wechatAcc := feedUrl[9:]
-		var avatar string
-		updatedFeed, avatar = RefreshWeChatFeed(wechatAcc)
-		if avatar != "" {
-			icon, _ := icon.DownloadIcon(avatar, originalFeed.UserAgent, originalFeed.FetchViaProxy, originalFeed.AllowSelfSignedCertificates)
-			if icon != nil && icon.MimeType != "" {
-				originalFeed.IconMimeType = icon.MimeType
-				originalFeed.IconContent = fmt.Sprintf("%s;base64,%s", icon.MimeType, base64.StdEncoding.EncodeToString(icon.Content))
-			}
-		}
-
-	} else if strings.HasPrefix(feedUrl, "youtube://") { //feedDomain == "www.youtube.com" {
-		var avatar string
+	switch {
+	case strings.HasPrefix(feedUrl, "wechat://"):
+		updatedFeed, avatar = RefreshWeChatFeed(feedUrl[9:])
+		updateFeedIconByIconUrl(originalFeed, avatar)
+	case feedDomain == "www.youtube.com":
 		feedUrl = strings.Replace(feedUrl, "youtube://", "https://www.youtube.com/", 1)
 		updatedFeed, avatar = RefreshYoutubeFeed(store, feedUrl, originalFeed.ID)
-		if avatar != "" {
-			icon, _ := icon.DownloadIcon(avatar, originalFeed.UserAgent, originalFeed.FetchViaProxy, originalFeed.AllowSelfSignedCertificates)
-			if icon != nil && icon.MimeType != "" {
-				originalFeed.IconMimeType = icon.MimeType
-				originalFeed.IconContent = fmt.Sprintf("%s;base64,%s", icon.MimeType, base64.StdEncoding.EncodeToString(icon.Content))
-			}
-		}
-	} else {
-		rsshubCookie := ""
-		feedURL := originalFeed.FeedURL
-		if strings.HasPrefix(feedUrl, "rsshub://") {
-			//rsshub sdk:
-			//feedURL = common.GetRSSHubUrl() + "?path=/" + feedUrl[9:]
-			//deploy rsshub
-			common.Logger.Info(" rsshub feed refresh ", zap.String("feedpath", feedUrl[9:]))
-			cookieDomain := getRssHubCookieDomain(feedUrl[9:])
-			if cookieDomain != "" {
-				cookie := generateRssHubCookie(originalFeed.BflUser, cookieDomain)
-				common.Logger.Info(" rsshub feed cookie ", zap.String("domain", cookieDomain), zap.String("cookie", cookie))
-				if len(cookie) > 0 {
-					rsshubCookie = cookie
-				}
-			}
-			feedURL = common.GetRSSHubUrl() + feedUrl[9:]
-
-		}
-		updatedFeed = rssRrefresh(store, originalFeed, feedURL, rsshubCookie)
-		//updatedFeed = rssRrefresh(store, originalFeed)
+		updateFeedIconByIconUrl(originalFeed, avatar)
+	default:
+		updatedFeed = handleDefaultFeed(store, originalFeed, feedUrl)
 		if updatedFeed != nil {
 			originalFeed.EtagHeader = updatedFeed.EtagHeader
 			originalFeed.LastModifiedHeader = updatedFeed.LastModifiedHeader
-			//originalFeed.FeedURL = updatedFeed.FeedURL
 			originalFeed.SiteURL = updatedFeed.SiteURL
 			if originalFeed.SiteURL == "" {
 				originalFeed.SiteURL = originalFeed.FeedURL
@@ -183,11 +149,10 @@ func RefreshFeed(store *storage.Storage, feedID string) {
 			if icon != nil && icon.MimeType != "" {
 				originalFeed.IconMimeType = icon.MimeType
 				originalFeed.IconContent = fmt.Sprintf("%s;base64,%s", icon.MimeType, base64.StdEncoding.EncodeToString(icon.Content))
-			} else {
-				common.Logger.Error("feed icon get null!!!", zap.String("siteurl", originalFeed.SiteURL))
 			}
 		}
 	}
+
 	if updatedFeed != nil {
 		if originalFeed.Title == "" {
 			originalFeed.Title = updatedFeed.Title
@@ -205,9 +170,27 @@ func RefreshFeed(store *storage.Storage, feedID string) {
 
 }
 
+func handleDefaultFeed(store *storage.Storage, originalFeed *model.Feed, feedUrl string) *model.Feed {
+	rsshubCookie := ""
+	if strings.HasPrefix(feedUrl, "rsshub://") {
+		rsshubCookie = generateRssHubCookie(originalFeed.BflUser, getRssHubCookieDomain(feedUrl[9:]))
+		feedUrl = common.GetRSSHubUrl() + feedUrl[9:]
+	}
+	return rssRrefresh(store, originalFeed, feedUrl, rsshubCookie)
+}
+
+func updateFeedIconByIconUrl(originalFeed *model.Feed, avatar string) {
+	if avatar != "" {
+		icon, _ := icon.DownloadIcon(avatar, originalFeed.UserAgent, originalFeed.FetchViaProxy, originalFeed.AllowSelfSignedCertificates)
+		if icon != nil && icon.MimeType != "" {
+			originalFeed.IconMimeType = icon.MimeType
+			originalFeed.IconContent = fmt.Sprintf("%s;base64,%s", icon.MimeType, base64.StdEncoding.EncodeToString(icon.Content))
+		}
+	}
+}
+
 func CheckFeedIcon(websiteURL, userAgent string, fetchViaProxy, allowSelfSignedCertificates bool) *model.Icon {
 	iconO, _ := icon.FindIcon(websiteURL, userAgent, fetchViaProxy, allowSelfSignedCertificates)
 
 	return iconO
-
 }

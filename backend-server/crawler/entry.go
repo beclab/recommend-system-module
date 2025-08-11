@@ -3,6 +3,7 @@ package crawler
 import (
 	"fmt"
 	"io"
+	"log"
 	"net/url"
 	"strings"
 
@@ -20,6 +21,7 @@ import (
 	wolaiapi "bytetrade.io/web3os/backend-server/crawler/wolaiapi"
 	"bytetrade.io/web3os/backend-server/crawler/wsj"
 	"bytetrade.io/web3os/backend-server/crawler/ximalaya"
+	"bytetrade.io/web3os/backend-server/crawler/ytdlp"
 	"bytetrade.io/web3os/backend-server/http/client"
 	"bytetrade.io/web3os/backend-server/knowledge"
 	"bytetrade.io/web3os/backend-server/model"
@@ -27,144 +29,209 @@ import (
 	"go.uber.org/zap"
 )
 
-func handlerGenerateEntry(entry *model.Entry, newEntry *model.Entry) {
-	if newEntry != nil {
-		entry.FullContent = newEntry.FullContent
-		entry.MediaContent = newEntry.MediaContent
-		entry.MediaUrl = newEntry.MediaUrl
-		entry.MediaType = newEntry.MediaType
-		entry.Author = newEntry.Author
-		entry.Title = newEntry.Title
-		entry.PublishedAt = newEntry.PublishedAt
-		entry.ImageUrl = common.GetImageUrlFromContent(entry.FullContent)
-	}
-}
-
-func handleX(entry *model.Entry) {
+func handleX(url string, bflUser string) *model.Entry {
 	twitterID := ""
-	parts := strings.Split(entry.URL, "status/")
+	parts := strings.Split(url, "status/")
 	if len(parts) > 1 {
 		twitterID = strings.TrimSpace(parts[1])
 	}
 	fmt.Println("twitter ID:", twitterID)
-	twitterEntry := knowledge.FetchTwitterContent(entry.BflUser, twitterID, entry.URL)
-	handlerGenerateEntry(entry, twitterEntry)
-	entry.Language = "en"
-}
-func handleXHS(entry *model.Entry) {
-	xshEntry := knowledge.FetchXHSContent(entry.URL, entry.BflUser)
-	handlerGenerateEntry(entry, xshEntry)
-	entry.Language = "zh-cn"
-}
-func handleBsky(entry *model.Entry) {
-	bskyEntry := bskyapi.Fetch(entry.BflUser, entry.URL)
-	handlerGenerateEntry(entry, bskyEntry)
-	entry.Language = "en"
-}
-
-func handleThreads(entry *model.Entry) {
-	threadsEntry := threads.Fetch(entry.URL)
-	handlerGenerateEntry(entry, threadsEntry)
-	entry.Language = "en"
-}
-
-func handleQtfm(entry *model.Entry) {
-	handleYtdlp(entry)
-	if entry.Title != "" {
-		entry.MediaUrl = entry.URL
-		entry.MediaType = "audio"
+	twitterEntry := knowledge.FetchTwitterContent(bflUser, twitterID, url)
+	if twitterEntry != nil {
+		twitterEntry.ImageUrl = common.GetImageUrlFromContent(twitterEntry.FullContent)
+		twitterEntry.Language = "en"
+		twitterEntry.FileType = common.ArticleFileType
 	}
+	return twitterEntry
+}
+func handleXHS(url string, bflUser string) *model.Entry {
+	xshEntry := knowledge.FetchXHSContent(url, bflUser)
+	if xshEntry != nil {
+		xshEntry.ImageUrl = common.GetImageUrlFromContent(xshEntry.FullContent)
+		xshEntry.Language = "zh-cn"
+		xshEntry.FileType = common.ArticleFileType
+	}
+	return xshEntry
+}
+func handleBsky(url string, bflUser string) *model.Entry {
+	bskyEntry := bskyapi.Fetch(bflUser, url)
+	if bskyEntry != nil {
+		bskyEntry.ImageUrl = common.GetImageUrlFromContent(bskyEntry.FullContent)
+		bskyEntry.Language = "en"
+		bskyEntry.FileType = common.ArticleFileType
+	}
+	return bskyEntry
 }
 
-func handleTBilibili(entry *model.Entry) {
-	xshEntry := tbilibili.Fetch(entry.BflUser, entry.URL)
-	handlerGenerateEntry(entry, xshEntry)
-	entry.Language = "zh-cn"
+func handleThreads(url string) *model.Entry {
+	threadsEntry := threads.Fetch(url)
+	if threadsEntry != nil {
+		threadsEntry.ImageUrl = common.GetImageUrlFromContent(threadsEntry.FullContent)
+		threadsEntry.Language = "en"
+		threadsEntry.FileType = common.ArticleFileType
+	}
+	return threadsEntry
 }
 
-func handleWeibo(entry *model.Entry) {
-	weiboEntry := weibo.Fetch(entry.BflUser, entry.URL)
-	handlerGenerateEntry(entry, weiboEntry)
-	entry.Language = "zh-cn"
+func handleQtfm(url string, bflUser string) *model.Entry {
+	entry := ytdlp.Fetch(bflUser, url)
+	if entry != nil && entry.Title != "" {
+		entry.DownloadFileUrl = url
+		entry.FileType = common.AudioFileType
+	}
+	return entry
 }
-func EntryCrawler(entry *model.Entry, feedUrl, userAgent, cookie string, certificates, fetchViaProxy bool) {
-	primaryDomain := common.GetPrimaryDomain(entry.URL)
-	urlDomain := domain(entry.URL)
-	common.Logger.Info("crawler entry start", zap.String("url", entry.URL), zap.String("primary domain:", primaryDomain))
 
+func handleTBilibili(url string, bflUser string) *model.Entry {
+	tbilibiliEntry := tbilibili.Fetch(bflUser, url)
+	if tbilibiliEntry != nil {
+		tbilibiliEntry.ImageUrl = common.GetImageUrlFromContent(tbilibiliEntry.FullContent)
+		tbilibiliEntry.Language = "zh-cn"
+		tbilibiliEntry.FileType = common.ArticleFileType
+	}
+	return tbilibiliEntry
+}
+
+func handleWeibo(url string, bflUser string) *model.Entry {
+	weiboEntry := weibo.Fetch(bflUser, url)
+	if weiboEntry != nil {
+		weiboEntry.ImageUrl = common.GetImageUrlFromContent(weiboEntry.FullContent)
+		weiboEntry.Language = "zh-cn"
+		weiboEntry.FileType = common.ArticleFileType
+	}
+	return weiboEntry
+}
+func EntryCrawler(url string, bflUser string, feedID string) *model.Entry {
+	primaryDomain := common.GetPrimaryDomain(url)
+	urlDomain := common.Domain(url)
+	common.Logger.Info("crawler entry start", zap.String("url", url), zap.String("primary domain:", primaryDomain))
+
+	var entry *model.Entry
 	switch primaryDomain {
 	case "bilibili.com":
-		entry.FullContent = entry.Content
-		entry.Language = "zh-cn"
 		if urlDomain == "t.bilibili.com" {
-			handleTBilibili(entry)
+			entry = handleTBilibili(url, bflUser)
 		} else {
-			handleDefault(entry, feedUrl, userAgent, cookie, certificates, fetchViaProxy)
+			entry = handleDefault(url, bflUser)
 		}
 	case "x.com":
-		handleX(entry)
+		entry = handleX(url, bflUser)
 	case "weibo.com":
-		handleWeibo(entry)
+		entry = handleWeibo(url, bflUser)
 	case "xiaohongshu.com":
-		handleXHS(entry)
+		entry = handleXHS(url, bflUser)
 	case "bsky.app":
-		handleBsky(entry)
+		entry = handleBsky(url, bflUser)
 	case "threads.net":
-		handleThreads(entry)
+		entry = handleThreads(url)
 	case "qtfm.cn":
-		handleQtfm(entry)
+		entry = handleQtfm(url, bflUser)
 	default:
-		handleDefault(entry, feedUrl, userAgent, cookie, certificates, fetchViaProxy)
+		entry = handleDefault(url, bflUser)
 	}
-	common.Logger.Info("crawler entry finished", zap.String("url", entry.URL))
+	if entry == nil {
+		entry = &model.Entry{}
+		entry.FileType = common.ArticleFileType
+	}
+	if feedID != "" {
+		entry.FileType = common.ArticleFileType
+	} else {
+		if entry.FileType == common.VideoFileType || entry.FileType == common.ArticleFileType || entry.FileType == "" {
+			handleYtdlp(bflUser, url, entry)
+		}
+
+	}
+	return entry
 }
 
-func handleYtdlp(entry *model.Entry) {
-	ytdlpEntry := knowledge.LoadMetaFromYtdlp(entry.BflUser, entry.URL)
-	if ytdlpEntry != nil {
-		if ytdlpEntry.Author != "" {
-			entry.Author = ytdlpEntry.Author
+func handleYtdlp(bflUser string, url string, entry *model.Entry) {
+	if ytdlpEntry := ytdlp.Fetch(bflUser, url); ytdlpEntry != nil {
+		updateIfNotEmpty := func(dst *string, src string) {
+			if src != "" {
+				*dst = src
+			}
 		}
-		if ytdlpEntry.Title != "" {
-			entry.Title = ytdlpEntry.Title
+
+		updateIfNotEmpty(&entry.Author, ytdlpEntry.Author)
+		updateIfNotEmpty(&entry.Title, ytdlpEntry.Title)
+		updateIfNotEmpty(&entry.FullContent, ytdlpEntry.FullContent)
+		updateIfNotEmpty(&entry.DownloadFileType, ytdlpEntry.DownloadFileType)
+		updateIfNotEmpty(&entry.DownloadFileName, ytdlpEntry.DownloadFileName)
+		if ytdlpEntry.DownloadFileType != "" {
+			entry.DownloadFileUrl = url
 		}
 		if ytdlpEntry.PublishedAt != 0 {
 			entry.PublishedAt = ytdlpEntry.PublishedAt
 		}
-		if ytdlpEntry.FullContent != "" {
-			entry.FullContent = ytdlpEntry.FullContent
-		}
-
+		common.Logger.Info("yt-dlp fetch", zap.String("download url:", entry.DownloadFileUrl), zap.String("download filetype:", ytdlpEntry.DownloadFileType))
 	}
 }
 
-func handleDefault(entry *model.Entry, feedUrl, userAgent, cookie string, certificates, fetchViaProxy bool) {
-	entry.RawContent = FetchRawContnt(
-		entry.BflUser,
-		entry.URL,
-		entry.Title,
-		userAgent,
-		cookie,
-		certificates,
-		fetchViaProxy,
-	)
-
-	//if entry.RawContent != "" {
-	common.Logger.Info("crawler entry start to extract", zap.String("url", entry.URL))
-	fullContent, pureContent, dateInArticle, imageUrlFromContent, title, templateAuthor, publishedAtTimestamp, mediaContent, mediaUrl, mediaType := processor.ArticleReadabilityExtractor(entry.RawContent, entry.URL, feedUrl, "", true)
-	if strings.TrimSpace(entry.Title) == "" {
-		entry.Title = title
+func setFileInfo(
+	entry *model.Entry,
+	url,
+	extractFileType,
+	extractFileUrl,
+	extractFileName,
+	contentTypeFileType,
+	contentTypeFileName string,
+) {
+	if extractFileType == "" {
+		extractFileUrl, extractFileName, extractFileType = processor.DownloadTypeQueryByUrl(url)
 	}
+
+	switch {
+	case extractFileType != "":
+		entry.FileType = extractFileType
+		entry.DownloadFileUrl = extractFileUrl
+		entry.DownloadFileType = extractFileType
+		if extractFileName == "" {
+			extractFileName = entry.Title
+		}
+		entry.DownloadFileName = extractFileName
+	case contentTypeFileType != "":
+		entry.FileType = contentTypeFileType
+		entry.DownloadFileUrl = url
+		entry.DownloadFileType = contentTypeFileType
+		entry.DownloadFileName = contentTypeFileName
+	default:
+		entry.FileType = common.ArticleFileType
+	}
+	common.Logger.Info("set file type", zap.String("extractFileType", extractFileType), zap.String("contentTypeFileType:", contentTypeFileType), zap.String("final file type", entry.FileType))
+}
+
+func handleDefault(url string, bflUser string) *model.Entry {
+	entry := new(model.Entry)
+	rawContent, fileTypeFromContentType, fileNameFromContentType := FetchRawContent(
+		bflUser,
+		url,
+	)
+	entry.URL = url
+	entry.RawContent = rawContent
+
+	common.Logger.Info("crawler entry start to extract", zap.String("url", entry.URL))
+	fullContent, pureContent, dateInArticle, imageUrlFromContent, title, templateAuthor, publishedAtTimestamp, mediaContent, downloadFileUrl, downloadFileType := processor.ArticleExtractor(entry.RawContent, url)
+	entry.Title = common.FirstNonEmptyStr(entry.Title, title)
 	entry.FullContent = fullContent
 	entry.MediaContent = mediaContent
-	entry.MediaUrl = mediaUrl
-	entry.MediaType = mediaType
-	if entry.ImageUrl == "" {
-		entry.ImageUrl = imageUrlFromContent
-	}
-	if templateAuthor != "" {
-		entry.Author = templateAuthor
-	}
+	entry.Author = common.FirstNonEmptyStr(entry.Author, templateAuthor)
+
+	setFileInfo(
+		entry,
+		url,
+		downloadFileType,
+		downloadFileUrl,
+		"",
+		fileTypeFromContentType,
+		fileNameFromContentType,
+	)
+
+	entry.ImageUrl = common.FirstNonEmptyStr(
+		entry.ImageUrl,
+		imageUrlFromContent,
+		common.GetImageUrlFromContent(fullContent),
+	)
+
 	if publishedAtTimestamp != 0 {
 		entry.PublishedAt = publishedAtTimestamp
 	} else {
@@ -172,24 +239,9 @@ func handleDefault(entry *model.Entry, feedUrl, userAgent, cookie string, certif
 			entry.PublishedAt = (*dateInArticle).Unix()
 		}
 	}
-	//if youtube feed don't fetch metadata
-	if isMetaFromYtdlp(entry.URL) && (feedUrl == "" || !strings.Contains(entry.URL, "youtube.com")) {
-		handleYtdlp(entry)
-	}
 
-	languageLen := len(pureContent)
-	if languageLen > 100 {
-		languageLen = 100
-	}
-	entry.Language = common.GetLanguage(pureContent[:languageLen])
-
-	if entry.ImageUrl == "" && fullContent != "" {
-		entry.ImageUrl = common.GetImageUrlFromContent(fullContent)
-	}
-
-	/*} else {
-		common.Logger.Error("crawler raw content is null", zap.String("url", entry.URL))
-	}*/
+	entry.Language = common.DetectLanguage(pureContent)
+	return entry
 }
 
 func notionFetchByApi(websiteURL string) string {
@@ -214,89 +266,117 @@ func wolaiFetchByApi(websiteURL string) string {
 	return ""
 }
 
-func FetchRawContnt(bflUser, websiteURL, title, userAgent string, cookie string, allowSelfSignedCertificates, useProxy bool) string {
-	websiteURL = fetchUrlToChange(websiteURL)
-	urlDomain := domain(websiteURL)
+func FetchRawContent(bflUser, websiteURL string) (string, string, string) {
+	url := fetchUrlToChange(websiteURL)
+	urlDomain := common.Domain(url)
 	common.Logger.Info("fatch raw contnet", zap.String("domain", websiteURL))
-	if strings.Contains(urlDomain, "notion.site") {
-		return notionFetchByApi(websiteURL)
+	switch {
+	case strings.Contains(urlDomain, "notion.site"):
+		return notionFetchByApi(url), "", ""
+	case strings.Contains(urlDomain, "wolai.com"):
+		return wolaiFetchByApi(url), "", ""
+	case strings.Contains(urlDomain, "quora.com"):
+		return quora.QuoraByheadless(url), "", ""
+	case strings.Contains(urlDomain, "feishu.cn"):
+		return feishu.FeishuByheadless(url), "", ""
+	case strings.Contains(urlDomain, "ximalaya.com"):
+		return ximalaya.XimalayaByheadless(url), "", ""
+	case strings.Contains(urlDomain, "washingtonpost.com"):
+		return washingtonpost.WashingtonpostByheadless(url), "", ""
+	case strings.Contains(urlDomain, "nytimes.com"):
+		return nytimes.NytimesByheadless(bflUser, url), "", ""
+	case strings.Contains(urlDomain, "wsj.com"):
+		return wsj.WsjByheadless(url), "", ""
+	case strings.Contains(urlDomain, "youtube.com"):
+		return "", common.VideoFileType, ""
+	default:
+		return defaultFetchRawContent(url, bflUser)
 	}
-	if strings.Contains(urlDomain, "wolai.com") {
-		return wolaiFetchByApi(websiteURL)
-	}
-
-	if strings.Contains(urlDomain, "quora.com") {
-		return quora.QuoraByheadless(websiteURL)
-	}
-	if strings.Contains(urlDomain, "feishu.cn") {
-		return feishu.FeishuByheadless(websiteURL)
-	}
-	if strings.Contains(urlDomain, "ximalaya.com") {
-		return ximalaya.XimalayaByheadless(websiteURL)
-	}
-	if strings.Contains(urlDomain, "washingtonpost.com") {
-		return washingtonpost.WashingtonpostByheadless(websiteURL)
-	}
-	//nytimes no success
-	if strings.Contains(urlDomain, "nytimes.com") {
-		return nytimes.NytimesByheadless(bflUser, websiteURL)
-	}
-
-	if strings.Contains(urlDomain, "wsj.com") {
-		return wsj.WsjByheadless(websiteURL)
-	}
-	if strings.Contains(urlDomain, "youtube.com") {
-		return ""
-	}
-
-	clt := client.NewClientWithConfig(websiteURL)
-	clt.WithBflUser(bflUser)
-	clt.WithUserAgent(userAgent)
-	clt.WithCookie(cookie)
-	if useProxy {
-		clt.WithProxy()
-	}
-	clt.AllowSelfSignedCertificates = allowSelfSignedCertificates
-
-	response, err := clt.Get()
-	if err != nil {
-		common.Logger.Error("crawling entry rawContent error ", zap.String("url", websiteURL), zap.Error(err))
-		return ""
-	}
-
-	if response.HasServerFailure() {
-		common.Logger.Error("crawling entry rawContent error ", zap.String("url", websiteURL))
-		return ""
-	}
-
-	if !isAllowedContentType(response.ContentType) {
-		common.Logger.Error("scraper: this resource is not a HTML document ", zap.String("url", websiteURL))
-		return ""
-	}
-
-	if err = response.EnsureUnicodeBody(); err != nil {
-		common.Logger.Error("scraper: this response check unicodeBody error ")
-		return ""
-	}
-
-	body, err := io.ReadAll(response.Body)
-	if err != nil {
-		common.Logger.Error("crawling entry rawContent error ", zap.String("url", websiteURL), zap.Error(err))
-		return ""
-	}
-	common.Logger.Info("crawle raw content", zap.Int("length:", len(body)))
-	return string(body)
 }
 
-func isMetaFromYtdlp(url string) bool {
-	mediaList := []string{"bilibili.com", "youtube.com", "vimeo.com", "rumble.com"}
-	for _, urlDomain := range mediaList {
-		if strings.Contains(url, urlDomain) {
-			return true
-		}
+func defaultFetchRawContent(url string, bflUser string) (string, string, string) {
+	clt := client.NewClientWithConfig(url)
+	clt.WithBflUser(bflUser)
+	response, err := clt.Get()
+	if err != nil {
+		common.Logger.Error("crawling entry rawContent error ", zap.String("url", url), zap.Error(err))
+		return "", "", ""
+	}
+	if response.HasServerFailure() {
+		common.Logger.Error("crawling entry rawContent error ", zap.String("url", url))
+		return "", "", ""
 	}
 
-	return false
+	fileType := determineFileType(response.ContentType)
+	fileName := extractFileName(response.ContentDisposition)
+	if fileType != "" && fileName == "" {
+		fileName = getFileNameFromUrl(url, fileType)
+	}
+	if !isAllowedContentType(response.ContentType) {
+		common.Logger.Error("scraper: this resource is not a HTML document ", zap.String("url", url))
+		return "", fileType, fileName
+	}
+	if err = response.EnsureUnicodeBody(); err != nil {
+		common.Logger.Error("scraper: this response check unicodeBody error ")
+		return "", fileType, fileName
+	}
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		common.Logger.Error("crawling entry rawContent error ", zap.String("url", url), zap.Error(err))
+		return "", fileType, fileName
+	}
+	common.Logger.Info("crawle raw content", zap.Int("length:", len(body)))
+	return string(body), fileType, fileName
+}
+
+func determineFileType(reqContentType string) string {
+	switch {
+	case strings.HasPrefix(reqContentType, "text/html"):
+		return ""
+	case reqContentType == "application/pdf":
+		return common.PdfFileType
+	case reqContentType == "application/epub+zip":
+		return common.EbookFileType
+	case strings.HasPrefix(reqContentType, "audio/"):
+		return common.AudioFileType
+	case strings.HasPrefix(reqContentType, "video/"):
+		return common.VideoFileType
+	}
+	return ""
+}
+
+func extractFileName(contentDisposition string) string {
+	if contentDisposition != "" {
+		log.Print("Content-Disposition:", contentDisposition)
+		parts := strings.Split(contentDisposition, ";")
+		for _, part := range parts {
+			part = strings.TrimSpace(part)
+			if strings.HasPrefix(part, "filename*=") {
+				encodedPart := part[len("filename*="):]
+				langAndEncoding := strings.SplitN(encodedPart, "'", 3)
+				if len(langAndEncoding) == 3 {
+					file, err := url.QueryUnescape(langAndEncoding[2])
+					if err == nil {
+						return file
+					}
+				}
+			} else if strings.HasPrefix(part, "filename=") {
+				return strings.Trim(part[len("filename="):], `"`)
+			}
+		}
+	}
+	return ""
+}
+func getFileNameFromUrl(url string, fileType string) string {
+	lastSlashIndex := strings.LastIndex(url, "/")
+	fileName := url[lastSlashIndex+1:]
+	if fileType == common.EbookFileType && !strings.HasSuffix(fileName, ".epub") {
+		fileName = fileName + ".epub"
+	}
+	if fileType == common.PdfFileType && !strings.HasSuffix(fileName, ".pdf") {
+		fileName = fileName + ".pdf"
+	}
+	return fileName
 }
 
 func isAllowedContentType(contentType string) bool {
@@ -305,17 +385,8 @@ func isAllowedContentType(contentType string) bool {
 		strings.HasPrefix(contentType, "application/xhtml+xml")
 }
 
-func domain(websiteURL string) string {
-	parsedURL, err := url.Parse(websiteURL)
-	if err != nil {
-		return websiteURL
-	}
-
-	return parsedURL.Host
-}
-
 func fetchUrlToChange(websiteURL string) string {
-	urlDomain := domain(websiteURL)
+	urlDomain := common.Domain(websiteURL)
 	switch urlDomain {
 	case "web.okjike.com":
 		parts := strings.Split(websiteURL, "/")
