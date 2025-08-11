@@ -23,6 +23,8 @@ func Serve(router *mux.Router, store *storage.Storage, pool *worker.Pool) {
 	sr.Methods(http.MethodOptions)
 
 	sr.HandleFunc("/knowledge/feeds/{feedID}/refresh", handler.knowledgeRefreshFeed).Methods(http.MethodPut)
+
+	sr.HandleFunc("/entries/{entryID}/fetch-content", handler.fetchContent).Methods(http.MethodGet)
 	sr.HandleFunc("/knowledge/entries/{entryID}/fetch-content", handler.knowledgeFetchContent).Methods(http.MethodGet)
 
 	sr.HandleFunc("/knowledge/getPvcAnnotation", handler.getPvcAnnotation).Methods(http.MethodGet)

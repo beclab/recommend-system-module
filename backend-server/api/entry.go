@@ -13,6 +13,22 @@ import (
 	"go.uber.org/zap"
 )
 
+func (h *handler) fetchContent(w http.ResponseWriter, r *http.Request) {
+	entryID := request.RouteStringParam(r, "entryID")
+
+	entry, err := h.store.GetEntryById(entryID)
+	if err != nil {
+		common.Logger.Error("load entry error", zap.String("entryID", entryID), zap.Error(err))
+	}
+	if entry == nil {
+		common.Logger.Error("load entry error entry is nil", zap.String("feedId", entryID))
+		json.OK(w, r, "")
+		return
+	}
+	content := h.newFetchContent(entry)
+	json.OK(w, r, content)
+}
+
 func (h *handler) newFetchContent(entry *model.Entry) string {
 
 	updateEntry := crawler.EntryCrawler(entry.URL, entry.BflUser, entry.FeedID)
