@@ -125,14 +125,13 @@ func RefreshFeed(store *storage.Storage, feedID string) {
 	}
 	common.Logger.Info("refresh feed", zap.String("feedurl", originalFeed.FeedURL), zap.String("etag header", originalFeed.EtagHeader), zap.String("last modified header", originalFeed.LastModifiedHeader))
 	feedUrl := originalFeed.FeedURL
-	feedDomain := common.Domain(feedUrl)
 	var avatar string
 	var updatedFeed *model.Feed
 	switch {
 	case strings.HasPrefix(feedUrl, "wechat://"):
 		updatedFeed, avatar = RefreshWeChatFeed(feedUrl[9:])
 		updateFeedIconByIconUrl(originalFeed, avatar)
-	case feedDomain == "www.youtube.com":
+	case strings.HasPrefix(feedUrl, "youtube://"):
 		feedUrl = strings.Replace(feedUrl, "youtube://", "https://www.youtube.com/", 1)
 		updatedFeed, avatar = RefreshYoutubeFeed(store, feedUrl, originalFeed.ID)
 		updateFeedIconByIconUrl(originalFeed, avatar)
