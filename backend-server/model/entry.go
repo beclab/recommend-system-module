@@ -178,6 +178,7 @@ type DownloadFetchReqModel struct {
 	DownloadUrl string `json:"download_url"`
 	FileName    string `json:"file_name"`
 	FileType    string `json:"file_type"`
+	Thumbnail   string `json:"thumbnail"`
 }
 
 type DownloadFetchResponseModel struct {

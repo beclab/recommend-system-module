@@ -70,33 +70,35 @@ func (h *handler) noMediaDownloadQuery(w http.ResponseWriter, r *http.Request) {
 
 	downloadUrl, downloadFile, downloadFileType := processor.DownloadTypeQueryByUrl(url)
 	if downloadFileType != "" {
-		h.respondWithJSON(w, r, downloadUrl, downloadFileType, downloadFile)
+		h.respondWithJSON(w, r, downloadUrl, downloadFileType, downloadFile, "")
 		return
 	}
 
 	rawContent, fileTypeFromContentType, fileNameFromContentType := crawler.FetchRawContent(bflUser, url)
 	if fileTypeFromContentType != "" {
-		h.respondWithJSON(w, r, url, fileTypeFromContentType, fileNameFromContentType)
+		h.respondWithJSON(w, r, url, fileTypeFromContentType, fileNameFromContentType, "")
 		return
 	}
 
-	_, _, _, _, _, _, _, _, downloadFileUrl, downloadFileType := processor.ArticleExtractor(rawContent, url)
+	_, _, _, imageUrlFromContent, title, _, _, _, downloadFileUrl, downloadFileType := processor.ArticleExtractor(rawContent, url)
 	if downloadFileType != "" {
 		fileName := crawler.GetFileNameFromUrl(downloadFileUrl, downloadFileType)
-		h.respondWithJSON(w, r, downloadFileUrl, downloadFileType, fileName)
+		h.respondWithJSON(w, r, downloadFileUrl, downloadFileType, fileName, "")
 		return
+	} else {
+		h.respondWithJSON(w, r, downloadFileUrl, "text/html", title, imageUrlFromContent)
 	}
 
-	h.respondWithJSON(w, r, "", "", "")
 }
 
-func (h *handler) respondWithJSON(w http.ResponseWriter, r *http.Request, downloadUrl, fileType, fileName string) {
+func (h *handler) respondWithJSON(w http.ResponseWriter, r *http.Request, downloadUrl, fileType, fileName string, thumbnail string) {
 	json.OK(w, r, model.DownloadFetchResponseModel{
 		Code: 0,
 		Data: model.DownloadFetchReqModel{
 			DownloadUrl: downloadUrl,
 			FileType:    fileType,
 			FileName:    fileName,
+			Thumbnail:   thumbnail,
 		},
 	})
 }
