@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"net/url"
+	"path/filepath"
 	"strings"
 
 	"bytetrade.io/web3os/backend-server/common"
@@ -310,7 +311,7 @@ func defaultFetchRawContent(url string, bflUser string) (string, string, string)
 	fileType := determineFileType(response.ContentType)
 	fileName := extractFileName(response.ContentDisposition)
 	if fileType != "" && fileName == "" {
-		fileName = getFileNameFromUrl(url, fileType)
+		fileName = GetFileNameFromUrl(url, response.ContentType)
 	}
 	if !isAllowedContentType(response.ContentType) {
 		common.Logger.Error("scraper: this resource is not a HTML document ", zap.String("url", url))
@@ -331,7 +332,7 @@ func defaultFetchRawContent(url string, bflUser string) (string, string, string)
 
 func determineFileType(reqContentType string) string {
 	switch {
-	case strings.HasPrefix(reqContentType, "text/html"):
+	case strings.HasPrefix(reqContentType, "text/html") || strings.HasPrefix(reqContentType, "application/xhtml+xml"):
 		return ""
 	case reqContentType == "application/pdf":
 		return common.PdfFileType
@@ -342,7 +343,7 @@ func determineFileType(reqContentType string) string {
 	case strings.HasPrefix(reqContentType, "video/"):
 		return common.VideoFileType
 	}
-	return ""
+	return reqContentType
 }
 
 func extractFileName(contentDisposition string) string {
@@ -367,16 +368,73 @@ func extractFileName(contentDisposition string) string {
 	}
 	return ""
 }
-func getFileNameFromUrl(url string, fileType string) string {
-	lastSlashIndex := strings.LastIndex(url, "/")
-	fileName := url[lastSlashIndex+1:]
-	if fileType == common.EbookFileType && !strings.HasSuffix(fileName, ".epub") {
-		fileName = fileName + ".epub"
+func GetFileNameFromUrl(urlString string, contentType string) string {
+	u, err := url.Parse(urlString)
+	if err != nil {
+		return "download"
 	}
-	if fileType == common.PdfFileType && !strings.HasSuffix(fileName, ".pdf") {
-		fileName = fileName + ".pdf"
+
+	path := u.Path
+	filename := filepath.Base(path)
+	if filename == "." || filename == "/" {
+		filename = "index"
 	}
-	return fileName
+
+	if idx := strings.Index(filename, "?"); idx != -1 {
+		filename = filename[:idx]
+	}
+
+	filename = strings.ReplaceAll(filename, "%20", "_")
+	filename = strings.ReplaceAll(filename, "+", "_")
+	filename = strings.ReplaceAll(filename, " ", "_")
+
+	base := filename
+	ext := filepath.Ext(filename)
+
+	if ext != "" {
+		return filename
+	}
+
+	switch {
+	case strings.HasPrefix(contentType, "image/jpeg"):
+		return base + ".jpg"
+	case strings.HasPrefix(contentType, "image/png"):
+		return base + ".png"
+	case strings.HasPrefix(contentType, "image/gif"):
+		return base + ".gif"
+	case strings.HasPrefix(contentType, "image/svg+xml"):
+		return base + ".svg"
+	case strings.HasPrefix(contentType, "image/webp"):
+		return base + ".webp"
+	case strings.HasPrefix(contentType, "application/pdf"):
+		return base + ".pdf"
+	case strings.HasPrefix(contentType, "application/epub+zip"):
+		return base + ".epub"
+	case strings.HasPrefix(contentType, "application/json"):
+		return base + ".json"
+	case strings.HasPrefix(contentType, "text/csv"):
+		return base + ".csv"
+	case strings.HasPrefix(contentType, "text/plain"):
+		return base + ".txt"
+	case strings.HasPrefix(contentType, "application/zip"):
+		return base + ".zip"
+	case strings.HasPrefix(contentType, "application/vnd.ms-excel"):
+		return base + ".xls"
+	case strings.HasPrefix(contentType, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"):
+		return base + ".xlsx"
+	case strings.HasPrefix(contentType, "application/msword"):
+		return base + ".doc"
+	case strings.HasPrefix(contentType, "application/vnd.openxmlformats-officedocument.wordprocessingml.document"):
+		return base + ".docx"
+	case strings.HasPrefix(contentType, "audio/mpeg"):
+		return base + ".mp3"
+	case strings.HasPrefix(contentType, "video/mp4"):
+		return base + ".mp4"
+	case strings.HasPrefix(contentType, "application/octet-stream"):
+		return base + ".bin"
+	default:
+		return base + ".download"
+	}
 }
 
 func isAllowedContentType(contentType string) bool {

@@ -178,8 +178,7 @@ type DownloadFetchReqModel struct {
 	DownloadUrl string `json:"download_url"`
 	FileName    string `json:"file_name"`
 	FileType    string `json:"file_type"`
-	LarepassId  string `json:"larepass_id"`
-	Folder      string `json:"folder"`
+	Thumbnail   string `json:"thumbnail"`
 }
 
 type DownloadFetchResponseModel struct {
