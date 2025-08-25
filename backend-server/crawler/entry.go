@@ -320,10 +320,10 @@ func defaultFetchRawContent(url string, bflUser string) (string, string, string)
 		return "", fileType, fileName
 	}
 
+	common.Logger.Info("fetch raw content ", zap.String("url", url))
 	clt := client.NewClientWithConfig(url)
 	clt.WithBflUser(bflUser)
 	response, err := clt.Get()
-	common.Logger.Info("fetch raw content finish", zap.String("url", url))
 	if err != nil {
 		common.Logger.Error("crawling entry rawContent error ", zap.String("url", url), zap.Error(err))
 		return "", "", ""
