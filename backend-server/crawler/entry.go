@@ -299,7 +299,27 @@ func FetchRawContent(bflUser, websiteURL string) (string, string, string) {
 	}
 }
 
+func nonHtmlExtract(url string, bflUser string) (string, string) {
+	clt := client.NewClientWithConfig(url)
+	clt.WithBflUser(bflUser)
+	response, err := clt.Head()
+	if err != nil {
+		common.Logger.Error("non html extract error ", zap.String("url", url), zap.Error(err))
+		return "", ""
+	}
+	fileType := determineFileType(response.ContentType)
+	fileName := extractFileName(response.ContentDisposition)
+	if fileType != "" && fileName == "" {
+		fileName = GetFileNameFromUrl(url, response.ContentType)
+	}
+	return fileType, fileName
+}
 func defaultFetchRawContent(url string, bflUser string) (string, string, string) {
+	fileType, fileName := nonHtmlExtract(url, bflUser)
+	if fileType != "" {
+		return "", fileType, fileName
+	}
+
 	clt := client.NewClientWithConfig(url)
 	clt.WithBflUser(bflUser)
 	response, err := clt.Get()
@@ -311,15 +331,6 @@ func defaultFetchRawContent(url string, bflUser string) (string, string, string)
 	if response.HasServerFailure() {
 		common.Logger.Error("crawling entry rawContent error ", zap.String("url", url))
 		return "", "", ""
-	}
-
-	fileType := determineFileType(response.ContentType)
-	fileName := extractFileName(response.ContentDisposition)
-	if fileType != "" && fileName == "" {
-		fileName = GetFileNameFromUrl(url, response.ContentType)
-	}
-	if fileType != "" {
-		return "", fileType, fileName
 	}
 	if !isAllowedContentType(response.ContentType) {
 		common.Logger.Error("scraper: this resource is not a HTML document ", zap.String("url", url))

@@ -170,6 +170,15 @@ func (c *Client) Get() (*Response, error) {
 	return c.executeRequest(request)
 }
 
+func (c *Client) Head() (*Response, error) {
+	request, err := c.buildRequest(http.MethodHead, nil)
+	if err != nil {
+		return nil, err
+	}
+	RequestAddCookie(request, c.inputURL, c.bflUser)
+	return c.executeRequest(request)
+}
+
 // PostForm performs a POST HTTP request with form encoded values.
 func (c *Client) PostForm(values url.Values) (*Response, error) {
 	request, err := c.buildRequest(http.MethodPost, strings.NewReader(values.Encode()))
