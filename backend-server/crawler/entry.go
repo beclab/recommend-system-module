@@ -334,19 +334,19 @@ func defaultFetchRawContent(url string, bflUser string) (string, string, string)
 	}
 	if !isAllowedContentType(response.ContentType) {
 		common.Logger.Error("scraper: this resource is not a HTML document ", zap.String("url", url))
-		return "", fileType, fileName
+		return "", "", ""
 	}
 	if err = response.EnsureUnicodeBody(); err != nil {
 		common.Logger.Error("scraper: this response check unicodeBody error ")
-		return "", fileType, fileName
+		return "", "", ""
 	}
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		common.Logger.Error("crawling entry rawContent error ", zap.String("url", url), zap.Error(err))
-		return "", fileType, fileName
+		return "", "", ""
 	}
 	common.Logger.Info("crawle raw content", zap.Int("length:", len(body)))
-	return string(body), fileType, fileName
+	return string(body), "", ""
 }
 
 func determineFileType(reqContentType string) string {
