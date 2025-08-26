@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/url"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"bytetrade.io/web3os/backend-server/common"
@@ -105,12 +106,15 @@ func handleWeibo(url string, bflUser string) *model.Entry {
 func EntryCrawler(url string, bflUser string, feedID string) *model.Entry {
 	primaryDomain := common.GetPrimaryDomain(url)
 	urlDomain := common.Domain(url)
+
+	opusPattern := `bilibili\.com/opus`
+	bilibiliOpusRe := regexp.MustCompile(opusPattern)
 	common.Logger.Info("crawler entry start", zap.String("url", url), zap.String("primary domain:", primaryDomain))
 
 	var entry *model.Entry
 	switch primaryDomain {
 	case "bilibili.com":
-		if urlDomain == "t.bilibili.com" {
+		if urlDomain == "t.bilibili.com" || bilibiliOpusRe.MatchString(url) {
 			entry = handleTBilibili(url, bflUser)
 		} else {
 			entry = handleDefault(url, bflUser)
@@ -295,7 +299,28 @@ func FetchRawContent(bflUser, websiteURL string) (string, string, string) {
 	}
 }
 
+func nonHtmlExtract(url string, bflUser string) (string, string) {
+	clt := client.NewClientWithConfig(url)
+	clt.WithBflUser(bflUser)
+	response, err := clt.Head()
+	if err != nil {
+		common.Logger.Error("non html extract error ", zap.String("url", url), zap.Error(err))
+		return "", ""
+	}
+	fileType := determineFileType(response.ContentType)
+	fileName := extractFileName(response.ContentDisposition)
+	if fileType != "" && fileName == "" {
+		fileName = GetFileNameFromUrl(url, response.ContentType)
+	}
+	return fileType, fileName
+}
 func defaultFetchRawContent(url string, bflUser string) (string, string, string) {
+	fileType, fileName := nonHtmlExtract(url, bflUser)
+	if fileType != "" {
+		return "", fileType, fileName
+	}
+
+	common.Logger.Info("fetch raw content ", zap.String("url", url))
 	clt := client.NewClientWithConfig(url)
 	clt.WithBflUser(bflUser)
 	response, err := clt.Get()
@@ -307,27 +332,21 @@ func defaultFetchRawContent(url string, bflUser string) (string, string, string)
 		common.Logger.Error("crawling entry rawContent error ", zap.String("url", url))
 		return "", "", ""
 	}
-
-	fileType := determineFileType(response.ContentType)
-	fileName := extractFileName(response.ContentDisposition)
-	if fileType != "" && fileName == "" {
-		fileName = GetFileNameFromUrl(url, response.ContentType)
-	}
 	if !isAllowedContentType(response.ContentType) {
 		common.Logger.Error("scraper: this resource is not a HTML document ", zap.String("url", url))
-		return "", fileType, fileName
+		return "", "", ""
 	}
 	if err = response.EnsureUnicodeBody(); err != nil {
 		common.Logger.Error("scraper: this response check unicodeBody error ")
-		return "", fileType, fileName
+		return "", "", ""
 	}
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		common.Logger.Error("crawling entry rawContent error ", zap.String("url", url), zap.Error(err))
-		return "", fileType, fileName
+		return "", "", ""
 	}
 	common.Logger.Info("crawle raw content", zap.Int("length:", len(body)))
-	return string(body), fileType, fileName
+	return string(body), "", ""
 }
 
 func determineFileType(reqContentType string) string {
