@@ -310,7 +310,7 @@ func nonHtmlExtract(url string, bflUser string) (string, string) {
 	fileType := determineFileType(response.ContentType)
 	fileName := extractFileName(response.ContentDisposition)
 	if fileType != "" && fileName == "" {
-		fileName = GetFileNameFromUrl(url, response.ContentType)
+		fileName, _ = GetFileNameFromUrl(url, response.ContentType)
 	}
 	return fileType, fileName
 }
@@ -387,10 +387,53 @@ func extractFileName(contentDisposition string) string {
 	}
 	return ""
 }
-func GetFileNameFromUrl(urlString string, contentType string) string {
+
+func addExt(base string, contentType string) (string, string) {
+	switch {
+	case strings.HasPrefix(contentType, "image/jpeg"):
+		return base + ".jpg", "jpg"
+	case strings.HasPrefix(contentType, "image/png"):
+		return base + ".png", "png"
+	case strings.HasPrefix(contentType, "image/gif"):
+		return base + ".gif", "gif"
+	case strings.HasPrefix(contentType, "image/svg+xml"):
+		return base + ".svg", "svg"
+	case strings.HasPrefix(contentType, "image/webp"):
+		return base + ".webp", "webp"
+	case strings.HasPrefix(contentType, "application/pdf"):
+		return base + ".pdf", "pdf"
+	case strings.HasPrefix(contentType, "application/epub+zip"):
+		return base + ".epub", "epub"
+	case strings.HasPrefix(contentType, "application/json"):
+		return base + ".json", "json"
+	case strings.HasPrefix(contentType, "text/csv"):
+		return base + ".csv", "csv"
+	case strings.HasPrefix(contentType, "text/plain"):
+		return base + ".txt", "txt"
+	case strings.HasPrefix(contentType, "application/zip"):
+		return base + ".zip", "zip"
+	case strings.HasPrefix(contentType, "application/vnd.ms-excel"):
+		return base + ".xls", "xls"
+	case strings.HasPrefix(contentType, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"):
+		return base + ".xlsx", "xlsx"
+	case strings.HasPrefix(contentType, "application/msword"):
+		return base + ".doc", "doc"
+	case strings.HasPrefix(contentType, "application/vnd.openxmlformats-officedocument.wordprocessingml.document"):
+		return base + ".docx", "docx"
+	case strings.HasPrefix(contentType, "audio/mpeg"):
+		return base + ".mp3", "mp3"
+	case strings.HasPrefix(contentType, "video/mp4"):
+		return base + ".mp4", "mp4"
+	case strings.HasPrefix(contentType, "application/octet-stream"):
+		return base + ".bin", "bin"
+	default:
+		return base + ".download", "download"
+	}
+}
+func GetFileNameFromUrl(urlString string, contentType string) (string, string) {
 	u, err := url.Parse(urlString)
 	if err != nil {
-		return "download"
+		return "download.", "download"
 	}
 
 	path := u.Path
@@ -411,49 +454,9 @@ func GetFileNameFromUrl(urlString string, contentType string) string {
 	ext := filepath.Ext(filename)
 
 	if ext != "" {
-		return filename
+		return filename, ext
 	}
-
-	switch {
-	case strings.HasPrefix(contentType, "image/jpeg"):
-		return base + ".jpg"
-	case strings.HasPrefix(contentType, "image/png"):
-		return base + ".png"
-	case strings.HasPrefix(contentType, "image/gif"):
-		return base + ".gif"
-	case strings.HasPrefix(contentType, "image/svg+xml"):
-		return base + ".svg"
-	case strings.HasPrefix(contentType, "image/webp"):
-		return base + ".webp"
-	case strings.HasPrefix(contentType, "application/pdf"):
-		return base + ".pdf"
-	case strings.HasPrefix(contentType, "application/epub+zip"):
-		return base + ".epub"
-	case strings.HasPrefix(contentType, "application/json"):
-		return base + ".json"
-	case strings.HasPrefix(contentType, "text/csv"):
-		return base + ".csv"
-	case strings.HasPrefix(contentType, "text/plain"):
-		return base + ".txt"
-	case strings.HasPrefix(contentType, "application/zip"):
-		return base + ".zip"
-	case strings.HasPrefix(contentType, "application/vnd.ms-excel"):
-		return base + ".xls"
-	case strings.HasPrefix(contentType, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"):
-		return base + ".xlsx"
-	case strings.HasPrefix(contentType, "application/msword"):
-		return base + ".doc"
-	case strings.HasPrefix(contentType, "application/vnd.openxmlformats-officedocument.wordprocessingml.document"):
-		return base + ".docx"
-	case strings.HasPrefix(contentType, "audio/mpeg"):
-		return base + ".mp3"
-	case strings.HasPrefix(contentType, "video/mp4"):
-		return base + ".mp4"
-	case strings.HasPrefix(contentType, "application/octet-stream"):
-		return base + ".bin"
-	default:
-		return base + ".download"
-	}
+	return addExt(base, contentType)
 }
 
 func isAllowedContentType(contentType string) bool {

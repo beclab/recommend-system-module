@@ -174,11 +174,17 @@ type EntryDownloadModel struct {
 	EntryId     string `json:"entry_id"`
 }
 
-type DownloadFetchReqModel struct {
+type DownloadFetchReqDataModel struct {
 	DownloadUrl string `json:"download_url"`
-	FileName    string `json:"file_name"`
+	File        string `json:"file"`
 	FileType    string `json:"file_type"`
 	Thumbnail   string `json:"thumbnail"`
+}
+
+type DownloadFetchReqModel struct {
+	Source string                      `json:"source"`
+	Title  string                      `json:"title"`
+	List   []DownloadFetchReqDataModel `json:"list"`
 }
 
 type DownloadFetchResponseModel struct {
