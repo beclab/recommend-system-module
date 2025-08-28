@@ -58,7 +58,7 @@ func getDownloadFromEntry(entry *model.Entry, feed *model.Feed, store *storage.S
 		folder = "Downloads/Wise/Feed/" + feed.Title
 	}
 	download.Path = folder
-	common.Logger.Info("get download info", zap.String("file type:", download.FileType), zap.String("enclosureID:", download.EnclosureId))
+	common.Logger.Info("get download info", zap.String("entry file_type:", entry.FileType), zap.String("enclosureID:", download.EnclosureId))
 	return &download
 
 }
