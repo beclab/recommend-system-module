@@ -43,15 +43,14 @@ func getDownloadFromEntry(entry *model.Entry, feed *model.Feed, store *storage.S
 	download.EntryId = entry.ID
 
 	folder := "Downloads/Wise/Article"
-	if entry.FileType == common.ArticleFileType {
-		exist := store.GetEnclosureNumByEntry(entry.ID)
-		if exist > 0 {
-			common.Logger.Info("new enclosure exit where entry's enclosure exist ", zap.String("entry id:", entry.ID))
-			return nil
-		}
-		enclosureID, _ := store.CreateEnclosure(entry)
-		download.EnclosureId = enclosureID
-	} else {
+	exist := store.GetEnclosureNumByEntry(entry.ID)
+	if exist > 0 {
+		common.Logger.Info("new enclosure exit where entry's enclosure exist ", zap.String("entry id:", entry.ID))
+		return nil
+	}
+	enclosureID, _ := store.CreateEnclosure(entry)
+	download.EnclosureId = enclosureID
+	if entry.FileType != common.ArticleFileType {
 		folder = "Downloads/Wise/" + strings.ToUpper(string(entry.FileType[0])) + entry.FileType[1:] + "s"
 	}
 	if feed != nil {
