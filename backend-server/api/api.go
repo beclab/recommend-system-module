@@ -27,7 +27,7 @@ func Serve(router *mux.Router, store *storage.Storage, pool *worker.Pool) {
 	sr.HandleFunc("/entries/{entryID}/fetch-content", handler.fetchContent).Methods(http.MethodGet)
 	sr.HandleFunc("/knowledge/entries/{entryID}/fetch-content", handler.knowledgeFetchContent).Methods(http.MethodGet)
 
-	sr.HandleFunc("/knowledge/noMediaDownloadQuery", handler.noMediaDownloadQuery).Methods(http.MethodGet)
+	sr.HandleFunc("/knowledge/getDownloadInfo", handler.downloadInfo).Methods(http.MethodGet)
 
 	sr.HandleFunc("/knowledge/getPvcAnnotation", handler.getPvcAnnotation).Methods(http.MethodGet)
 

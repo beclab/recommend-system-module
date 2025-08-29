@@ -17,6 +17,8 @@ const (
 )
 
 const FeedSource = "wise"
+const DownloadSourceYtdlp = "yt-dlp"
+const DownloadSourceAria2 = "aria2"
 
 const (
 	defaultListenAddr            = "127.0.0.1:8081"

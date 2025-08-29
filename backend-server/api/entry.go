@@ -63,42 +63,48 @@ func (h *handler) knowledgeFetchContent(w http.ResponseWriter, r *http.Request) 
 	json.NoContent(w, r)
 }
 
-func (h *handler) noMediaDownloadQuery(w http.ResponseWriter, r *http.Request) {
+func (h *handler) downloadInfo(w http.ResponseWriter, r *http.Request) {
 	url := request.QueryStringParam(r, "url", "")
 	bflUser := request.QueryStringParam(r, "bfl_user", "")
 	common.Logger.Info("knowledge download file query", zap.String("url", url), zap.String("bfl_user", bflUser))
 
 	downloadUrl, downloadFile, downloadFileType := processor.DownloadTypeQueryByUrl(url)
 	if downloadFileType != "" {
-		h.respondWithJSON(w, r, downloadUrl, downloadFileType, downloadFile, "")
+		h.respondWithJSON(w, r, downloadUrl, downloadFileType, downloadFile, "", "")
 		return
 	}
 
 	rawContent, fileTypeFromContentType, fileNameFromContentType := crawler.FetchRawContent(bflUser, url)
 	if fileTypeFromContentType != "" {
-		h.respondWithJSON(w, r, url, fileTypeFromContentType, fileNameFromContentType, "")
+		h.respondWithJSON(w, r, url, fileTypeFromContentType, fileNameFromContentType, "", "")
 		return
 	}
 
 	_, _, _, imageUrlFromContent, title, _, _, _, downloadFileUrl, downloadFileType := processor.ArticleExtractor(rawContent, url)
 	if downloadFileType != "" {
-		fileName := crawler.GetFileNameFromUrl(downloadFileUrl, downloadFileType)
-		h.respondWithJSON(w, r, downloadFileUrl, downloadFileType, fileName, "")
+		_, ext := crawler.GetFileNameFromUrl(downloadFileUrl, downloadFileType)
+		fileName := title + ext
+		h.respondWithJSON(w, r, downloadFileUrl, downloadFileType, fileName, title, "")
 		return
 	} else {
-		h.respondWithJSON(w, r, downloadFileUrl, "text/html", title, imageUrlFromContent)
+		h.respondWithJSON(w, r, downloadFileUrl, "text/html", title, title, imageUrlFromContent)
 	}
 
 }
 
-func (h *handler) respondWithJSON(w http.ResponseWriter, r *http.Request, downloadUrl, fileType, fileName string, thumbnail string) {
+func (h *handler) respondWithJSON(w http.ResponseWriter, r *http.Request, downloadUrl, fileType, fileName string, title string, thumbnail string) {
+	list := []model.DownloadFetchReqDataModel{
+		{DownloadUrl: downloadUrl,
+			FileType:  fileType,
+			File:      fileName,
+			Thumbnail: thumbnail},
+	}
 	json.OK(w, r, model.DownloadFetchResponseModel{
 		Code: 0,
 		Data: model.DownloadFetchReqModel{
-			DownloadUrl: downloadUrl,
-			FileType:    fileType,
-			FileName:    fileName,
-			Thumbnail:   thumbnail,
+			Title:  title,
+			Source: common.DownloadSourceAria2,
+			List:   list,
 		},
 	})
 }
