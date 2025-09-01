@@ -163,7 +163,7 @@ func fetchPage(bflUser, websiteURL string) *Response {
 			common.Logger.Error("crawling entry rawContent error ", zap.String("url", websiteURL), zap.Error(err))
 			return nil
 		}
-
+		common.Logger.Error("bilibili crawler ", zap.String("url", websiteURL), zap.String("content", string(body)))
 		var data Response
 		if err := json.Unmarshal(body, &data); err != nil {
 			return nil
