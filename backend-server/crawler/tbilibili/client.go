@@ -127,7 +127,7 @@ func generateEntry(resp *Response) *model.Entry {
 
 	}
 	entry.Title = common.GetFirstSentence(resp.Data.Item.Modules.DynamicModule.DynamicDesc.DynamicText)
-
+	common.Logger.Error("generate bilibili entry ", zap.Int("content size", len(entry.FullContent)), zap.String("title", entry.Title))
 	return entry
 
 }
