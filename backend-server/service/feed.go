@@ -133,7 +133,7 @@ func RefreshFeed(store *storage.Storage, feedID string) {
 		updateFeedIconByIconUrl(originalFeed, avatar)
 	case strings.HasPrefix(feedUrl, "youtube://"):
 		feedUrl = strings.Replace(feedUrl, "youtube://", "https://www.youtube.com/", 1)
-		updatedFeed, avatar = RefreshYoutubeFeed(store, feedUrl, originalFeed.ID)
+		updatedFeed, avatar = RefreshYoutubeFeed(store, feedUrl, originalFeed.ID, originalFeed.BflUser)
 		updateFeedIconByIconUrl(originalFeed, avatar)
 	default:
 		updatedFeed = handleDefaultFeed(store, originalFeed, feedUrl)
