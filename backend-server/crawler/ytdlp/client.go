@@ -29,7 +29,7 @@ func IsMetaFromYtdlp(url string) bool {
 }
 
 func Fetch(bflUser, url string) *model.Entry {
-	apiUrl := common.YTDLPApiUrl() + "/v1/get_metadata?url=" + url + "&bfl_user=" + bflUser
+	apiUrl := common.YTDLPApiUrl() + "/v1/get_metadata?bfl_user=" + bflUser + "&url=" + url
 	common.Logger.Info("load meta from ytdlp", zap.String("url", apiUrl))
 	client := &http.Client{Timeout: time.Second * 50}
 	res, err := client.Get(apiUrl)
