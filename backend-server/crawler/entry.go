@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/url"
 	"path/filepath"
-	"regexp"
 	"strings"
 
 	"bytetrade.io/web3os/backend-server/common"
@@ -107,14 +106,14 @@ func EntryCrawler(url string, bflUser string, feedID string) *model.Entry {
 	primaryDomain := common.GetPrimaryDomain(url)
 	urlDomain := common.Domain(url)
 
-	opusPattern := `bilibili\.com/opus`
-	bilibiliOpusRe := regexp.MustCompile(opusPattern)
+	//opusPattern := `bilibili\.com/opus`
+	//bilibiliOpusRe := regexp.MustCompile(opusPattern)
 	common.Logger.Info("crawler entry start", zap.String("url", url), zap.String("primary domain:", primaryDomain))
 
 	var entry *model.Entry
 	switch primaryDomain {
 	case "bilibili.com":
-		if urlDomain == "t.bilibili.com" || bilibiliOpusRe.MatchString(url) {
+		if urlDomain == "t.bilibili.com" { //|| bilibiliOpusRe.MatchString(url) {
 			entry = handleTBilibili(url, bflUser)
 		} else {
 			entry = handleDefault(url, bflUser)

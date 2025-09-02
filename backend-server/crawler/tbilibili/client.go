@@ -127,7 +127,7 @@ func generateEntry(resp *Response) *model.Entry {
 
 	}
 	entry.Title = common.GetFirstSentence(resp.Data.Item.Modules.DynamicModule.DynamicDesc.DynamicText)
-
+	common.Logger.Error("generate bilibili entry ", zap.Int("content size", len(entry.FullContent)), zap.String("title", entry.Title))
 	return entry
 
 }
@@ -163,7 +163,7 @@ func fetchPage(bflUser, websiteURL string) *Response {
 			common.Logger.Error("crawling entry rawContent error ", zap.String("url", websiteURL), zap.Error(err))
 			return nil
 		}
-
+		common.Logger.Error("bilibili crawler ", zap.String("url", websiteURL), zap.String("content", string(body)))
 		var data Response
 		if err := json.Unmarshal(body, &data); err != nil {
 			return nil
