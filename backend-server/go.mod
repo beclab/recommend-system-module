@@ -18,7 +18,7 @@ require (
 
 require (
 	github.com/PuerkitoBio/goquery v1.9.1
-	github.com/beclab/article-extractor v0.0.57
+	github.com/beclab/article-extractor v0.0.58
 	github.com/chromedp/cdproto v0.0.0-20250222051814-50c6cb17f10a
 	github.com/chromedp/chromedp v0.13.0
 	github.com/gorilla/mux v1.8.1
