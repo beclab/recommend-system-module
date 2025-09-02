@@ -38,6 +38,9 @@ func getDownloadFromEntry(entry *model.Entry, feed *model.Feed, store *storage.S
 	download.DataSource = entry.DownloadFileUrl
 	download.DownloadAPP = common.FeedSource
 	download.FileName = entry.DownloadFileName
+	if download.FileName == "" {
+		download.FileName = entry.Title
+	}
 	download.FileType = entry.DownloadFileType
 	download.BflUser = entry.BflUser
 	download.EntryId = entry.ID
